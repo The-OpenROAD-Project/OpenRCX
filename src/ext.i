@@ -3,5 +3,7 @@
 #include "ext.h"
 %}
 
+%include <std_string.i>
+
 %include "ext.h"
 
