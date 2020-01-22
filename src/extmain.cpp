@@ -407,6 +407,60 @@ void extMain::setupMapping(uint itermCnt)
   _nodeTable  = new Ath__array1D<int>(16000);
 }
 extMain::extMain(uint menuId)
+    : _db(nullptr),
+      _tech(nullptr),
+      _block(nullptr),
+      _spef(nullptr),
+      _origSpefFilePrefix(nullptr),
+      _newSpefFilePrefix(nullptr),
+      _excludeCells(nullptr),
+      _ibox(nullptr),
+      _seqPool(nullptr),
+      _dgContextBaseTrack(nullptr),
+      _dgContextLowTrack(nullptr),
+      _dgContextHiTrack(nullptr),
+      _dgContextTrackBase(nullptr),
+      _prevControl(nullptr),
+      _wireBinTable(nullptr),
+      _cntxBinTable(nullptr),
+      _cntxInstTable(nullptr),
+      _tiles(nullptr),
+      _blkInfoVDD(nullptr),
+      _viaInfoVDD(nullptr),
+      _blkInfoGND(nullptr),
+      _viaInfoGND(nullptr),
+      _stdCirVDD(nullptr),
+      _globCirVDD(nullptr),
+      _globGeomVDD(nullptr),
+      _stdCirGND(nullptr),
+      _globCirGND(nullptr),
+      _stdCirHeadVDD(nullptr),
+      _globCirHeadVDD(nullptr),
+      _globGeomGND(nullptr),
+      _stdCirHeadGND(nullptr),
+      _globCirHeadGND(nullptr),
+      _blkInfo(nullptr),
+      _viaInfo(nullptr),
+      _globCir(nullptr),
+      _globGeom(nullptr),
+      _stdCir(nullptr),
+      _globCirHead(nullptr),
+      _stdCirHead(nullptr),
+      _viaStackGlobCir(nullptr),
+      _viaStackGlobVDD(nullptr),
+      _viaStackGlobGND(nullptr),
+      _junct2viaMap(nullptr),
+      _netUtil(nullptr),
+      _viaM1Table(nullptr),
+      _viaUpTable(nullptr),
+      _via2JunctionMap(nullptr),
+      _supplyViaMap({nullptr, nullptr}),
+      _supplyViaTable({nullptr, nullptr}),
+      _coordsFP(nullptr),
+      _coordsGND(nullptr),
+      _coordsVDD(nullptr),
+      _subCktNodeFP({{nullptr, nullptr}, {nullptr, nullptr}}),
+      _junct2iterm(nullptr)
 {
   _power_extract_only      = false;
   _skip_power_stubs        = false;
@@ -704,8 +758,8 @@ uint extMain::getResCapTable(bool lefRC)
   }
   //	if (allRzero)
   //	{
-  //		odb::notice(0, "\nWarning: No RESISTANCE from all layers in the lef
-  //files. Can't do extraction.\n\n"); 		return 0;
+  //		odb::notice(0, "\nWarning: No RESISTANCE from all layers in the
+  //lef files. Can't do extraction.\n\n"); 		return 0;
   //	}
   return cnt;
 }
@@ -898,8 +952,8 @@ uint extMain::extInspect(odb::ZPtr<odb::IZdcr> dcr, uint boxType)
   uint wid = _extDcr->getSubmenuObjId(&insp2);
 
   if (_extDcr->msgAction()) {
-    int   x1, y1, x2, y2;
-    uint  level, id1, id2, wtype;
+    int         x1, y1, x2, y2;
+    uint        level, id1, id2, wtype;
     const char* typeWord = NULL;
 
     if (_extDcr->isInspectSubMenu(_menuId, _CCsegId)) {
@@ -1409,9 +1463,9 @@ void extMain::ccReportProgress()
   uint repChunk = 1000000;
   if ((_totSegCnt > 0) && (_totSegCnt % repChunk == 0)) {
     // if ((_totSignalSegCnt>0)&&(_totSignalSegCnt%5000000==0))
-    //		fprintf(stdout, "Have processed %d total segments, %d signal segments,
-    //%d CC caps, and stored %d CC caps\n", 			_totSegCnt, _totSignalSegCnt,
-    //_totCCcnt, _totBigCCcnt);
+    //		fprintf(stdout, "Have processed %d total segments, %d signal
+    //segments, %d CC caps, and stored %d CC caps\n", _totSegCnt,
+    //_totSignalSegCnt, _totCCcnt, _totBigCCcnt);
     odb::notice(0,
                 "Have processed %d total segments, %d signal segments, %d CC "
                 "caps, and stored %d CC caps\n",
@@ -1446,8 +1500,8 @@ void extMain::measureRC(int* options)
   m._ccMergedContextArray  = _ccMergedContextArray;
 
   //	fprintf(stdout, "extCompute:: met= %d  len= %d  dist= %d  <===>
-  //modelCnt= %d  layerCnt= %d\n", 		met, len, dist,	m->getModelCnt(),
-  //m->getLayerCnt());
+  // modelCnt= %d  layerCnt= %d\n", 		met, len, dist,
+  // m->getModelCnt(), m->getLayerCnt());
 
   uint debugNetId = 6;
 
@@ -1503,7 +1557,7 @@ void extMain::measureRC(int* options)
       int pxy   = m._dir ? m._ll[0] : m._ll[1];
       int pbase = m._dir ? m._ur[1] : m._ur[0];
       //		  fprintf(stdout, "Context of layer %d, xy=%d len=%d
-      //base=%d width=%d :\n", m._met, pxy, m._len, pbase, m._s_nm);
+      // base=%d width=%d :\n", m._met, pxy, m._len, pbase, m._s_nm);
       odb::notice(0,
                   "Context of layer %d, xy=%d len=%d base=%d width=%d :\n",
                   m._met,
@@ -1534,8 +1588,8 @@ void extMain::measureRC(int* options)
       }
     }
     //		for (uint ii= 0; _ccContextArray!=NULL && m._met>1 &&
-    //ii<_ccContextArray[m._met]->getCnt(); ii++) { 			fprintf(stdout, "ii= %d --
-    //%d\n", ii, _ccContextArray[m._met]->get(ii));
+    // ii<_ccContextArray[m._met]->getCnt(); ii++) { 			fprintf(stdout, "ii= %d
+    // -- %d\n", ii, _ccContextArray[m._met]->get(ii));
     //		}
     totLenCovered = m.measureOverUnderCap();
   }
