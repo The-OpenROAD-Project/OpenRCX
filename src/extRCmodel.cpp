@@ -3742,7 +3742,7 @@ void extRCModel::writeRules(char* name, bool binary)
   FILE* fp = fopen(name, "w");
 
   uint cnt = 0;
-  fprintf(fp, "Extraction Rules for Nefelus Tools\n\n");
+  fprintf(fp, "Extraction Rules for OpenRCX\n\n");
   if (_diag) {
     if (_diagModel == 1)
       fprintf(fp, "DIAGMODEL ON\n\n");

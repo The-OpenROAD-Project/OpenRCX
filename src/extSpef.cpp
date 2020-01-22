@@ -2040,7 +2040,7 @@ bool extSpef::writeHeaderInfo(uint debug)
 
   ATH__fprintf(_outFP, "*DATE \"11:11:11 Fri 11 11, 1111\"\n");
 
-  ATH__fprintf(_outFP, "*VENDOR \"Nefelus, Inc\"\n");
+  ATH__fprintf(_outFP, "*VENDOR \"OpenRCX\"\n");
   ATH__fprintf(_outFP, "*PROGRAM \"Parallel Extraction\"\n");
   ATH__fprintf(_outFP, "*VERSION \"1.0\"\n");
   ATH__fprintf(_outFP, "*DESIGN_FLOW \"NAME_SCOPE LOCAL\" \"PIN_CAP NONE\"\n");
