@@ -1314,7 +1314,7 @@ void v_printWireNeighbor(void* ip,
                          uint  met,
                          void* v_swire,
                          void* v_topNeighbor,
-                         void* v_botNeighbor);
+                         void* v_botNeighbor) {}
 void extCompute(int* inputTable, void* extModel);
 void extCompute1(int* inputTable, void* extModel);
 
