@@ -395,7 +395,7 @@ bool Ext::get_ext_db_corner(int& index, const std::string& name)
   index = _ext->getDbCornerIndex(name.c_str());
 
   if (index < 0)
-    warning(0, "extraction corner %s not found\n", name);
+    warning(0, "extraction corner %s not found\n", name.c_str());
 
   return TCL_OK;
 }
