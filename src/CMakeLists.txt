@@ -80,6 +80,11 @@ swig_link_libraries(openrcx
         opendb 
 )
 
+target_include_directories(openrcx
+  PRIVATE
+  ${OPENROAD_HOME}/include
+)
+
 target_include_directories(OpenRCX
   PUBLIC ${OPENRCX_HOME}/include
   PRIVATE

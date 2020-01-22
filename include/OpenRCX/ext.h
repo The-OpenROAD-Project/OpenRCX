@@ -121,46 +121,53 @@ class Ext
                        bool           parallel,
                        int            corner);
   bool flatten(odb::dbBlock* block, bool spef);
-  bool extract(bool               min,
-               bool               max,
-               bool               typ,
-               int                set_min,
-               int                set_typ,
-               int                set_max,
-               bool               litho,
-               bool               wire_density,
-               const std::string& cmp_file,
-               const std::string& ext_model_file,
-               const std::string& net,
-               const std::string& bbox,
-               const std::string& ibox,
-               int                test,
-               int                cc_band_tracks,
-               int                signal_table,
-               int                cc_up,
-               uint               preserve_geom,
-               int                corner_cnt,
-               double             max_res,
-               bool               no_merge_via_res,
-               float              coupling_threshold,
-               int                context_depth,
-               int                cc_model,
-               bool               over_cell,
-               bool               remove_cc,
-               bool               remove_ext,
-               bool               unlink_ext,
-               bool               eco,
-               bool               no_gs,
-               bool               re_run,
-               bool               tile,
-               int                tiling,
-               bool               skip_m1_caps,
-               bool               power_grid,
-               const std::string& exclude_cells,
-               bool               skip_power_stubs,
-               const std::string& power_source_coords,
-               bool               lef_rc,
-               bool               rlog);
+
+  struct ExtractOptions
+  {
+    bool        min                 = false;
+    bool        max                 = false;
+    bool        typ                 = false;
+    int         set_min             = -1;
+    int         set_typ             = -1;
+    int         set_max             = -1;
+    bool        litho               = false;
+    bool        wire_density        = false;
+    const char* cmp_file            = nullptr;
+    const char* ext_model_file      = nullptr;
+    const char* net                 = nullptr;
+    const char* bbox                = nullptr;
+    const char* ibox                = nullptr;
+    int         test                = 0;
+    int         cc_band_tracks      = 1000;
+    int         signal_table        = 3;
+    int         cc_up               = 2;
+    uint        preserve_geom       = 0;
+    int         corner_cnt          = 1;
+    double      max_res             = 50.0;
+    bool        no_merge_via_res    = false;
+    float       coupling_threshold  = 0.1;
+    int         context_depth       = 0;
+    int         cc_model            = 40;
+    bool        over_cell           = false;
+    bool        remove_cc           = false;
+    bool        remove_ext          = false;
+    bool        unlink_ext          = false;
+    bool        eco                 = false;
+    bool        no_gs               = false;
+    bool        re_run              = false;
+    bool        tile                = false;
+    int         tiling              = 0;
+    bool        skip_m1_caps        = false;
+    bool        power_grid          = false;
+    const char* exclude_cells       = nullptr;
+    bool        skip_power_stubs    = false;
+    const char* power_source_coords = nullptr;
+    bool        lef_rc              = false;
+    bool        rlog                = false;
+  };
+
+  bool extract(ExtractOptions options);
+
   bool define_process_corner(int ext_model_index, const std::string& name);
   bool define_derived_corner(const std::string& name,
                              const std::string& process_corner_name,
@@ -178,35 +185,40 @@ class Ext
                              const std::string& reader,
                              bool               no_backslash,
                              const std::string& exclude_cells);
-  bool write_spef(const std::string& nets,
-                  int                net_id,
-                  const std::string& ext_corner_name,
-                  int                corner,
-                  int                debug,
-                  bool               flatten,
-                  bool               parallel,
-                  bool               init,
-                  bool               end,
-                  bool               use_ids,
-                  bool               no_name_map,
-                  const std::string& N,
-                  bool               term_junction_xy,
-                  bool               single_pi,
-                  const std::string& file,
-                  bool               gz,
-                  bool               stop_after_map,
-                  bool               w_clock,
-                  bool               w_conn,
-                  bool               w_cap,
-                  bool               w_cc_cap,
-                  bool               w_res,
-                  bool               no_c_num,
-                  bool               prime_time,
-                  bool               psta,
-                  bool               no_backslash,
-                  const std::string& exclude_cells,
-                  const std::string& cap_units,
-                  const std::string& res_units);
+  struct SpefOptions
+  {
+    const char* nets = nullptr;
+    int         net_id = 0;
+    const char* ext_corner_name = nullptr;
+    int         corner = -1;
+    int         debug = 0;
+    bool        flatten = false;
+    bool        parallel = false;
+    bool        init = false;
+    bool        end = false;
+    bool        use_ids = false;
+    bool        no_name_map = false;
+    const char* N = nullptr;
+    bool        term_junction_xy = false;
+    bool        single_pi = false;
+    const char* file = nullptr;
+    bool        gz = false;
+    bool        stop_after_map = false;
+    bool        w_clock = false;
+    bool        w_conn = false;
+    bool        w_cap = false;
+    bool        w_cc_cap = false;
+    bool        w_res = false;
+    bool        no_c_num = false;
+    bool        prime_time = false;
+    bool        psta = false;
+    bool        no_backslash = false;
+    const char* exclude_cells = nullptr;
+    const char* cap_units = "PF";
+    const char* res_units = "OHM";
+  };
+  bool write_spef(const SpefOptions& options);
+
   bool independent_spef_corner();
   bool read_spef(const std::string& file,
                  const std::string& net,
@@ -313,9 +325,12 @@ class Ext
                  const std::string& branch_len);
 
  private:
+  void dbUpdate();
+
   extMain*   _ext;
   extRcTree* _tree;
-};
+  bool       _initWithChip;
+};  // namespace OpenRCX
 
 }  // namespace OpenRCX
 
