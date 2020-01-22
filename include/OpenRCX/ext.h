@@ -33,17 +33,24 @@
 #ifndef ADS_EXT_H
 #define ADS_EXT_H
 
+#include <tcl.h>
+
 #include "extRCap.h"
 #include "exttree.h"
 #include "tm.h"
 
 namespace OpenRCX {
 
-class Ext : public odb::ZTechModule<Ext>
+class Ext
+#ifndef SWIG  // causes swig warnings
+    : public odb::ZTechModule<Ext>
+#endif
 {
  public:
   Ext();
   ~Ext();
+
+  void init(Tcl_Interp* tcl_interp, odb::dbDatabase* db);
 
   bool load_model(const std::string& name,
                   bool               lef_rc,

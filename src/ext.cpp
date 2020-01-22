@@ -32,16 +32,14 @@
 #include <errno.h>
 
 #include "ext.h"
-//#include "../dcr/Crawler.h"
-//#include "ext_Tcl.h"
 #include "logger.h"
 #include "tm.hpp"
 
-#define TCL_IN_ARGS(name) name* in_args = (name*) in
-
-#define TCL_OUT_ARGS(name) name* out_args = (name*) out
-
 namespace OpenRCX {
+
+extern "C" {
+extern int Openrcx_Init(Tcl_Interp *interp);
+}
 
 template <>
 const char* odb::ZTechModule<Ext>::_module = nullptr;
@@ -49,13 +47,23 @@ const char* odb::ZTechModule<Ext>::_module = nullptr;
 Ext::Ext() : odb::ZTechModule<Ext>(nullptr, nullptr)
 {
   _ext = new extMain(5);
-  _ext->setDB(_db);
   _tree = NULL;
 }
 
 Ext::~Ext()
 {
   delete _ext;
+}
+
+void Ext::init(Tcl_Interp* tcl_interp, odb::dbDatabase* db)
+{
+  _db = db;
+  _ext->setDB(db);
+
+  // Define swig TCL commands.
+  Openrcx_Init(tcl_interp);
+  // Eval encoded sta TCL sources.
+  //sta::evalTclInit(tcl_interp, sta::openrcx_tcl_inits);
 }
 
 bool Ext::load_model(const std::string& name,

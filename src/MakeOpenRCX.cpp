@@ -49,9 +49,8 @@ void deleteTapcell(OpenRCX::Ext* extractor)
 
 void initOpenRCX(OpenRoad* openroad)
 {
-  // FIXME MATT
-  // openroad->getOpenRCX()->init(openroad->tclInterp(),
-  //   		    openroad->getDb());
+  openroad->getOpenRCX()->init(openroad->tclInterp(),
+                               openroad->getDb());
 }
 
 }  // namespace ord

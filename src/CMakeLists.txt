@@ -56,6 +56,30 @@ add_library(OpenRCX
     MakeOpenRCX.cpp
 )
 
+find_package(SWIG REQUIRED)
+include(UseSWIG)
+
+include_directories(PRIVATE ${PROJECT_SOURCE_DIR}/include/OpenRCX)
+
+set(OPENRCX_SWIG_FILES
+    ${PROJECT_SOURCE_DIR}/src/ext.i
+)
+
+set_source_files_properties(${OPENRCX_SWIG_FILES}
+    PROPERTIES CPLUSPLUS ON
+)
+
+swig_add_library(openrcx
+    LANGUAGE tcl
+    TYPE STATIC
+    SOURCES ${OPENRCX_SWIG_FILES}
+)
+
+swig_link_libraries(openrcx
+    PUBLIC
+        opendb 
+)
+
 target_include_directories(OpenRCX
   PUBLIC ${OPENRCX_HOME}/include
   PRIVATE
@@ -65,4 +89,5 @@ target_include_directories(OpenRCX
 
 target_link_libraries(OpenRCX
                       opendb
+                      openrcx
 )
