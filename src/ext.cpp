@@ -34,6 +34,12 @@
 #include "ext.h"
 #include "logger.h"
 #include "tm.hpp"
+#include "StaMain.hh"
+
+namespace sta {
+// Tcl files encoded into strings.
+extern const char *openrcx_tcl_inits[];
+}
 
 template <>
 const char* odb::ZTechModule<OpenRCX::Ext>::_module = nullptr;
@@ -74,9 +80,7 @@ void Ext::init(Tcl_Interp* tcl_interp, odb::dbDatabase* db)
 
   // Define swig TCL commands.
   Openrcx_Init(tcl_interp);
-  // Eval encoded sta TCL sources.
-  // sta::evalTclInit(tcl_interp, sta::openrcx_tcl_inits);
-  //_context._interp = tcl_interp;
+  sta::evalTclInit(tcl_interp, sta::openrcx_tcl_inits);
 }
 
 bool Ext::load_model(const std::string& name,
