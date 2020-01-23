@@ -59,7 +59,7 @@ add_library(OpenRCX
 find_package(SWIG REQUIRED)
 include(UseSWIG)
 
-include_directories(PRIVATE ${PROJECT_SOURCE_DIR}/include/OpenRCX)
+include_directories(PRIVATE ${PROJECT_SOURCE_DIR}/include/OpenRCX ${TCL_INCLUDE_PATH})
 
 set(OPENRCX_SWIG_FILES
     ${PROJECT_SOURCE_DIR}/src/ext.i
