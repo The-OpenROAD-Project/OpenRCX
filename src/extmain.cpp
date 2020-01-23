@@ -454,12 +454,12 @@ extMain::extMain(uint menuId)
       _viaM1Table(nullptr),
       _viaUpTable(nullptr),
       _via2JunctionMap(nullptr),
-      _supplyViaMap({nullptr, nullptr}),
-      _supplyViaTable({nullptr, nullptr}),
+      _supplyViaMap{nullptr, nullptr},
+      _supplyViaTable{nullptr, nullptr},
       _coordsFP(nullptr),
       _coordsGND(nullptr),
       _coordsVDD(nullptr),
-      _subCktNodeFP({{nullptr, nullptr}, {nullptr, nullptr}}),
+      _subCktNodeFP{{nullptr, nullptr}, {nullptr, nullptr}},
       _junct2iterm(nullptr)
 {
   _power_extract_only      = false;

@@ -35,14 +35,14 @@
 #include "logger.h"
 #include "tm.hpp"
 
+template <>
+const char* odb::ZTechModule<OpenRCX::Ext>::_module = nullptr;
+
 namespace OpenRCX {
 
 extern "C" {
 extern int Openrcx_Init(Tcl_Interp* interp);
 }
-
-template <>
-const char* odb::ZTechModule<Ext>::_module = nullptr;
 
 Ext::Ext() : odb::ZTechModule<Ext>(nullptr, nullptr)
 {
