@@ -48,6 +48,7 @@ Ext::Ext() : odb::ZTechModule<Ext>(nullptr, nullptr)
 {
   _ext  = new extMain(5);
   _tree = NULL;
+  _initWithChip = false;
 }
 
 Ext::~Ext()
