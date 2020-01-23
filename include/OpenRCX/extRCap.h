@@ -2807,7 +2807,7 @@ class extMain
   void writeViaResistors(FILE* fp,
                          uint  ii,
                          FILE* fp1,
-                         bool  skipWireConn = NULL);
+                         bool  skipWireConn = false);
   // 063011D END
   // 071211D BEGIN
   void  writeGeomHeader(FILE* fp, const char* vdd);

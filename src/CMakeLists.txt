@@ -69,18 +69,18 @@ set_source_files_properties(${OPENRCX_SWIG_FILES}
     PROPERTIES CPLUSPLUS ON
 )
 
-swig_add_library(openrcx
+swig_add_library(openrcx-swig
     LANGUAGE tcl
     TYPE STATIC
     SOURCES ${OPENRCX_SWIG_FILES}
 )
 
-swig_link_libraries(openrcx
+swig_link_libraries(openrcx-swig
     PUBLIC
         opendb 
 )
 
-target_include_directories(openrcx
+target_include_directories(openrcx-swig
   PRIVATE
   ${OPENROAD_HOME}/include
 )
@@ -94,5 +94,5 @@ target_include_directories(OpenRCX
 
 target_link_libraries(OpenRCX
                       opendb
-                      openrcx
+                      openrcx-swig
 )
