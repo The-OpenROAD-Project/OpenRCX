@@ -3689,7 +3689,7 @@ odb::dbBox* extMain::createMultiVia(uint top, uint bot, odb::adsRect* r)
   odb::dbTech* tech = _block->getDb()->getTech();
 
   char source_name[256];
-  sprintf(source_name, "v%d_%d__", r->xMin(), r->yMin(), top, bot);
+  sprintf(source_name, "v%d_%d__", r->xMin(), r->yMin());
 
   odb::dbTechVia* techVia = odb::dbTechVia::create(tech, source_name);
 

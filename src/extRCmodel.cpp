@@ -4326,11 +4326,12 @@ bool extRCModel::measurePatternVar(extMeasure* m,
       // m->addCap();
       addRC(m);
     }
-    if (m->_benchFlag && (lineCnt > 0))
+    if (m->_benchFlag && (lineCnt > 0)) {
       if (m->_3dFlag)
         getCapMatrixValues3D(lineCnt, m);
       else
         getCapMatrixValues(lineCnt, m);
+    }
   }
   if (!_keepFile)
     cleanFiles();

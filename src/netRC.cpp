@@ -510,11 +510,12 @@ uint extMain::getCapNodeId(odb::dbNet*   net,
         cap->setBranchFlag();
     }
 #ifdef DEBUG_NET_ID
-    if (cap->getNet()->getId() == DEBUG_NET_ID)
+    if (cap->getNet()->getId() == DEBUG_NET_ID) {
       if (branch)
         fprintf(fp, "\tNEW BRANCH %d  capNode %d\n", junction, cap->getId());
       else
         fprintf(fp, "\tNEW INTERNAL %d  capNode %d\n", junction, cap->getId());
+    }
 #endif
 
     uint ncapId = cap->getId();
@@ -626,7 +627,7 @@ void extMain::addRSeg(odb::dbNet*           net,
 #ifdef DEBUG_NET_ID
   if (net->getId() == DEBUG_NET_ID)
     fprintf(fp,
-            "\t%g shapeId= %d  rseg= %d  (%d %d)\n",
+            "\t%d shapeId= %d  rseg= %d  (%d %e)\n",
             pshape.junction_id,
             rsid,
             srcId,
@@ -737,7 +738,7 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
   uint netId = net->getId();
   if (netId == DEBUG_NET_ID) {
     fp = fopen("rsegs", "w");
-    fprintf(fp, "BEGIN NET %d\n", netId, path.junction_id);
+    fprintf(fp, "BEGIN NET %d %d\n", netId, path.junction_id);
   }
 #endif
 
