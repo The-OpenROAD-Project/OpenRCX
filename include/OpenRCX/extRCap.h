@@ -51,9 +51,6 @@
 #include <gseq.h>
 #include <util.h>
 
-//#include "gz.h"
-#include <gz.h>
-
 #ifndef ADS_ZOBJECT_H
 //#include "ZObject.h"
 #include <ZObject.h>
