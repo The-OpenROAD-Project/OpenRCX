@@ -476,7 +476,6 @@ extMain::extMain(uint menuId)
   _extCcapSDB   = NULL;
   _reExtCcapSDB = NULL;
   _extDcr       = NULL;
-  _extGui       = NULL;
 
   _reuseMetalFill     = false;
   _usingMetalPlanes   = 0;
@@ -891,14 +890,7 @@ void extMain::setCrawler(odb::ZPtr<odb::IZdcr> dcr, uint id)
   _CC_menu_net2_id = _extDcr->addPullDownMenu(
       _menuId, _CCsegId, "net2/group", "Net CCs and wires");
 
-  _extGui->setDcr(dcr);
 }
-void extMain::setIgui(odb::ZPtr<odb::IZgui> z)
-{
-  _extGui = z;
-  _extGui->setGuiContext(this);
-}
-// uint extMain::getDbWires(bool ignoreZuiFlags, bool excludeFlag)
 uint extMain::makeGuiBoxes(uint extGuiBoxType)
 {
   uint cnt = 0;

@@ -45,7 +45,6 @@
 #include "ZObject.h"
 #include "IZdcr.h"
 #include "ISdb.h"
-#include "IZgui.h"
 
 #include "extprocess.h"
 #include "gseq.h"
@@ -1571,7 +1570,6 @@ class extMain
   odb::ZPtr<odb::ISdb>  _extCcapSDB;
   odb::ZPtr<odb::ISdb>  _reExtCcapSDB;
   odb::ZPtr<odb::IZdcr> _extDcr;
-  odb::ZPtr<odb::IZgui> _extGui;
   uint                  _menuId;
   uint                  _dbPowerId;
   uint                  _dbSignalId;
@@ -2017,7 +2015,6 @@ class extMain
   // void extCompute(void *a, void *b, int c);
 
   void setCrawler(odb::ZPtr<odb::IZdcr> z, uint id);
-  void setIgui(odb::ZPtr<odb::IZgui> z);
   uint getExtBoxes(odb::ZPtr<odb::IZdcr> dcr, uint boxType);
   uint extInspect(odb::ZPtr<odb::IZdcr> dcr, uint boxType);
   uint makeGuiBoxes(uint extGuiBoxType);
