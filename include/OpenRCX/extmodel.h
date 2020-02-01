@@ -33,10 +33,6 @@
 #define ADS_EXTMODEL_H
 #endif
 
-#ifndef ADS_TM_H
-#include "tm.h"
-#endif
-
 namespace OpenRCX {
 
 class ExtModel : public ZObject

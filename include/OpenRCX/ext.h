@@ -37,13 +37,12 @@
 
 #include "extRCap.h"
 #include "exttree.h"
-#include "tm.h"
 
 namespace OpenRCX {
 
 class Ext
 #ifndef SWIG  // causes swig warnings
-    : public odb::ZTechModule<Ext>
+    : public odb::ZInterface
 #endif
 {
  public:
@@ -187,35 +186,35 @@ class Ext
                              const std::string& exclude_cells);
   struct SpefOptions
   {
-    const char* nets = nullptr;
-    int         net_id = 0;
-    const char* ext_corner_name = nullptr;
-    int         corner = -1;
-    int         debug = 0;
-    bool        flatten = false;
-    bool        parallel = false;
-    bool        init = false;
-    bool        end = false;
-    bool        use_ids = false;
-    bool        no_name_map = false;
-    const char* N = nullptr;
+    const char* nets             = nullptr;
+    int         net_id           = 0;
+    const char* ext_corner_name  = nullptr;
+    int         corner           = -1;
+    int         debug            = 0;
+    bool        flatten          = false;
+    bool        parallel         = false;
+    bool        init             = false;
+    bool        end              = false;
+    bool        use_ids          = false;
+    bool        no_name_map      = false;
+    const char* N                = nullptr;
     bool        term_junction_xy = false;
-    bool        single_pi = false;
-    const char* file = nullptr;
-    bool        gz = false;
-    bool        stop_after_map = false;
-    bool        w_clock = false;
-    bool        w_conn = false;
-    bool        w_cap = false;
-    bool        w_cc_cap = false;
-    bool        w_res = false;
-    bool        no_c_num = false;
-    bool        prime_time = false;
-    bool        psta = false;
-    bool        no_backslash = false;
-    const char* exclude_cells = nullptr;
-    const char* cap_units = "PF";
-    const char* res_units = "OHM";
+    bool        single_pi        = false;
+    const char* file             = nullptr;
+    bool        gz               = false;
+    bool        stop_after_map   = false;
+    bool        w_clock          = false;
+    bool        w_conn           = false;
+    bool        w_cap            = false;
+    bool        w_cc_cap         = false;
+    bool        w_res            = false;
+    bool        no_c_num         = false;
+    bool        prime_time       = false;
+    bool        psta             = false;
+    bool        no_backslash     = false;
+    const char* exclude_cells    = nullptr;
+    const char* cap_units        = "PF";
+    const char* res_units        = "OHM";
   };
   bool write_spef(const SpefOptions& options);
 
@@ -326,9 +325,10 @@ class Ext
  private:
   void dbUpdate();
 
-  extMain*   _ext;
-  extRcTree* _tree;
-  bool       _initWithChip;
+  odb::dbDatabase* _db;
+  extMain*         _ext;
+  extRcTree*       _tree;
+  bool             _initWithChip;
 };  // namespace OpenRCX
 
 }  // namespace OpenRCX

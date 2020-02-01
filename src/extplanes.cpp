@@ -69,35 +69,6 @@ uint extMain::allocateOverUnderMaps(uint layerCnt)
   }
   return cnt;
 }
-#ifdef GS_OLD
-uint extMain::initPlanesOld(uint cnt)
-{
-  uint    pitch = 0;
-  adsRect maxRect;
-  _block->getDieArea(maxRect);
-
-  dbSet<dbTechLayer>           layers = _tech->getLayers();
-  dbSet<dbTechLayer>::iterator litr;
-  dbTechLayer*                 layer;
-  for (litr = layers.begin(); litr != layers.end(); ++litr) {
-    layer = *litr;
-    if (layer->getType() != dbTechLayerType::ROUTING)
-      continue;
-
-    uint level = layer->getRoutingLevel();
-    pitch      = layer->getPitch();
-    break;
-  }
-  _geomSeq->configure(pitch,
-                      pitch,
-                      maxRect.xMin(),
-                      maxRect.yMin(),
-                      maxRect.xMax(),
-                      maxRect.yMax(),
-                      cnt);
-  return cnt;
-}
-#else
 uint extMain::initPlanesNew(uint planeCnt, odb::adsRect* bb)
 {
   _geomSeq->setSlices(planeCnt);
@@ -175,7 +146,6 @@ uint extMain::initPlanes(uint  dir,
   }
   return layerCnt;
 }
-#endif
 uint extMain::initPlanes(uint layerCnt, odb::adsRect* bb)
 {
   // odb::notice(0, "Initializing Extraction search DB ... \n");

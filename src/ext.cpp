@@ -33,7 +33,6 @@
 
 #include "ext.h"
 #include "logger.h"
-#include "tm.hpp"
 #include "StaMain.hh"
 
 namespace sta {
@@ -41,16 +40,13 @@ namespace sta {
 extern const char *openrcx_tcl_inits[];
 }
 
-template <>
-const char* odb::ZTechModule<OpenRCX::Ext>::_module = nullptr;
-
 namespace OpenRCX {
 
 extern "C" {
 extern int Openrcx_Init(Tcl_Interp* interp);
 }
 
-Ext::Ext() : odb::ZTechModule<Ext>(nullptr, nullptr)
+Ext::Ext() : odb::ZInterface()
 {
   _ext  = new extMain(5);
   _tree = NULL;
