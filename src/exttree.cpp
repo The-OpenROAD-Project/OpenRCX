@@ -511,50 +511,7 @@ uint extRcTree::printTree(FILE* fp, uint netId, const char* msg)
   }
   return _nodeTable->getCnt();
 }
-uint extRcTree::guiTree(odb::dbBlockSearch* blk, FILE* fp, uint netId)
-{
-  //	uint labelCnt=0;
-  char* labelName[2];
-  labelName[0] = new char[10];
-  labelName[1] = new char[10];
-  ////double labelVal[2];
 
-  // blk->getNetWires( odb::dbNet::getNet(_block, netId), false, 0, false,
-  // false);
-
-  odb::dbNet* net = odb::dbNet::getNet(_block, netId);
-  blk->getNetConnectivity(net, false, 0, false, false, false);
-
-  for (uint ii = 1; ii < _nodeTable->getCnt(); ii++) {
-    extRCnode* node = _nodeTable->get(ii);
-
-    blk->addLabelNum(node->_x, node->_y, node->_x + 200, node->_y + 200, 0, ii);
-
-    for (uint jj = node->_firstChild;; jj++) {
-      if (_indexTable->get(jj) == 0)
-        break;
-      if (jj >= _nodeTable->getCnt())
-        break;
-
-      ////extRCnode *node1= _nodeTable->get(jj);
-
-      strcpy(labelName[0], "R=");
-      ////labelVal[0]= node1->_res;
-      strcpy(labelName[1], "C=");
-      ////labelVal[1]= node1->_cap;
-
-      // blk->addArrow(node->_x, node->_y, node1->_x, node1->_y, labelCnt,
-      // labelName, labelVal);
-    }
-    // fprintf(fp, "\n");
-    // fprintf(fp, "\t\t\t\tR= %5g  C= %5g  X= %d Y= %d\n",
-    //	node->_res, node->_cap, node->_x, node->_y);
-  }
-  delete[] labelName[0];
-  delete[] labelName[1];
-
-  return _nodeTable->getCnt();
-}
 int extRcTree::dfs(uint i, int* vis, odb::dbNet* net, uint l)
 {
   if (vis[i] != -1) {
@@ -1448,9 +1405,6 @@ _junctionNodeTable->geti(netLocalCn(firstRC->getSourceNode()));
       notice(0, "The drnode is at 0,0\n");
   driver_node->_x = X;
   driver_node->_y = Y;
-
-  if (blk != NULL)
-    guiTree(blk, stdout, netId);
 
   if (test > 1)
     printTree(nodeFP, netId, "Node graph after RC traversal");

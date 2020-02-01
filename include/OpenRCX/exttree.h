@@ -173,7 +173,6 @@ class extRcTree
                            odb::dbCapNode* capNode,
                            uint            index);
   void       printTree(FILE* fp, uint netId, uint tnodeCnt);
-  uint       guiTree(odb::dbBlockSearch* blk, FILE* fp, uint netId);
   bool getCoords(odb::dbNet* net, uint shapeId, int* ll, int* ur, uint& length);
   extRCnode*   makeNode(uint            startingNodeId,
                         uint            endingNodeId,
