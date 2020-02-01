@@ -475,7 +475,6 @@ extMain::extMain(uint menuId)
   _extNetSDB    = NULL;
   _extCcapSDB   = NULL;
   _reExtCcapSDB = NULL;
-  _extDcr       = NULL;
 
   _reuseMetalFill     = false;
   _usingMetalPlanes   = 0;
@@ -874,116 +873,10 @@ void extMain::setBlock(odb::dbBlock* block)
   _newSpefFilePrefix  = NULL;
   _excludeCells       = NULL;
 }
-void extMain::setCrawler(odb::ZPtr<odb::IZdcr> dcr, uint id)
-{
-  _extDcr = dcr;
-
-  _menuId = id;
-  dcr->addSubMenu(id, "dbPower", _dbPowerId);
-  dcr->addSubMenu(id, "dbSignal", _dbSignalId);
-  dcr->addSubMenu(id, "CCseg", _CCsegId);
-
-  _CC_menu_self_id
-      = _extDcr->addPullDownMenu(_menuId, _CCsegId, "self", "CC Attributes");
-  _CC_menu_net1_id
-      = _extDcr->addPullDownMenu(_menuId, _CCsegId, "net1/group", "Net CCs");
-  _CC_menu_net2_id = _extDcr->addPullDownMenu(
-      _menuId, _CCsegId, "net2/group", "Net CCs and wires");
-
-}
 uint extMain::makeGuiBoxes(uint extGuiBoxType)
 {
   uint cnt = 0;
   return cnt;
-}
-uint extMain::getExtBoxes(odb::ZPtr<odb::IZdcr> dcr, uint boxType)
-{
-  _extDcr = dcr;
-
-  if (_extNetSDB == NULL)
-    return 0;
-  /*
-                          bool signal_wires= _dcr->getSubMenuFlag(_signalMenuId,
-     _signal_wire_id); bool signal_vias= _dcr->getSubMenuFlag(_signalMenuId,
-     _signal_via_id); bool power_wires= _dcr->getSubMenuFlag(_powerMenuId,
-     _power_wire_id); bool power_vias= _dcr->getSubMenuFlag(_powerMenuId,
-     _power_via_id);
-
-          if (!(signal_wires || signal_vias || power_wires || power_vias))
-                  return ;
-  */
-  /*
-if (! zui->getNetWireViasFlag(ignoreFlag))
-  return 0;
-*/
-  int x1;
-  int y1;
-  int x2;
-  int y2;
-  _extDcr->getBbox(&x1, &y1, &x2, &y2);
-
-  bool* exludeTable = _extDcr->getExcludeLayerTable();
-  _extNetSDB->searchWireIds(x1, y1, x2, y2, false, exludeTable);
-  _extNetSDB->makeGuiBoxes(_extDcr, _menuId, _dbSignalId, true);
-  _extNetSDB->makeGuiBoxes(_extDcr, _menuId, _dbPowerId, true);
-
-  odb::ZPtr<odb::ISdb> ccCapSdb = _reExtract ? _reExtCcapSDB : _extCcapSDB;
-  ccCapSdb->searchWireIds(x1, y1, x2, y2, false, exludeTable);
-  ccCapSdb->makeGuiBoxes(_extDcr, _menuId, _CCsegId, true);
-
-  return 0;
-}
-uint extMain::extInspect(odb::ZPtr<odb::IZdcr> dcr, uint boxType)
-{
-  _extDcr = dcr;
-
-  if (!_extDcr->isInspectMenu(_menuId))
-    return 1;
-
-  uint insp2;
-  uint wid = _extDcr->getSubmenuObjId(&insp2);
-
-  if (_extDcr->msgAction()) {
-    int         x1, y1, x2, y2;
-    uint        level, id1, id2, wtype;
-    const char* typeWord = NULL;
-
-    if (_extDcr->isInspectSubMenu(_menuId, _CCsegId)) {
-      _extCcapSDB->getBox(wid, &x1, &y1, &x2, &y2, &level, &id1, &id2, &wtype);
-      typeWord = "Ext Coupling";
-    }
-
-    else if (_extDcr->isInspectSubMenu(_menuId, _dbSignalId)) {
-      _extNetSDB->getBox(wid, &x1, &y1, &x2, &y2, &level, &id1, &id2, &wtype);
-      typeWord = "Ext Signal";
-    }
-
-    else if (_extDcr->isInspectSubMenu(_menuId, _dbPowerId)) {
-      _extNetSDB->getBox(wid, &x1, &y1, &x2, &y2, &level, &id1, &id2, &wtype);
-      typeWord = "Ext Power";
-    }
-
-    char msg_buf[1024];
-    sprintf(msg_buf, "id %d %s ", wid, typeWord);
-    _extDcr->wireMsg(x1, y1, x2, y2, level, msg_buf);
-  }
-
-  uint actionId = _extDcr->getPullDownActionId();
-  if (actionId == _CC_menu_self_id) {
-    /*
-    addWireViaCoords(_signalMenuId, _signal_wire_id, true, net->getId(),
-shapeId); odb::dbString name = net->getName();
-
-odb::dbString designName = _block->getName();
-    _dcr->print_self((char *) designName.c_str(), (char *) name.c_str(), NULL);
-    */
-  } else if (actionId == _CC_menu_net1_id) {
-    ;  // getNetConnectivity(net, false, false, false, false);
-  } else if (actionId == _CC_menu_net2_id) {
-    ;  // getNetConnectivity(net, false, false, false, false);
-  }
-
-  return 1;
 }
 
 uint extMain::computeXcaps(uint boxType)

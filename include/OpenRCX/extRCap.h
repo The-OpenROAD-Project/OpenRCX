@@ -43,7 +43,6 @@
 #include <util.h>
 
 #include "ZObject.h"
-#include "IZdcr.h"
 #include "ISdb.h"
 
 #include "extprocess.h"
@@ -1569,16 +1568,11 @@ class extMain
   odb::ZPtr<odb::ISdb>  _extNetSDB;
   odb::ZPtr<odb::ISdb>  _extCcapSDB;
   odb::ZPtr<odb::ISdb>  _reExtCcapSDB;
-  odb::ZPtr<odb::IZdcr> _extDcr;
   uint                  _menuId;
   uint                  _dbPowerId;
   uint                  _dbSignalId;
   uint                  _RsegId;
   uint                  _CCsegId;
-
-  uint _CC_menu_self_id;
-  uint _CC_menu_net1_id;
-  uint _CC_menu_net2_id;
 
   uint _CCnoPowerSource;
   uint _CCnoPowerTarget;
@@ -1648,13 +1642,6 @@ class extMain
 
   std::vector<odb::dbBTerm*> _connectedBTerm;
   std::vector<odb::dbITerm*> _connectedITerm;
-
-  std::vector<odb::dbNet*>     _dumNet;
-  std::vector<odb::dbInst*>    _dumInst;
-  std::vector<odb::dbCapNode*> _dumCap;
-  std::vector<odb::dbCCSeg*>   _dumCC;
-  std::vector<odb::dbRSeg*>    _dumRSeg;
-  std::vector<int>             _dumInt;
 
   Ath__gridTable* _search;
 
@@ -2014,9 +2001,6 @@ class extMain
 
   // void extCompute(void *a, void *b, int c);
 
-  void setCrawler(odb::ZPtr<odb::IZdcr> z, uint id);
-  uint getExtBoxes(odb::ZPtr<odb::IZdcr> dcr, uint boxType);
-  uint extInspect(odb::ZPtr<odb::IZdcr> dcr, uint boxType);
   uint makeGuiBoxes(uint extGuiBoxType);
   uint setupSearchDb(const char* bbox, uint debug, odb::ZInterface* Interface);
   odb::ZPtr<odb::ISdb> getCcSdb();
