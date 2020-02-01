@@ -733,59 +733,6 @@ bool Ext::export_sdb(odb::ZPtr<odb::ISdb>& net_sdb,
   return 0;
 }
 
-bool Ext::attach_gui(odb::ZPtr<odb::IZdcr> dcr)
-{
-  dbUpdate();
-  // have to add it as a member of Tmg object
-  using namespace odb;
-  odb::ZPtr<odb::IZgui> igui;
-  if (adsNewComponent(_context, ZCID(ZguiExt), igui) != Z_OK) {
-    assert(0);
-  }
-  ZALLOCATED(igui);
-
-  igui->setDcr(dcr);
-
-  odb::dbBlock* block = NULL;
-  odb::dbChip*  chip  = _db->getChip();
-  if (chip)
-    block = chip->getBlock();
-  if (!block) {
-    odb::notice(0, "need db before attach_gui onto Tmg\n");
-  } else {
-    //_ext->setIgui(igui);
-    igui->setGuiContext(_ext, block);
-  }
-  dcr->addGui(igui);
-
-  odb::notice(0, "Attached Crawler to Ext Technology Module ...\n");
-
-  return TCL_OK;
-}
-
-bool Ext::attach(odb::ZPtr<odb::IZgui>& gui)
-{
-  dbUpdate();
-  using namespace odb;
-  ZPtr<IZgui> igui;
-  if (adsNewComponent(_context, ZCID(ZguiExt), igui) != Z_OK) {
-    assert(0);
-  }
-  ZALLOCATED(igui);
-
-  _ext->setIgui(igui);
-
-  gui = igui;  // in case that is needed
-
-  //	fprintf(stdout, "%s \n", _module);
-  odb::notice(0, "%s \n", _module);
-
-  //    fprintf(stdout, "Attached Crawler to Ext Technology Module ...\n");
-  odb::notice(0, "Attached Crawler to Ext Technology Module ...\n");
-
-  return 0;
-}
-
 bool Ext::write_spef_nets(odb::dbObject* block,
                           bool           flatten,
                           bool           parallel,

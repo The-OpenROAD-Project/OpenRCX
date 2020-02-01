@@ -71,7 +71,6 @@ add_custom_command(OUTPUT ${OPENRCX_TCL_INIT}
   )
 
 add_library(OpenRCX
-    ZguiExt.cpp
     ext.cpp
     extBench.cpp
     extCC.cpp
@@ -81,7 +80,6 @@ add_library(OpenRCX
     extRCmodel.cpp
     extSpef.cpp
     extSpefIn.cpp
-    ext_pkg.c
     ext_test_wire.cpp
     extmain.cpp
     extmeasure.cpp

@@ -289,8 +289,7 @@ class Ext
   bool report_total_cc(const std::string& file,
                        const std::string& ref,
                        const std::string& read);
-  bool attach(odb::ZPtr<odb::IZgui>& gui);
-  bool attach_gui(odb::ZPtr<odb::IZdcr> dcr);
+
   bool export_sdb(odb::ZPtr<odb::ISdb>& net_sdb, odb::ZPtr<odb::ISdb>& cc_sdb);
   bool dump(bool               open_tree_file,
             bool               close_tree_file,

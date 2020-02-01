@@ -33,17 +33,8 @@
 #ifndef ADS_EXTRCAP_H
 #define ADS_EXTRCAP_H
 
-#ifndef ADS_H
-//#include "ads.h"
-#include <ads.h>
-#endif
-
+#include "ads.h"
 #include "db.h"
-//#include "dbUtil.h"
-//#include "dbShape.h"
-//#include "dbExtControl.h"
-//#include "util.h"
-//#include "darr.h"
 #include <darr.h>
 #include <dbExtControl.h>
 #include <dbShape.h>
@@ -51,19 +42,10 @@
 #include <gseq.h>
 #include <util.h>
 
-#ifndef ADS_ZOBJECT_H
-//#include "ZObject.h"
-#include <ZObject.h>
-#endif
-
-//#include "ISdb.h"
+#include "ZObject.h"
 #include "IZdcr.h"
-//#include "IZgui.h"
-#include <ISdb.h>
-
-#include "ZguiExt.h"
-//#include <IZdcr.">
-#include <IZgui.h>
+#include "ISdb.h"
+#include "IZgui.h"
 
 #include "extprocess.h"
 #include "gseq.h"
@@ -465,6 +447,7 @@ class extRCTable
   extDistRC* getCapOver(uint met, uint metUnder);
 };
 
+class extMain;
 class extMeasure;
 class extMainOptions;
 
