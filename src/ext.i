@@ -84,6 +84,15 @@ write_spef(const char* file)
   ext->write_spef(opts);
 }
 
+void
+adjust_rc(double res_factor,
+          double cc_factor,
+          double gndc_factor)
+{
+  Ext* ext = getOpenRCX();
+  ext->adjust_rc(res_factor, cc_factor, gndc_factor);
+}
+
 %} // inline
 
 

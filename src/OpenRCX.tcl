@@ -82,3 +82,33 @@ proc write_spef { args } {
   sta::check_argc_eq1 "write_spef" $args
   rcx::write_spef $args
 }
+
+sta::define_cmd_args "adjust_rc" {
+    [-res_factor res]
+    [-cc_factor cc]
+    [-gndc_factor gndc]
+}
+
+proc adjust_rc { args } {
+  sta::parse_key_args "adjust_rc" args keys \
+      { -res_factor
+        -cc_factor
+        -gndc_factor }
+
+  set res_factor 1.0
+  if { [info exists keys(-res_factor)] } {
+    set res_factor $keys(-res_factor)
+  }
+
+  set cc_factor 1.0
+  if { [info exists keys(-cc_factor)] } {
+    set cc_factor $keys(-cc_factor)
+  }
+
+  set gndc_factor 1.0
+  if { [info exists keys(-gndc_factor)] } {
+    set gndc_factor $keys(-gndc_factor)
+  }
+
+   rcx::adjust_rc $res_factor $cc_factor $gndc_factor
+}
