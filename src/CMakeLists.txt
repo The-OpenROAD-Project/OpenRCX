@@ -89,7 +89,6 @@ add_library(OpenRCX
     hierSpef.cpp
     netRC.cpp
     powerConn.cpp
-    zroute_ext.cpp
     MakeOpenRCX.cpp
    ${OPENRCX_TCL_INIT}
 )
