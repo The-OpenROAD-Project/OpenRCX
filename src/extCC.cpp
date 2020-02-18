@@ -120,7 +120,7 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
                              void (*coupleAndCompute)(int*, void*),
                              void* compPtr)
 {
-  register int coupleOptions[20];
+  int coupleOptions[20];
 
   AthPool<Ath__wire>* wirePool = _grid->getWirePoolPtr();
 
