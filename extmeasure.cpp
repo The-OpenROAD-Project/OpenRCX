@@ -1316,6 +1316,8 @@ void extMeasure::updateForBench(extMainOptions *opt, extMain *extMain)
 	_tech= opt->_tech;
 	_extMain= extMain;
 	_3dFlag= opt->_3dFlag;
+	_create_net_util.setBlock(_block, false);
+
 }
 uint extMeasure::defineBox(int *options)
 {

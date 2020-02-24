@@ -224,11 +224,10 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
     measure.updateForBench(opt, _extMain);
     measure._diag=false;
 
-    sprintf(_patternName, "O%d", opt->_wireCnt+1);
-   
-	if (!opt->_db_only)
-    		openCapLogFile();
-
+	if (!opt->._db_only) {
+		sprintf(_patternName, "O%d", opt->_wireCnt + 1);
+		openCapLogFile();
+	}
     uint cnt= 0;
    
     for (int met= 1; met<(int)_layerCnt; met++) {
@@ -237,8 +236,7 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
             continue;
 
         measure._met= met;
-	if (!opt->_db_only)
-        	computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
+        computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
 
         uint patternSep= measure.initWS_box(opt, 20);
 
@@ -256,7 +254,7 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
 
 //          fprintf(stdout, "\nFinished %d measurements for bench pattern M%d_over_M%d\n\n",
 //              cnt1, met, underMet);
-            notice (0, "\nFinished %d measurements for bench pattern M%d_over_M%d", cnt1, met, underMet);
+            notice (0, "\nFinished %d measurements for bench pattern M%d_over_M%d\n\n", cnt1, met, underMet);
             cnt += cnt1;
             measure._ur[measure._dir] += patternSep;
 
@@ -267,10 +265,9 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
         opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
     }
 //  fprintf(stdout, "\nFinished %d bench measurements for pattern MET_OVER_MET\n", cnt);
-    notice(0, "\nFinished %d bench measurements for pattern MET_OVER_MET", cnt);
+    notice(0, "\nFinished %d bench measurements for pattern MET_OVER_MET\n", cnt);
 
-	if (!opt->_db_only)
-    		closeCapLogFile();
+    closeCapLogFile();
     return cnt;
 }
 
@@ -286,8 +283,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 	uint patternSep= 1000;
 	
 	sprintf(_patternName, "U%d", opt->_wireCnt+1);
-	if (!opt->_db_only)
-		openCapLogFile();
+	openCapLogFile();
 	uint cnt= 0;
 	
 	for (int met= 1; met<(int)_layerCnt-1; met++) {
@@ -296,8 +292,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 			continue;
 		
 		measure._met= met;
-		if (!opt->_db_only)
-			computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
+		computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
 		
 		patternSep= measure.initWS_box(opt, 20);
 
@@ -315,7 +310,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 
 //			fprintf(stdout, "\nFinished %d bench measurements for pattern M%d_under_M%d\n\n", 
 //				cnt1, met, overMet);
-			notice(0,"\nFinished %d bench measurements for pattern M%d_under_M%d", cnt1, met, overMet);
+			notice(0,"\nFinished %d bench measurements for pattern M%d_under_M%d\n\n", cnt1, met, overMet);
 
 			cnt += cnt1;
 			measure._ur[measure._dir] += patternSep;
@@ -324,10 +319,9 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 		opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
 	}
 //	fprintf(stdout, "\nFinished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
-	notice(0,"\nFinished %d bench measurements for pattern MET_UNDER_MET", cnt);
+	notice(0,"\nFinished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
 
-	if (!opt->_db_only)
-		closeCapLogFile();
+	closeCapLogFile();
 	return cnt;
 }
 uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
@@ -342,8 +336,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
         uint patternSep= 1000;
          
         sprintf(_patternName, "DU%d", opt->_wireCnt+1);
-	if (!opt->_db_only)
-        	openCapLogFile();
+        openCapLogFile();
         uint cnt= 0;
          
         for (int met= 1; met<(int)_layerCnt-1; met++) {
@@ -352,8 +345,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                         continue;
                  
                 measure._met= met;
-		if (!opt->_db_only)
-                	computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
+                computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
                                                                          
                 patternSep= measure.initWS_box(opt, 20);
                                                                          
@@ -369,7 +361,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                                                                          
                         uint cnt1= benchWithVar_density(opt, &measure);
                                                                          
-                        notice(0,"\nFinished %d bench measurements for pattern M%d_diagunder_M%d", cnt1, met, overMet);
+                        notice(0,"\nFinished %d bench measurements for pattern M%d_diagunder_M%d\n\n", cnt1, met, overMet);
                                                                          
                         cnt += cnt1;
                         measure._ur[measure._dir] += patternSep;
@@ -378,10 +370,9 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                 opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
         }
 //      fprintf(stdout, "\nFinished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
-        notice(0,"\nFinished %d bench measurements for pattern MET_DIAGUNDER_MET", cnt);
+        notice(0,"\nFinished %d bench measurements for pattern MET_DIAGUNDER_MET\n", cnt);
                                                                          
-	if (!opt->_db_only)
-        	closeCapLogFile();
+        closeCapLogFile();
         return cnt;
 }
 uint extRCModel::linesOverUnderBench(extMainOptions *opt)
@@ -396,8 +387,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 	uint patternSep= 1000;
 	
 	sprintf(_patternName, "OU%d", opt->_wireCnt+1);
-	if (!opt->_db_only)
-		openCapLogFile();
+	openCapLogFile();
 	uint cnt= 0;
 
 	for (int met= 1; met<(int)_layerCnt-1; met++) {	
@@ -406,8 +396,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 			continue;
 		
 		measure._met= met;
-		if (!opt->_db_only)
-			computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
+		computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
 		
 		patternSep= measure.initWS_box(opt, 20);
 		
@@ -433,7 +422,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 /*				fprintf(stdout, "\nFinished %d bench measurements for pattern M%d_over_M%d_under_M%d\n\n", 
 					cnt1, met, underMet, overMet);
 */
-				notice(0, "\nFinished %d bench measurements for pattern M%d_over_M%d_under_M%d", cnt1, met, underMet, overMet);
+				notice(0, "\nFinished %d bench measurements for pattern M%d_over_M%d_under_M%d\n\n", cnt1, met, underMet, overMet);
 				
 				cnt += cnt1;
 				
@@ -445,8 +434,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 //	fprintf(stdout, "\nFinished %d measurements for pattern MET_UNDER_MET\n", cnt);
 	notice(0, "\nFinished %d measurements for pattern MET_UNDER_MET\n", cnt);
 
-	if (!opt->_db_only)
-		closeCapLogFile();
+	closeCapLogFile();
 	return cnt;
 }
 uint extMain::benchWires(extMainOptions *opt)
@@ -477,7 +465,6 @@ uint extMain::benchWires(extMainOptions *opt)
 		opt->_ll[1]= 0;
 		opt->_ur[0]= 0;
 		opt->_ur[1]= 0;
-		m->setLayerCnt(_tech->getRoutingLayerCount());
 	}
 	else {
 		dbBox *bb=_block->getBBox();
@@ -488,9 +475,6 @@ uint extMain::benchWires(extMainOptions *opt)
 		opt->_ur[1]= 0;
 	}
 	opt->_block= _block;
-
-	if (opt->_over)
-		notice(0, "\npattern MET_OVER_MET\n");
 
 	if (opt->_over)
 		m->linesOverBench(opt);

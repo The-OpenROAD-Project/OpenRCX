@@ -138,6 +138,7 @@ module Ext
         in bool write_to_solver [ usage = "Write input files to field solver but skip run" ; ],
         in bool read_from_solver [ usage = "Read output files from field solver" ; ],
         in bool run_solver [ usage = "run field solver only" ; ],
+	in bool db_only [ usage = "create patterns in db only" ; ],
 	in bool diag [ usage = "bench mark diagonal patterns" ; ]
     );
 	export define_process_corner

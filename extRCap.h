@@ -423,6 +423,7 @@ public:
 
 	int getModelCnt() { return _modelCnt; };
 	int getLayerCnt() { return _layerCnt; };
+	void setLayerCnt(uint n) { _layerCnt = n; };
 	int getDiagModel() {return _diagModel;};
 	bool getVerticalDiagFlag () {return _verticalDiag;};
 	void setDiagModel(uint i) { _diagModel=i;}
@@ -552,6 +553,9 @@ public:
 	void setRuleFileName(char *name) { _ruleFileName = name;}
 	char* getRuleFileName() { return _ruleFileName;}
 	uint getMaxCnt(int met) { return _modelTable[_tmpDataRate]->_capOverUnder[met]->_metCnt; }
+
+	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
+	int writeBenchWires_DB(extMeasure* measure);
 
 };
 class extNetStats 
@@ -1067,6 +1071,7 @@ public:
 	bool _over;
 	bool _overUnder;
 	bool _diag;
+	bool _db_only;
 
 	dbTech *_tech;
 	dbBlock *_block;

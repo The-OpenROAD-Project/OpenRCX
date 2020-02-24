@@ -186,6 +186,7 @@ TCL_METHOD ( Ext::bench_wires )
 	opt._read_from_solver= in_args->read_from_solver();
 	opt._run_solver= in_args->run_solver();
 	opt._diag=in_args->diag();
+	opt._db_only=in_args->db_only();
 
 	Ath__parser parser;
 
