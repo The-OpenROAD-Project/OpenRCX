@@ -33,23 +33,15 @@
 #ifndef ADS_EXTSPEF_H
 #define ADS_EXTSPEF_H
 
-#ifndef ADS_H
-//#include "ads.h"
-#include <ads.h>
-#endif
+#include "odb.h"
 
 #include "db.h"
-//#include "dbShape.h"
-#include <dbShape.h>
-//#include "array1.h"
-//#include "parse.h"
-//#include "name.h"
-#include <array1.h>
-#include <name.h>
-#include <parse.h>
+#include "dbShape.h"
+#include "array1.h"
+#include "parse.h"
+#include "name.h"
 
-//#include "ISdb.h"
-#include <ISdb.h>
+#include "ISdb.h"
 
 //#define AFILE FILE
 

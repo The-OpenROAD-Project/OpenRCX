@@ -33,16 +33,10 @@
 #ifndef ADS_EXTPROCESS_H
 #define ADS_EXTPROCESS_H
 
-#ifndef ADS_H
-//#include "ads.h"
-#include <ads.h>
-#endif
+#include "odb.h"
 
-//#include "array1.h"
-//#include "parse.h"
-
-#include <array1.h>
-#include <parse.h>
+#include "array1.h"
+#include "parse.h"
 
 namespace OpenRCX {
 

@@ -33,7 +33,7 @@
 #ifndef ADS_EXTRCAP_H
 #define ADS_EXTRCAP_H
 
-#include "ads.h"
+#include "odb.h"
 #include "db.h"
 #include <darr.h>
 #include <dbExtControl.h>

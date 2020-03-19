@@ -33,21 +33,13 @@
 #ifndef ADS_EXTRCTREE_H
 #define ADS_EXTRCTREE_H
 
-#ifndef ADS_H
-//#include "ads.h"
-#include <ads.h>
-#endif
+#include "odb.h"
 
 #include "db.h"
-//#include "dbShape.h"
-//#include "util.h"
-#include <dbShape.h>
-#include <util.h>
+#include "dbShape.h"
+#include "util.h"
 
-#ifndef ADS_ZOBJECT_H
-//#include "ZObject.h"
-#include <ZObject.h>
-#endif
+#include "ZObject.h"
 
 namespace OpenRCX {
 
