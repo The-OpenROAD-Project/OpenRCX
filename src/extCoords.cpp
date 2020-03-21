@@ -51,7 +51,7 @@ void extSpef::initSearchForNets()
   dbSet<dbTechLayer>::iterator itr;
   dbTrackGrid*                 tg = NULL;
 
-  adsRect maxRect;
+  Rect maxRect;
   _block->getDieArea(maxRect);
 
   std::vector<int> trackXY(32000);
@@ -128,7 +128,7 @@ uint extSpef::addNetShapesOnSearch(uint netId)
       level2 = 0;
     }
 
-    adsRect r;
+    Rect r;
     s.getBox(r);
 
     _search->addBox(
@@ -344,7 +344,7 @@ uint extSpef::getITermShapeId(dbITerm* iterm)
     dbMTerm *mterm = iterm->getMTerm();
     int px,py;
     iterm->getInst()->getOrigin(px,py);
-    adsPoint origin = adsPoint(px,py);
+    Point origin = adsPoint(px,py);
     dbOrientType orient = iterm->getInst()->getOrient();
     dbTransform transform( orient, origin );
 
@@ -357,7 +357,7 @@ uint extSpef::getITermShapeId(dbITerm* iterm)
       int level, tlevel, blevel;
       for (box_itr = boxes.begin(); box_itr != boxes.end(); box_itr++) {
         dbBox *box = *box_itr;
-        adsRect rect;
+        Rect rect;
         box->getBox( rect );
         transform.apply( rect );
         if (box->isVia()) {
@@ -403,7 +403,7 @@ uint extSpef::getBTermShapeId(dbBTerm* bterm)
     return 0;
   return bterm->getNet()->getWire()->getTermJid(-bterm->getId());
   /*
-    adsRect rect;
+    Rect rect;
     pin.getBox(rect);
     uint shapeId = 0;
     int level;

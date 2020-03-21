@@ -163,10 +163,10 @@ int extMain::db_test_wires(odb::dbDatabase* db)
 
   for (pitr.begin(wire); pitr.getNextPath(path);) {
     uint          prevId    = path.junction_id;
-    odb::adsPoint prevPoint = path.point;
+    odb::Point prevPoint = path.point;
     while (pitr.getNextShape(pshape)) {
       uint          newId    = pshape.junction_id;
-      odb::adsPoint newPoint = pshape.point;
+      odb::Point newPoint = pshape.point;
 
       uint len = print_shape(pshape.shape, prevId, newId);
       if (len > 0)  // metal)
@@ -178,7 +178,7 @@ int extMain::db_test_wires(odb::dbDatabase* db)
       prevPoint = newPoint;
       /*
                                   int            junction_id; // junction id of
-         this point odb::adsPoint       point;       // starting point of path
+         this point odb::Point       point;       // starting point of path
           odb::dbTechLayer *  layer;       // layer of shape, or exit layer of
          via odb::dbBTerm *      bterm;       // dbBTerm connected at this
          point, otherwise NULL odb::dbITerm *      iterm;       // dbITerm

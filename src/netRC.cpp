@@ -94,7 +94,7 @@ uint extMain::print_shape(odb::dbShape& shape, uint j1, uint j2)
   return 0;
 }
 
-uint extMain::computePathDir(adsPoint& p1, adsPoint& p2, uint* length)
+uint extMain::computePathDir(Point& p1, Point& p2, uint* length)
 {
   int len;
   if (p2.getX() == p1.getX())
@@ -156,7 +156,7 @@ void extMain::set_adjust_colinear(bool v)
 }
 void extMain::getShapeRC(odb::dbNet*           net,
                          odb::dbShape&         s,
-                         adsPoint&             prevPoint,
+                         Point&                prevPoint,
                          odb::dbWirePathShape& pshape)
 {
   double res = 0.0;
@@ -209,7 +209,7 @@ void extMain::getShapeRC(odb::dbNet*           net,
 
     if (_lefRC) {
       //			_tmpCapTable[0]= len*2*getFringe(level, width,
-      //0);
+      // 0);
       _tmpCapTable[0] = len * width * getFringe(level, width, 0, areaCap);
       _tmpCapTable[0] += 2 * areaCap * len * width;
       _tmpResTable[0] = getResistance(level, width, len, 0);
@@ -556,7 +556,7 @@ uint extMain::resetMapNodes(odb::dbNet* net)
 void extMain::addRSeg(odb::dbNet*           net,
                       std::vector<uint>&    rsegJid,
                       uint&                 srcId,
-                      adsPoint&             prevPoint,
+                      Point&                prevPoint,
                       odb::dbWirePath&      path,
                       odb::dbWirePathShape& pshape,
                       bool                  isBranch,
@@ -723,7 +723,7 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
   uint                 rcCnt = 0;
   odb::dbWirePath      path;
   odb::dbWirePathShape pshape, ppshape;
-  adsPoint             prevPoint, sprevPoint;
+  Point                prevPoint, sprevPoint;
 
   // std::vector<uint> rsegJid;
   _rsegJid.clear();
@@ -945,7 +945,7 @@ ZPtr<ISdb> extMain::getNetSdb()
 void extMain::setExtractionBbox(const char* bbox)
 {
   if ((bbox == NULL) || (strcmp(bbox, "") == 0)) {
-    adsRect r;
+    Rect r;
     _block->getDieArea(r);
     _x1 = r.xMin();
     _y1 = r.yMin();
@@ -958,7 +958,7 @@ void extMain::setExtractionBbox(const char* bbox)
   if (getExtAreaCoords(bbox))
     _extNetSDB->setMaxArea(_x1, _y1, _x2, _y2);
   else {
-    adsRect r;
+    Rect r;
     _block->getDieArea(r);
 
     _x1 = r.xMin();
@@ -1007,7 +1007,8 @@ uint extMain::setupSearchDb(const char* bbox, uint debug, ZInterface* Interface)
     //			_reExtCcapSDB->cleanSdb();
     //		else
     //		{
-    //			if (adsNewComponent( Interface->_context, ZCID(Sdb), _reExtCcapSDB
+    //			if (adsNewComponent( Interface->_context, ZCID(Sdb),
+    //_reExtCcapSDB
     //)!= Z_OK)
     //			{
     //				assert(0);
@@ -1315,7 +1316,9 @@ void v_printWireNeighbor(void* ip,
                          uint  met,
                          void* v_swire,
                          void* v_topNeighbor,
-                         void* v_botNeighbor) {}
+                         void* v_botNeighbor)
+{
+}
 void extCompute(int* inputTable, void* extModel);
 void extCompute1(int* inputTable, void* extModel);
 
@@ -2251,7 +2254,7 @@ void extMain::getPrevControl()
   //	if ((_prevControl->_ruleFileName && !_currentModel->getRuleFileName())
   //||
   //	    (!_prevControl->_ruleFileName && !_currentModel->getRuleFileName())
-  //|| 	    (strcmp(_prevControl->_ruleFileName,_currentModel->getRuleFileName())))
+  //|| (strcmp(_prevControl->_ruleFileName,_currentModel->getRuleFileName())))
   //		notice(0,"Warning: Using different ruleFile?\n");
 }
 
@@ -2293,7 +2296,7 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
   if (debug == 703) {
     notice(0, "Initial Tiling %s ...\n", getBlock()->getName().c_str());
 
-    adsRect maxRect;
+    Rect maxRect;
     _block->getDieArea(maxRect);
     notice(0,
            "Tiling for die area %dx%d = %d %d  %d %d\n",
@@ -2309,7 +2312,7 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
     return 0;
   }
   if (debug == 803) {
-    adsRect maxRect;
+    Rect maxRect;
     _block->getDieArea(maxRect);
 
     _use_signal_tables = 3;
@@ -2473,10 +2476,10 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
     notice(0, "ibox = %s\n", ibox);
     Ath__parser* parser = new Ath__parser();
     parser->mkWords(ibox, NULL);
-    _ibox = new adsRect(atoi(parser->get(0)),
-                        atoi(parser->get(1)),
-                        atoi(parser->get(2)),
-                        atoi(parser->get(3)));
+    _ibox = new Rect(atoi(parser->get(0)),
+                     atoi(parser->get(1)),
+                     atoi(parser->get(2)),
+                     atoi(parser->get(3)));
     notice(0,
            "_ibox = %d %d %d %d\n",
            _ibox->xMin(),
@@ -2781,7 +2784,7 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
               ccCapSdb, _couplingFlag, Interface, extCompute1, &m);
         } else {
           //#else
-          adsRect maxRect;
+          Rect maxRect;
           _block->getDieArea(maxRect);
 
           if (initTiling) {
@@ -2825,9 +2828,9 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
       _measureRcCnt = _shapeRcCnt = _updateTotalCcnt = -1;
     }
 
-    //		notice(0, "Measured %d Total Coupling caps (%d caps less than and %d
-    //caps greater than %g)\n", 			_totCCcnt,	_totSmallCCcnt, _totBigCCcnt,
-    //_coupleThreshold);
+    //		notice(0, "Measured %d Total Coupling caps (%d caps less than
+    //and %d caps greater than %g)\n", 			_totCCcnt,
+    // _totSmallCCcnt, _totBigCCcnt, _coupleThreshold);
 
     if (rlog)
       AthResourceLog("after couplingCaps", detailRlog);

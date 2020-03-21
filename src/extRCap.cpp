@@ -923,7 +923,7 @@ class extNetStats
         uint _gndCnt[2];
         uint _id;
         bool _layerFilter[20];
-        adsRect _bbox;
+        Rect _bbox;
 };
 */
 bool extMain::outOfBounds_i(int limit[2], int v)
@@ -1048,7 +1048,7 @@ uint extMain::printNetStats(FILE*           fp,
                             bool            skipPower,
                             std::list<int>* list_of_nets)
 {
-  adsRect bbox(bounds->_ll[0], bounds->_ll[1], bounds->_ur[0], bounds->_ur[1]);
+  Rect bbox(bounds->_ll[0], bounds->_ll[1], bounds->_ur[0], bounds->_ur[1]);
 
   char                   buff1[256];
   char                   buff2[256];

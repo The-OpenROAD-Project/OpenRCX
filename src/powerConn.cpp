@@ -1311,7 +1311,7 @@ uint extMain::getLayerSearchBoundaries(odb::dbTechLayer* layer,
                                        int*              xyHi,
                                        uint*             pitch)
 {
-  odb::adsRect maxRect;
+  odb::Rect maxRect;
   _block->getDieArea(maxRect);
 
   uint width = layer->getWidth();
@@ -1344,9 +1344,9 @@ uint extMain::getLayerSearchBoundaries(odb::dbTechLayer* layer,
   xyHi[1] = maxRect.yMax();
   return dir;
 }
-uint extMain::mergeRails(uint                        dir,
-                         std::vector<odb::dbBox*>&   boxTable,
-                         std::vector<odb::adsRect*>& mergeTable)
+uint extMain::mergeRails(uint                      dir,
+                         std::vector<odb::dbBox*>& boxTable,
+                         std::vector<odb::Rect*>&  mergeTable)
 {
   uint n = boxTable.size();
   for (uint ii = 0; ii < n; ii++) {
@@ -1362,8 +1362,8 @@ uint extMain::mergeRails(uint                        dir,
               w1->xMax(),
               w1->yMax());
 
-    odb::adsRect* r1
-        = new odb::adsRect(w1->xMin(), w1->yMin(), w1->xMax(), w1->yMax());
+    odb::Rect* r1
+        = new odb::Rect(w1->xMin(), w1->yMin(), w1->xMax(), w1->yMax());
     mergeTable.push_back(r1);
   }
   return mergeTable.size();
@@ -1558,13 +1558,13 @@ odb::dbCapNode* extMain::getITermConnRC(odb::dbCapNode* srcCapNode,
   sortInst_x sort_by_x;
   std::sort(instTable.begin(), instTable.end(), sort_by_x);
 
-  std::vector<odb::adsRect> rectTable;
+  std::vector<odb::Rect> rectTable;
 
   // odb::notice(0, "------------------------\n");
   for (uint kk = 0; kk < instCnt; kk++) {
     odb::dbInst* inst = instTable[kk];
     odb::dbBox*  b    = inst->getBBox();
-    odb::adsRect rb;
+    odb::Rect    rb;
     b->getBox(rb);
     rectTable.push_back(rb);
 
@@ -1615,11 +1615,11 @@ odb::dbCapNode* extMain::getITermConnRC(odb::dbCapNode* srcCapNode,
                   odb::dbInst *inst= instTable[jj];
                   int instId= inst->getId();
                   odb::dbBox *b= inst->getBBox();
-                  odb::adsRect rb= rectTable[jj];
+                  odb::Rect rb= rectTable[jj];
 
                   if (jj<instCnt-1)
                   {
-                          odb::adsRect rc= rectTable[jj+1];
+                          odb::Rect rc= rectTable[jj+1];
                           if (rb.xMax()>rc.xMin()) // overallping
                           {
                                   if (rb.xMax()>rc.xMax()) // switch inndices
@@ -1649,7 +1649,7 @@ odb::dbCapNode* extMain::getITermConnRC(odb::dbCapNode* srcCapNode,
     odb::dbInst* inst   = instTable[jj];
     int          instId = inst->getId();
     odb::dbBox*  b      = inst->getBBox();
-    odb::adsRect rb     = rectTable[jj];
+    odb::Rect    rb     = rectTable[jj];
 
     const char* debug = " ";
 #ifdef DEBUG_INST_NAME
@@ -1676,7 +1676,7 @@ odb::dbCapNode* extMain::getITermConnRC(odb::dbCapNode* srcCapNode,
                   prevX,
                   prevY);
       for (uint kk = 0; kk < instCnt; kk++) {
-        odb::adsRect rrb    = rectTable[kk];
+        odb::Rect    rrb    = rectTable[kk];
         odb::dbInst* ii     = instTable[kk];
         int          instId = inst->getId();
         odb::dbBox*  b      = ii->getBBox();
@@ -1759,11 +1759,11 @@ uint extMain::getITermConn(uint                dir,
   sortInst_x sort_by_x;
   std::sort(instTable.begin(), instTable.end(), sort_by_x);
 
-  std::vector<odb::adsRect> rectTable;
+  std::vector<odb::Rect> rectTable;
   for (uint kk = 0; kk < instCnt; kk++) {
     odb::dbInst* inst = instTable[kk];
     odb::dbBox*  b    = inst->getBBox();
-    odb::adsRect rb;
+    odb::Rect    rb;
     b->getBox(rb);
     rectTable.push_back(rb);
     /*
@@ -1789,10 +1789,10 @@ uint extMain::getITermConn(uint                dir,
     odb::dbInst* inst   = instTable[jj];
     int          instId = inst->getId();
     odb::dbBox*  b      = inst->getBBox();
-    odb::adsRect rb     = rectTable[jj];
+    odb::Rect    rb     = rectTable[jj];
 
     if (jj < instCnt - 1) {
-      odb::adsRect rc = rectTable[jj + 1];
+      odb::Rect rc = rectTable[jj + 1];
       if (rb.xMax() > rc.xMin())  // overallping
       {
         if (rb.xMax() > rc.xMax())  // switch inndices
@@ -1817,7 +1817,7 @@ uint extMain::getITermConn(uint                dir,
     odb::dbInst* inst   = instTable[jj];
     int          instId = inst->getId();
     odb::dbBox*  b      = inst->getBBox();
-    odb::adsRect rb     = rectTable[jj];
+    odb::Rect    rb     = rectTable[jj];
 
     const char* debug = " ";
     if (strcmp(inst->getConstName(), debug) == 0) {
@@ -1842,7 +1842,7 @@ uint extMain::getITermConn(uint                dir,
                   prevX,
                   prevY);
       for (uint kk = 0; kk < instCnt; kk++) {
-        odb::adsRect rrb    = rectTable[kk];
+        odb::Rect    rrb    = rectTable[kk];
         odb::dbInst* ii     = instTable[kk];
         int          instId = inst->getId();
         odb::dbBox*  b      = ii->getBBox();
@@ -1945,7 +1945,7 @@ uint extMain::getITermConn(uint                dir,
 class sortRect_y
 {
  public:
-  bool operator()(odb::adsRect* bb1, odb::adsRect* bb2)
+  bool operator()(odb::Rect* bb1, odb::Rect* bb2)
   {
     if (bb1->yMin() != bb2->yMin())
       return bb1->yMin() < bb2->yMin();
@@ -1955,7 +1955,7 @@ class sortRect_y
 class sortRect_x
 {
  public:
-  bool operator()(odb::adsRect* bb1, odb::adsRect* bb2)
+  bool operator()(odb::Rect* bb1, odb::Rect* bb2)
   {
     if (bb1->xMin() != bb2->xMin())
       return bb1->xMin() < bb2->xMin();
@@ -1969,10 +1969,10 @@ void extMain::getSpecialItermShapes(odb::dbInst*                inst,
                                     uint                        level,
                                     int*                        xy,
                                     int*                        xy2,
-                                    std::vector<odb::adsRect*>& rectTable,
+                                    std::vector<odb::Rect*>&    rectTable,
                                     std::vector<odb::dbITerm*>& itermTable)
 {
-  odb::adsRect bb(xy[0], xy[1], xy2[0], xy2[1]);
+  odb::Rect bb(xy[0], xy[1], xy2[0], xy2[1]);
 
   odb::dbSet<odb::dbITerm>           iterms = inst->getITerms();
   odb::dbSet<odb::dbITerm>::iterator iterm_itr;
@@ -1985,18 +1985,17 @@ void extMain::getSpecialItermShapes(odb::dbInst*                inst,
     if (iterm->getNet() != specialNet)
       continue;
 
-    std::vector<odb::adsRect*> table;
-    odb::dbShape               s;
-    odb::dbITermShapeItr       term_shapes;
+    std::vector<odb::Rect*> table;
+    odb::dbShape            s;
+    odb::dbITermShapeItr    term_shapes;
     for (term_shapes.begin(iterm); term_shapes.next(s);) {
       if (s.isVia())
         continue;
       if (s.getTechLayer()->getRoutingLevel() != level)
         continue;
 
-      // odb::adsRect r(s.xMin(), s.yMin(), s.xMax(), s.yMax());
-      odb::adsRect* r
-          = new odb::adsRect(s.xMin(), s.yMin(), s.xMax(), s.yMax());
+      // odb::Rect r(s.xMin(), s.yMin(), s.xMax(), s.yMax());
+      odb::Rect* r = new odb::Rect(s.xMin(), s.yMin(), s.xMax(), s.yMax());
 
       if (bb.overlaps(*r))
         table.push_back(r);
@@ -2014,7 +2013,7 @@ void extMain::getSpecialItermShapes(odb::dbInst*                inst,
       }
     }
     for (uint kk = 0; kk < table.size(); kk++) {
-      odb::adsRect* t = table[kk];
+      odb::Rect* t = table[kk];
       rectTable.push_back(t);
       itermTable.push_back(iterm);
     }
@@ -2050,7 +2049,7 @@ uint extMain::getITermPhysicalConn(uint                dir,
     std::sort(instTable.begin(), instTable.end(), sort_by_y);
   }
 
-  std::vector<odb::adsRect*> rectTable;
+  std::vector<odb::Rect*>    rectTable;
   std::vector<odb::dbITerm*> itermTable;
   for (uint kk = 0; kk < instCnt; kk++) {
     odb::dbInst* inst = instTable[kk];
@@ -2071,7 +2070,7 @@ uint extMain::getITermPhysicalConn(uint                dir,
                 xy2[0],
                 xy2[1]);
     for (uint k = 0; k < rectTable.size(); k++) {
-      odb::adsRect* rb    = rectTable[k];
+      odb::Rect*    rb    = rectTable[k];
       odb::dbITerm* iterm = itermTable[k];
       odb::notice(0,
                   "\tishape X %d %d  Y %d %d %s %s \n",
@@ -2084,7 +2083,7 @@ uint extMain::getITermPhysicalConn(uint                dir,
     }
   }
   for (uint k = 0; k < rectTable.size(); k++) {
-    odb::adsRect* rb       = rectTable[k];
+    odb::Rect*    rb       = rectTable[k];
     odb::dbITerm* iterm    = itermTable[k];
     int           bbXY[2]  = {rb->xMin(), rb->yMin()};
     int           bbXY2[2] = {rb->xMax(), rb->yMax()};
@@ -2155,7 +2154,7 @@ odb::dbCapNode* extMain::getITermPhysicalConnRC(odb::dbCapNode* srcCapNode,
     std::sort(instTable.begin(), instTable.end(), sort_by_y);
   }
 
-  std::vector<odb::adsRect*> rectTable;
+  std::vector<odb::Rect*>    rectTable;
   std::vector<odb::dbITerm*> itermTable;
   for (uint kk = 0; kk < instCnt; kk++) {
     odb::dbInst* inst = instTable[kk];
@@ -2175,7 +2174,7 @@ odb::dbCapNode* extMain::getITermPhysicalConnRC(odb::dbCapNode* srcCapNode,
                 xy2[0],
                 xy2[1]);
     for (uint k = 0; k < rectTable.size(); k++) {
-      odb::adsRect* rb    = rectTable[k];
+      odb::Rect*    rb    = rectTable[k];
       odb::dbITerm* iterm = itermTable[k];
       odb::notice(0,
                   "\tishape X %d %d  Y %d %d %s %s \n",
@@ -2188,7 +2187,7 @@ odb::dbCapNode* extMain::getITermPhysicalConnRC(odb::dbCapNode* srcCapNode,
     }
   }
   for (uint k = 0; k < rectTable.size(); k++) {
-    odb::adsRect* rb    = rectTable[k];
+    odb::Rect*    rb    = rectTable[k];
     odb::dbITerm* iterm = itermTable[k];
     if (!((iterm->getSigType() == odb::dbSigType::POWER)
           || (iterm->getSigType() == odb::dbSigType::GROUND)))
@@ -2260,11 +2259,11 @@ class sortBox_level
   }
 };
 
-bool extMain::overlapWithMacro(odb::adsRect& w)
+bool extMain::overlapWithMacro(odb::Rect& w)
 {
   for (uint ii = 0; ii < _powerMacroTable.size(); ii++) {
     odb::dbInst* inst = _powerMacroTable[ii];
-    odb::adsRect r0;
+    odb::Rect    r0;
     odb::dbBox*  bb = inst->getBBox();
     bb->getBox(r0);
 
@@ -2276,7 +2275,7 @@ bool extMain::overlapWithMacro(odb::adsRect& w)
 bool extMain::skipSideMetal(std::vector<odb::dbBox*>& viaTable,
                             uint                      level,
                             odb::dbNet*               net,
-                            odb::adsRect*             w)
+                            odb::Rect*                w)
 {
   // odb::notice(0, "skipSideMetal: level=%d -- %d %d %d %d \n", level,
   // w->xMin(), w->yMin(), w->xMax(), w->yMax());
@@ -2313,10 +2312,10 @@ bool extMain::skipSideMetal(std::vector<odb::dbBox*>& viaTable,
   if (vCnt < 2)
     return false;
 
-  odb::dbBox*  v0 = vTable[0];
-  odb::dbBox*  v1 = vTable[1];
-  odb::adsRect r0;
-  odb::adsRect r1;
+  odb::dbBox* v0 = vTable[0];
+  odb::dbBox* v1 = vTable[1];
+  odb::Rect   r0;
+  odb::Rect   r1;
   v0->getBox(r0);
   v1->getBox(r1);
   bool overlap = r0.overlaps(r1);
@@ -2515,13 +2514,13 @@ bool extMain::sameJunctionPoint(int xy[2], int BB[2], uint width, uint dir)
   return false;
 }
 uint extMain::addGroupVias(uint                      level,
-                           odb::adsRect*             w,
+                           odb::Rect*                w,
                            std::vector<odb::dbBox*>& viaTable)
 {
   uint cnt = 0;
   for (uint ll = 0; ll < _multiViaBoxTable[level].size(); ll++) {
-    odb::dbBox*  v = _multiViaBoxTable[level][ll];
-    odb::adsRect vr;
+    odb::dbBox* v = _multiViaBoxTable[level][ll];
+    odb::Rect   vr;
     v->getBox(vr);
     if (!w->overlaps(vr))
       continue;
@@ -2668,7 +2667,7 @@ uint extMain::viaAndInstConnRC(uint              dir,
                                odb::dbTechLayer* layer,
                                odb::dbNet*       net,
                                odb::dbNet*       orig_power_net,
-                               odb::adsRect*     w,
+                               odb::Rect*        w,
                                bool              skipSideMetalFlag)
 {
   int                 EXT       = 0;
@@ -2764,7 +2763,7 @@ uint extMain::viaAndInstConnRC(uint              dir,
     // (viaXY[!dir]<=LAST_VIA_MAX[!dir])
     // continue;
 
-    odb::adsRect vr;
+    odb::Rect vr;
     v->getBox(vr);
     if (!w->overlaps(vr))
       continue;
@@ -2904,7 +2903,7 @@ uint extMain::viaAndInstConn(uint                dir,
                              odb::dbWireEncoder& encoder,
                              odb::dbWire*        wire,
                              odb::dbNet*         net,
-                             odb::adsRect*       w,
+                             odb::Rect*          w,
                              bool                skipSideMetalFlag)
 {
   int                 EXT       = 0;
@@ -2994,7 +2993,7 @@ uint extMain::viaAndInstConn(uint                dir,
 
     odb::dbBox* v = viaTable[ii];
 
-    odb::adsRect vr;
+    odb::Rect vr;
     v->getBox(vr);
     if (!w->overlaps(vr)) {
       // odb::notice(0, "\n\tW: %d %d  %d %d\n", w->xMin(), w->yMin(),
@@ -3128,7 +3127,7 @@ uint extMain::viaAndInstConn(uint                dir,
 }
 odb::dbNet* extMain::createRailNet(odb::dbNet*       pnet,
                                    odb::dbTechLayer* layer,
-                                   odb::adsRect*     w)
+                                   odb::Rect*        w)
 {
   char buf_name[128];
   sprintf(buf_name,
@@ -3145,7 +3144,7 @@ odb::dbNet* extMain::createRailNet(odb::dbNet*       pnet,
   // power_net->getConstName());
   return power_net;
 }
-void extMain::powerWireConnRC(odb::adsRect*     w,
+void extMain::powerWireConnRC(odb::Rect*        w,
                               uint              dir,
                               odb::dbTechLayer* layer,
                               odb::dbNet*       net)
@@ -3277,7 +3276,7 @@ void extMain::writeMacroItermConns(odb::dbNet* net)
   }
 }
 
-void extMain::powerWireConn(odb::adsRect*     w,
+void extMain::powerWireConn(odb::Rect*        w,
                             uint              dir,
                             odb::dbTechLayer* layer,
                             odb::dbNet*       net)
@@ -3469,7 +3468,7 @@ uint extMain::addSboxesOnSearch(odb::dbNet* net)
       if (s->isVia())
         continue;
 
-      odb::adsRect r;
+      odb::Rect r;
       s->getBox(r);
       cnt++;
 
@@ -3495,7 +3494,7 @@ uint extMain::addSboxesOnSearch(odb::dbNet* net)
           uint boxCnt = grid->getBoxes(trackNum, table);
 
           if (boxCnt > 0) {
-            odb::adsRect* v = getRect_SBox(table, 0, false, 0, wtype);
+            odb::Rect* v = getRect_SBox(table, 0, false, 0, wtype);
             odb::notice(0,
                         "track[%d] %d AddBox %d %d %d %d dir=%d\n",
                         level,
@@ -3565,11 +3564,11 @@ bool extMain::filterPowerGeoms(odb::dbSBox* s, uint targetDir, uint& maxWidth)
   }
   return false;
 }
-odb::adsRect* extMain::getRect_SBox(Ath__array1D<uint>* table,
-                                    uint                ii,
-                                    bool                filter,
-                                    uint                targetDir,
-                                    uint&               maxWidth)
+odb::Rect* extMain::getRect_SBox(Ath__array1D<uint>* table,
+                                 uint                ii,
+                                 bool                filter,
+                                 uint                targetDir,
+                                 uint&               maxWidth)
 {
   uint boxId = table->get(ii);
 
@@ -3582,7 +3581,7 @@ odb::adsRect* extMain::getRect_SBox(Ath__array1D<uint>* table,
       return NULL;
   }
 
-  odb::adsRect* r = new odb::adsRect();
+  odb::Rect* r = new odb::Rect();
   s->getBox(*r);
 
   _sbox_id_map[boxId] = s;
@@ -3590,21 +3589,21 @@ odb::adsRect* extMain::getRect_SBox(Ath__array1D<uint>* table,
   return r;
 }
 
-uint extMain::overlapPowerWires(std::vector<odb::adsRect*>& mergeTableHi,
-                                std::vector<odb::adsRect*>& mergeTableLo,
-                                std::vector<odb::adsRect*>& resultTable)
+uint extMain::overlapPowerWires(std::vector<odb::Rect*>& mergeTableHi,
+                                std::vector<odb::Rect*>& mergeTableLo,
+                                std::vector<odb::Rect*>& resultTable)
 {
   uint cnt = 0;
   bool dbg = false;
   for (uint ii = 0; ii < mergeTableHi.size(); ii++) {
-    odb::adsRect* r = mergeTableHi[ii];
+    odb::Rect* r = mergeTableHi[ii];
     if (dbg)
       r->print("\n--- ");
     for (uint jj = 0; jj < mergeTableLo.size(); jj++) {
-      odb::adsRect* s = mergeTableLo[jj];
+      odb::Rect* s = mergeTableLo[jj];
       if (dbg)
         s->print("i   ");
-      odb::adsRect* v = new odb::adsRect();
+      odb::Rect* v = new odb::Rect();
       if (r->overlaps(*s)) {
         r->intersection(*s, *v);
         if (dbg)
@@ -3616,9 +3615,9 @@ uint extMain::overlapPowerWires(std::vector<odb::adsRect*>& mergeTableHi,
   }
   return cnt;
 }
-uint extMain::mergePowerWires(uint                        dir,
-                              uint                        level,
-                              std::vector<odb::adsRect*>& mergeTable)
+uint extMain::mergePowerWires(uint                     dir,
+                              uint                     level,
+                              std::vector<odb::Rect*>& mergeTable)
 {
   bool       dbg  = false;
   uint       cnt  = 0;
@@ -3637,10 +3636,10 @@ uint extMain::mergePowerWires(uint                        dir,
     if (boxCnt == 0)
       continue;
 
-    bool          filterSmallGeoms = level == 1;
-    odb::adsRect* v                = NULL;
-    uint          kk               = 0;
-    odb::adsRect* r                = NULL;
+    bool       filterSmallGeoms = level == 1;
+    odb::Rect* v                = NULL;
+    uint       kk               = 0;
+    odb::Rect* r                = NULL;
     for (; kk < boxCnt; kk++) {
       v = getRect_SBox(table, kk, filterSmallGeoms, dir, maxWidth);
       if (v == NULL)
@@ -3651,15 +3650,14 @@ uint extMain::mergePowerWires(uint                        dir,
     if (v == NULL)
       continue;
 
-    odb::adsRect* a = new odb::adsRect(*v);
+    odb::Rect* a = new odb::Rect(*v);
     // a->print("First to merge--");
     // if (filterSmallGeoms) a->print("First to merge--");
 
     cnt++;
     mergeTable.push_back(a);
     for (uint jj = kk + 1; jj < boxCnt; jj++) {
-      odb::adsRect* r
-          = getRect_SBox(table, jj, filterSmallGeoms, dir, maxWidth);
+      odb::Rect* r = getRect_SBox(table, jj, filterSmallGeoms, dir, maxWidth);
       if (r == NULL)
         continue;
 
@@ -3673,7 +3671,7 @@ uint extMain::mergePowerWires(uint                        dir,
         // fprintf(stdout, " ...... START MERGE!\n");
         if (dbg)
           a->print("R--");
-        a = new odb::adsRect(*r);
+        a = new odb::Rect(*r);
         if (dbg)
           a->print("\n---");
         mergeTable.push_back(a);
@@ -3684,7 +3682,7 @@ uint extMain::mergePowerWires(uint                        dir,
   }
   return cnt;
 }
-odb::dbBox* extMain::createMultiVia(uint top, uint bot, odb::adsRect* r)
+odb::dbBox* extMain::createMultiVia(uint top, uint bot, odb::Rect* r)
 {
   odb::dbTech* tech = _block->getDb()->getTech();
 
@@ -3710,7 +3708,7 @@ odb::dbBox* extMain::createMultiVia(uint top, uint bot, odb::adsRect* r)
 
   return v;
 }
-void extMain::mergeViasOnMetal_1(odb::adsRect*             w,
+void extMain::mergeViasOnMetal_1(odb::Rect*                w,
                                  odb::dbNet*               pNet,
                                  uint                      level,
                                  std::vector<odb::dbBox*>& viaTable)
@@ -3725,7 +3723,7 @@ void extMain::mergeViasOnMetal_1(odb::adsRect*             w,
     if (bot > 1)
       continue;
 
-    odb::adsRect vr;
+    odb::Rect vr;
     v->getBox(vr);
     if (!w->overlaps(vr))
       continue;
@@ -3750,11 +3748,11 @@ void extMain::mergeViasOnMetal_1(odb::adsRect*             w,
     v->setVisited(false);
   }
 }
-void extMain::formOverlapVias(std::vector<odb::adsRect*> mergeTable[16],
-                              odb::dbNet*                pNet)
+void extMain::formOverlapVias(std::vector<odb::Rect*> mergeTable[16],
+                              odb::dbNet*             pNet)
 {
-  bool                       dbg = false;
-  std::vector<odb::adsRect*> overlapTable[16];
+  bool                    dbg = false;
+  std::vector<odb::Rect*> overlapTable[16];
 
   odb::dbBlockSearch* blkSearch  = _block->getSearchDb();
   int                 layerCount = _tech->getRoutingLayerCount();
@@ -3769,7 +3767,7 @@ void extMain::formOverlapVias(std::vector<odb::adsRect*> mergeTable[16],
         mergeTable[level], mergeTable[level - 1], overlapTable[level]);
     _overlapPowerWireCnt += overlapTable[level].size();
     for (uint jj = 0; jj < overlapTable[level].size(); jj++) {
-      odb::adsRect* w = overlapTable[level][jj];
+      odb::Rect* w = overlapTable[level][jj];
       if (dbg)
         w->print("--- ");
 
@@ -3792,7 +3790,7 @@ void extMain::formOverlapVias(std::vector<odb::adsRect*> mergeTable[16],
         if (!((level == bot) || (level == top)))
           continue;
 
-        odb::adsRect vr;
+        odb::Rect vr;
         v->getBox(vr);
         if (!w->overlaps(vr))
           continue;
@@ -3849,7 +3847,7 @@ void extMain::formOverlapVias(std::vector<odb::adsRect*> mergeTable[16],
     if (dbg)
       odb::notice(0, "\n\nNEW VIAS -------------- LEVEL= %d ----\n", level);
     for (uint kk = 0; kk < _multiViaBoxTable[level].size(); kk++) {
-      // odb::adsRect *w= _multiViaTable[level][kk];
+      // odb::Rect *w= _multiViaTable[level][kk];
       odb::dbBox* v = _multiViaBoxTable[level][kk];
       if (dbg) {
         // w->print("V     ");
@@ -3871,16 +3869,16 @@ void extMain::railConnOpt(odb::dbNet* pNet)
   odb::dbBlockSearch* blkSearch = _block->getSearchDb();
   odb::dbTech*        tech      = _block->getDb()->getTech();
   odb::dbBox*         bb        = _block->getBBox();
-  odb::adsRect        BB;
+  odb::Rect           BB;
   bb->getBox(BB);
 
   initPowerSearch();
 
   _powerWireCnt += addSboxesOnSearch(pNet);
   // odb::notice(0, "_powerWireCnt= %d\n", _powerWireCnt);
-  int                        layerCount = _tech->getRoutingLayerCount();
-  std::vector<odb::adsRect*> mergeTable[16];
-  std::vector<odb::adsRect*> mergeTableNOT[16];
+  int                     layerCount = _tech->getRoutingLayerCount();
+  std::vector<odb::Rect*> mergeTable[16];
+  std::vector<odb::Rect*> mergeTableNOT[16];
   for (uint level = layerCount; level > 0; level--) {
     odb::dbTechLayer*   routelayer = tech->findRoutingLayer(level);
     odb::dbTechLayerDir layerDir   = routelayer->getDirection();
@@ -3895,19 +3893,19 @@ void extMain::railConnOpt(odb::dbNet* pNet)
     powerWireCnt = mergePowerWires(!dir, level, mergeTableNOT[level]);
     _mergedPowerWireCnt += powerWireCnt;
     for (uint jj = 0; jj < mergeTable[level].size(); jj++) {
-      odb::adsRect* r = mergeTable[level][jj];
+      odb::Rect* r = mergeTable[level][jj];
       if (dbg)
         r->print("--- ");
       // if (level==1) r->print("AFTER MERGE --- ");
     }
     for (uint jj = 0; jj < mergeTableNOT[level].size(); jj++) {
-      odb::adsRect* r = mergeTableNOT[level][jj];
+      odb::Rect* r = mergeTableNOT[level][jj];
       if (dbg)
         r->print("--- ");
       // if (level==1) r->print("AFTER MERGE --- ");
     }
   }
-  std::vector<odb::adsRect*> overlapTable[16];
+  std::vector<odb::Rect*> overlapTable[16];
 
   for (uint level = layerCount; level > 1; level--) {
     _multiViaTable[level].clear();
@@ -3948,7 +3946,7 @@ void extMain::railConnOpt(odb::dbNet* pNet)
     if (_wireInfra) {
       if (level == 1) {
         for (uint kk = 0; kk < mergeTable[1].size(); kk++) {
-          odb::adsRect*            w = mergeTable[1][kk];
+          odb::Rect*               w = mergeTable[1][kk];
           std::vector<odb::dbBox*> viaTable;
           uint viaCnt = blkSearch->getPowerWiresAndVias(w->xMin(),
                                                         w->yMin(),
@@ -3964,7 +3962,7 @@ void extMain::railConnOpt(odb::dbNet* pNet)
       }
     }
     for (uint kk = 0; kk < mergeTable[level].size(); kk++) {
-      odb::adsRect* r = mergeTable[level][kk];
+      odb::Rect* r = mergeTable[level][kk];
       // HERE
       if (level == 0) {
         odb::notice(0,
@@ -3983,7 +3981,7 @@ void extMain::railConnOpt(odb::dbNet* pNet)
         powerWireConnRC(r, dir, routelayer, pNet);
     }
     for (uint kk = 0; kk < mergeTableNOT[level].size(); kk++) {
-      odb::adsRect* r = mergeTableNOT[level][kk];
+      odb::Rect* r = mergeTableNOT[level][kk];
       // HERE
       if (level == 0) {
         odb::notice(0,
@@ -4036,7 +4034,7 @@ void extMain::railConn(odb::dbNet* pNet)
   odb::dbBlockSearch* blkSearch = _block->getSearchDb();
   odb::dbTech*        tech      = _block->getDb()->getTech();
   odb::dbBox*         bb        = _block->getBBox();
-  odb::adsRect        BB;
+  odb::Rect           BB;
   bb->getBox(BB);
 
   odb::notice(0,
@@ -4155,14 +4153,14 @@ void extMain::railConn(odb::dbNet* pNet)
                       w->getDX(),
                       w->getDY());
         }
-        odb::adsRect r;
+        odb::Rect r;
         w->getBox(r);
         kk++;
         for (; kk < railMergeTable.size(); kk++) {
           odb::dbBox* v = railMergeTable[kk];
           // if (layerDir==odb::dbTechLayerDir::HORIZONTAL)
           //{
-          odb::adsRect a;
+          odb::Rect a;
           v->getBox(a);
           if (r.intersects(a)) {
             r.merge(a);  // TODO
@@ -4385,7 +4383,7 @@ FILE* extMain::openNanoFileNet(char*       netname,
   }
   return fp;
 }
-void extMain::writeSubckt(FILE* fp,
+void extMain::writeSubckt(FILE*       fp,
                           const char* keyword,
                           const char* vdd,
                           const char* std,
@@ -4407,7 +4405,7 @@ void extMain::openNanoFilesDomain(odb::dbNet* pNet)
 {
   const char* vdd   = "GND";
   const char* ptype = "ground";
-  int   ii    = 0;
+  int         ii    = 0;
   if (pNet->getSigType() == odb::dbSigType::POWER) {
     vdd   = "VDD";
     ii    = 1;
@@ -5150,10 +5148,10 @@ uint extMain::mergeStackedViasOpt(FILE*                     fp,
   for (uint ii = 0; ii < viaCnt; ii++) {
     odb::dbBox* w = viaSearchTable[ii];
 
-    odb::adsRect vr;
+    odb::Rect vr;
     v->getBox(vr);
 
-    odb::adsRect wr;
+    odb::Rect wr;
     w->getBox(wr);
 
     if (!wr.overlaps(vr))
@@ -5515,7 +5513,7 @@ uint extMain::initPowerSearch()
 
   // if (_search!=NULL)
   // delete _search;
-  // odb::adsRect extRect;
+  // odb::Rect extRect;
   uint layerCnt = initSearchForNets(
       baseX, baseY, pitchTable, widthTable, dirTable, _extMaxRect, false);
 
@@ -6027,7 +6025,7 @@ char* extMain::getPowerSourceName(bool power, uint level, uint vid)
 uint extMain::addPowerSources(std::vector<odb::dbBox*>& viaTable,
                               bool                      power,
                               uint                      level,
-                              odb::adsRect*             powerWire)
+                              odb::Rect*                powerWire)
 {
   if (_supplyViaTable[0] == NULL)
     return 0;
@@ -6035,8 +6033,8 @@ uint extMain::addPowerSources(std::vector<odb::dbBox*>& viaTable,
   uint n   = _supplyViaTable[power][level]->getCnt();
   uint cnt = 0;
   for (uint ii = 0; ii < n; ii++) {
-    odb::dbBox*  v = _supplyViaTable[power][level]->get(ii);
-    odb::adsRect via;
+    odb::dbBox* v = _supplyViaTable[power][level]->get(ii);
+    odb::Rect   via;
     v->getBox(via);
     if (!powerWire->contains(via))
       continue;

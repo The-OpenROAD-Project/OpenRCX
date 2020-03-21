@@ -69,16 +69,16 @@ uint extMain::allocateOverUnderMaps(uint layerCnt)
   }
   return cnt;
 }
-uint extMain::initPlanesNew(uint planeCnt, odb::adsRect* bb)
+uint extMain::initPlanesNew(uint planeCnt, odb::Rect* bb)
 {
   _geomSeq->setSlices(planeCnt);
 
-  // odb::adsRect rectTable[15];
+  // odb::Rect rectTable[15];
   // for (uint k= 0; k<15; k++)
   //	rectTable[k].reset( INT_MAX, INT_MAX, INT_MIN, INT_MIN );
   // getBboxPerLayer(rectTable);
 
-  odb::adsRect maxRect;
+  odb::Rect maxRect;
   _block->getDieArea(maxRect);
 
   if (bb != NULL) {
@@ -103,11 +103,11 @@ uint extMain::initPlanesNew(uint planeCnt, odb::adsRect* bb)
     uint pp       = layer->getPitch();
     uint minWidth = layer->getWidth();
 
-    odb::adsRect r = maxRect;
+    odb::Rect r = maxRect;
     //_geomSeq->configureSlice(level, pp, pp, r.xMin(), r.yMin(), r.xMax(),
     //r.yMax());
 
-    // odb::adsRect r= rectTable[level];
+    // odb::Rect r= rectTable[level];
 
     if (layer->getDirection() == odb::dbTechLayerDir::HORIZONTAL)
       _geomSeq->configureSlice(
@@ -146,7 +146,7 @@ uint extMain::initPlanes(uint  dir,
   }
   return layerCnt;
 }
-uint extMain::initPlanes(uint layerCnt, odb::adsRect* bb)
+uint extMain::initPlanes(uint layerCnt, odb::Rect* bb)
 {
   // odb::notice(0, "Initializing Extraction search DB ... \n");
 
@@ -265,7 +265,7 @@ uint extMain::addPowerGs(int dir, int* ll, int* ur)
 
         if (ll == NULL) {
           if (dir >= 0) {
-            odb::adsRect r;
+            odb::Rect r;
             s->getBox(r);
             if (matchDir(dir, r))
               continue;
@@ -284,7 +284,7 @@ uint extMain::addPowerGs(int dir, int* ll, int* ur)
             cnt++;
           continue;
         }
-        odb::adsRect r;
+        odb::Rect r;
         s->getBox(r);
 
         int bb[2] = {r.xMin(), r.yMin()};
@@ -306,7 +306,7 @@ uint extMain::addPowerGs(int dir, int* ll, int* ur)
   }
   return cnt;
 }
-void extMain::getBboxPerLayer(odb::adsRect* rectTable)
+void extMain::getBboxPerLayer(odb::Rect* rectTable)
 {
   odb::dbSet<odb::dbNet>           bnets = _block->getNets();
   odb::dbSet<odb::dbNet>::iterator net_itr;
@@ -335,7 +335,7 @@ void extMain::getBboxPerLayer(odb::adsRect* rectTable)
 
           uint level = dshape.getTechLayer()->getRoutingLevel();
 
-          odb::adsRect r;
+          odb::Rect r;
           dshape.getBox(r);
 
           rectTable[level].merge(r);
@@ -357,7 +357,7 @@ void extMain::getBboxPerLayer(odb::adsRect* rectTable)
 
         uint level = s->getTechLayer()->getRoutingLevel();
 
-        odb::adsRect r;
+        odb::Rect r;
         s->getBox(r);
 
         rectTable[level].merge(r);
@@ -396,7 +396,7 @@ uint extMain::addSignalGs(int dir, int* ll, int* ur)
 
         if (ll == NULL) {
           if (dir >= 0) {
-            odb::adsRect r;
+            odb::Rect r;
             dshape.getBox(r);
             if (matchDir(dir, r))
               continue;
@@ -415,7 +415,7 @@ uint extMain::addSignalGs(int dir, int* ll, int* ur)
             cnt++;
           continue;
         }
-        odb::adsRect r;
+        odb::Rect r;
         dshape.getBox(r);
 
         int bb[2] = {r.xMin(), r.yMin()};

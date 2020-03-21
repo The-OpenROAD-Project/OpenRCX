@@ -334,7 +334,7 @@ int extMeasure::readQcap(extMain*         extMain,
   }
   if (netCnt > 0) {
     odb::dbBox*  bb = _block->getBBox();
-    odb::adsRect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
+    odb::Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
     _block->setDieArea(r);
 
     notice(0, "Have read %d nets from file %s\n", netCnt, filename);
@@ -707,7 +707,7 @@ if (net!=NULL) {
   }
   if (netCnt > 0) {
     odb::dbBox*  bb = _block->getBBox();
-    odb::adsRect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
+    odb::Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
     _block->setDieArea(r);
 
     odb::notice(0, "Have read %d nets from file %s\n", netCnt, filename);
@@ -804,7 +804,7 @@ int extMeasure::readAB(extMain*         extMain,
   }
   if (netCnt > 0) {
     odb::dbBox*  bb = _block->getBBox();
-    odb::adsRect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
+    odb::Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
     _block->setDieArea(r);
 
     odb::notice(0, "Have read %d nets from file %s\n", netCnt, filename);

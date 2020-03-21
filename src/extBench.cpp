@@ -524,7 +524,7 @@ uint extMain::benchWires(extMainOptions* opt)
     m->linesOverUnderBench(opt);
 
   odb::dbBox*  bb = _block->getBBox();
-  odb::adsRect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
+  odb::Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
   _block->setDieArea(r);
   _extracted = true;
   updatePrevControl();
