@@ -2685,6 +2685,41 @@ void extRCModel::mkFileNames(extMeasure *m, char *wiresNameSuffix)
 	fflush(_logFP);
 
 }
+void extRCModel::mkNet_prefix(extMeasure* m, char* wiresNameSuffix)
+{
+        char overUnder[128];
+
+        if ((m->_overMet > 0) && (m->_underMet > 0))
+                sprintf(overUnder, "M%doM%duM%d", m->_met, m->_underMet, m->_overMet);
+
+        else if (m->_overMet > 0)
+                if (m->_diag)
+                        sprintf(overUnder, "M%duuM%d", m->_met, m->_overMet);
+                else
+                        sprintf(overUnder, "M%duM%d", m->_met, m->_overMet);
+
+        else if (m->_underMet >= 0)
+                sprintf(overUnder, "M%doM%d", m->_met, m->_underMet);
+
+        else
+                sprintf(overUnder, "Uknown");
+
+        double w = m->_w_m;
+        double s = m->_s_m;
+        double r = m->_r;
+        double w2 = m->_w2_m;
+        double s2 = m->_s2_m;
+
+        sprintf(_wireDirName, "%s_%s_W%gW%g_S%gS%g", _patternName, overUnder, w*1000, w2*1000, s*1000, s2*1000);
+
+        if (wiresNameSuffix != NULL)
+                sprintf(_wireFileName, "%s.%s", "wires", wiresNameSuffix);
+        else
+                sprintf(_wireFileName, "%s", "wires");
+
+        fprintf(_logFP, "pattern Dir %s\n\n", _wireDirName);
+        fflush(_logFP);
+}
 
 FILE *extRCModel::mkPatternFile()
 {
@@ -4647,8 +4682,12 @@ uint extMain::metRulesGen(const char *name, const char *topDir, const char *rule
 	m->closeFiles();
 	return 0;
 }
-uint extMain::writeRules(const char *name, const char *topDir, const char *rulesFile, int pattern, bool readFiles)
+uint extMain::writeRules(const char *name, const char *topDir, const char *rulesFile, int pattern, bool readFiles, int read_db_nets)
 {
+	if (read_db_nets>0) {
+		GenExtRules(rulesFile);
+		return 0;
+	}
 	if (!readFiles) {
 		extRCModel *m= _modelTable->get(0);
                                                                                 

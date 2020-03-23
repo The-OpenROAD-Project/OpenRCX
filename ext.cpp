@@ -108,7 +108,7 @@ TCL_METHOD ( Ext::metal_rules_gen )
 TCL_METHOD ( Ext::write_rules )
 {
     TCL_IN_ARGS ( ZIn_Ext_write_rules );
-	_ext->writeRules(in_args->name(), in_args->dir(), in_args->file(), in_args->pattern(), in_args->read_from_solver());
+	_ext->writeRules(in_args->name(), in_args->dir(), in_args->file(), in_args->pattern(), in_args->read_from_solver(), in_args->read_from_db());
 	return TCL_OK;
 }
 TCL_METHOD ( Ext::get_ext_metal_count)
@@ -236,6 +236,25 @@ TCL_METHOD ( Ext::bench_wires )
 	}
 	_ext->benchWires(&opt);
 	
+	return TCL_OK;
+}
+TCL_METHOD ( Ext::bench_verilog_out )
+{
+	TCL_IN_ARGS(ZIn_Ext_bench_verilog_out);
+
+	char* filename = (char*)in_args->file();
+	if (!filename || !filename[0])
+	{
+		notice(0, "Please set file name.\n");
+		return 0;
+	}
+	FILE* fp = fopen(filename, "w");
+	if (fp == NULL) {
+		notice(0, "Cannot open file %s\n", filename);
+		return 0;
+	}
+	notice(0, "Writting pattern Verilog %s\n", filename);	
+	_ext->benchVerilog(fp);
 	return TCL_OK;
 }
 TCL_METHOD ( Ext::clean )

@@ -58,6 +58,7 @@ class Ext : public ZTechModule<Ext>
     TCL_METHOD ( bench_net ) ;
     TCL_METHOD ( run_solver ) ;
     TCL_METHOD ( bench_wires ) ;
+    TCL_METHOD ( bench_verilog_out ) ;
     TCL_METHOD ( assembly ) ;
     TCL_METHOD ( write_spef_nets ) ;
     TCL_METHOD ( flatten ) ;

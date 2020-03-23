@@ -472,6 +472,7 @@ public:
 	uint readCap(uint wireCnt, double cc1, double cc2, double fr, double tot);
 	FILE* openFile(char *topDir, char *name, char *suffix, char *permissions);
 	FILE* openSolverFile();
+	void mkNet_prefix(extMeasure *m, char *wiresNameSuffix);
 	void mkFileNames(extMeasure *m, char *wiresNameSuffix);
 	void writeWires(FILE *fp, extMasterConductor *m, uint wireCnt, double X, double w, double s);
 	void writeWires(FILE *fp, extMeasure *measure, uint wireCnt);
@@ -606,7 +607,7 @@ public:
 class extMeasure
 {
 public:
-
+	bool _skip_delims;
 	extMeasure();
 	~extMeasure();
 
@@ -647,6 +648,7 @@ public:
 	uint createNetSingleWire(char *dirName, uint idCnt, uint w_layout, uint s_layout, int dir=-1);
 	uint createDiagNetSingleWire(char *dirName, uint idCnt, int base, int w_layout, int s_layout, int dir=-1);
 	uint createContextNets(char *dirName, int bboxLL[2], int bboxUR[2], int met, double pitchMult);
+	uint createContextObstruction(char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
 	double getCCfringe(uint lastNode, uint n, uint start, uint end);
 	double getCCfringe3D(uint lastNode, uint n, uint start, uint end);
 
@@ -1603,8 +1605,9 @@ public:
 	uint readProcess(const char *name, const char *file);
 	uint rulesGen(const char *name, const char *topDir, const char *rulesFile, int pattern, bool skipSolv, bool readSolv, bool runSolver, bool keepFile);
 	uint metRulesGen(const char *name, const char *topDir, const char *rulesFile, int pattern, bool writeFiles, bool readFiles, bool runSolver, bool keepFile, uint met);
-	uint writeRules(const char *name, const char *topDir, const char *rulesFile, int pattern, bool readFiles = false);
+	uint writeRules(const char *name, const char *topDir, const char *rulesFile, int pattern, bool readFiles = false, int read_db_nets = 0);
 	uint benchWires(extMainOptions *options);
+	uint GenExtRules(const char *rulesFileName);
 	FILE *getPtFile () { return _ptFile; };
 	static void destroyExtSdb (std::vector<dbNet *> & nets, void *ext);
 	void writeIncrementalSpef (char *filename, std::vector<dbNet *> & buf_nets, uint nn, bool dual_incr_spef);
@@ -1939,6 +1942,9 @@ public:
 	//041713D
 	void formOverlapVias(std::vector<adsRect *> mergeTable[16], dbNet *pNet);
 
+	uint benchVerilog(FILE* fp);
+	uint benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix);
+	uint benchVerilog_assign(FILE* fp);
 
 };
 

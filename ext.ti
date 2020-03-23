@@ -83,7 +83,8 @@ module Ext
 	in string dir = "./extRulesGen" [ usage = "Directory Name for field solver runs" ; ],         
 	in string file = "extRules" [ usage = "Output Rules File Name" ; ],
 	in int pattern = 0 [ usage = "pattern type" ; ],
-	in bool read_from_solver [ usage = "Read output files from field solver" ; ]
+	in bool read_from_solver [ usage = "Read output files from field solver" ; ],
+	in int read_from_db = 0 [ usage = "Read db (pattern) nets" ; ]
     );
 	export get_ext_metal_count
     (
@@ -103,6 +104,10 @@ module Ext
 	in string dir = "./netBench" [ usage = "Directory for solver runs" ; ],
 	in int net  [ usage = "Net Id" ; ],
 	in int shape  [ usage = "Shape Id" ; ]
+    );
+    export bench_verilog_out
+    ( 
+        in string file [ usage = "output file name" ; ]
     );
     export bench_wires
     ( 
