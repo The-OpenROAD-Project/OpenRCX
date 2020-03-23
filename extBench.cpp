@@ -451,6 +451,14 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 }
 uint extMain::benchWires(extMainOptions *opt)
 {
+	if (opt->_db_only) {
+		uint layerCnt= _tech->getRoutingLayerCount();
+		extRCModel *m= new extRCModel(layerCnt, "processName");
+		_modelTable->add(m);
+
+		//m->setProcess(p);
+		m->setDataRateTable(1);
+	}
 	extRCModel *m= _modelTable->get(0);
 
 	m->setOptions(opt->_topDir, opt->_name, 
