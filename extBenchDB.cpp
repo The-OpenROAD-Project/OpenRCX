@@ -17,6 +17,10 @@ BEGIN_NAMESPACE_ADS
 
 uint extMain::GenExtRules(const char *rulesFileName)
 {
+	char buff[2000];
+	sprintf(buff, "%s.log", rulesFileName);
+	FILE *logFP= fopen(buff, "w");
+
 	Ath__parser *p = new Ath__parser();
 	Ath__parser *w = new Ath__parser();
 	int n = 0;
@@ -57,7 +61,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		if (wireNum != targetWire/2)
 			continue;
 
-fprintf(stdout, "%s\n", netName);
+		fprintf(logFP, "%s\n", netName);
 		bool over = false;
 		bool overUnder = false;
 		bool under = false;
@@ -115,9 +119,10 @@ fprintf(stdout, "%s\n", netName);
  			totCap += cc->getCapacitance();
  		} */
 
-		fprintf(stdout, "Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
+		fprintf(logFP, "Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
 			met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
 	}
+	fclose(logFP);
 	return n;
 }
 uint extMain::benchVerilog(FILE* fp)
@@ -160,7 +165,10 @@ uint extMain::benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char*
 
 			if (iotype != bterm->getIoType())
 				continue;
-			fprintf(fp, "%s%s%s\n", prefix, btermName, postfix);
+			if (n==nets.size()-1)
+				fprintf(fp, "%s%s\n", prefix, btermName, postfix);
+			else
+				fprintf(fp, "%s%s%s\n", prefix, btermName, postfix);
 			n++;
 		}
 	}
