@@ -193,7 +193,7 @@ uint extMain::benchVerilog(FILE* fp)
 {
 	fprintf(fp, "module %s (\n", _block->getConstName());
 	int outCnt = benchVerilog_bterms(fp, dbIoType::OUTPUT, "  ", ",");
-	int inCnt = benchVerilog_bterms(fp, dbIoType::INPUT, "  ", ",");
+	int inCnt = benchVerilog_bterms(fp, dbIoType::INPUT, "  ", ",", true);
 	fprintf(fp, ");\n\n");
 	benchVerilog_bterms(fp, dbIoType::OUTPUT, "  output ", " ;");
 	fprintf(fp, "\n");
@@ -210,7 +210,7 @@ uint extMain::benchVerilog(FILE* fp)
 	fclose(fp);
 	return 0;
 }
-uint extMain::benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix)
+uint extMain::benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix, bool skip_postfix_last)
 {
 	int n = 0;
 	dbSet<dbNet> nets = _block->getNets();
@@ -229,7 +229,7 @@ uint extMain::benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char*
 
 			if (iotype != bterm->getIoType())
 				continue;
-			if (n==nets.size()-1)
+			if (n==nets.size()-1 && skip_postfix_last)
 				fprintf(fp, "%s%s\n", prefix, btermName, postfix);
 			else
 				fprintf(fp, "%s%s%s\n", prefix, btermName, postfix);
@@ -338,7 +338,6 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 
 				cnt++;
 			}
-			break; // ONLY MIN WIDTH
 		}
 	}
 	else {

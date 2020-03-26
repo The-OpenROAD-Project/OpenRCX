@@ -1944,7 +1944,7 @@ public:
 	void formOverlapVias(std::vector<adsRect *> mergeTable[16], dbNet *pNet);
 
 	uint benchVerilog(FILE* fp);
-	uint benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix);
+	uint benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix, bool v=false);
 	uint benchVerilog_assign(FILE* fp);
 
 };
