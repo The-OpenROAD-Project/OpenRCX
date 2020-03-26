@@ -345,6 +345,7 @@ public:
 	extDistRC* getCapOver(uint met, uint metUnder);
 	extDistRC* getCapUnder(uint met, uint metOver);
 	extDistRC* getOverFringeRC(extMeasure *m);
+	AthPool<extDistRC>* getRCPool();
 };
 class extRCTable
 {
@@ -436,7 +437,6 @@ public:
 	~extRCModel();
 	void setExtMain(extMain *x);
 	void createModelTable(uint n, uint layerCnt);
-
 	uint addLefTotRC(uint met, uint underMet, double fr, double r);
 	uint addCapOver(uint met, uint underMet, uint d, double cc, double fr, double a, double r);
 	double getTotCapOverSub(uint met);
@@ -557,6 +557,7 @@ public:
 
 	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
 	int writeBenchWires_DB(extMeasure* measure);
+	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
 
 };
 class extNetStats 

@@ -15,8 +15,34 @@
 
 BEGIN_NAMESPACE_ADS
 
+extMetRCTable* extRCModel::initCapTables(uint layerCnt, uint widthCnt)
+{
+	createModelTable(1, layerCnt);
+	for (uint kk = 0; kk < _modelCnt; kk++)
+		_dataRateTable->add(0.0);
+
+	// _modelTable[0]->allocateInitialTables(layerCnt, 10, true, true, true);
+	_modelTable[0]->allocateInitialTables(layerCnt, widthCnt, true, true, true);
+	return _modelTable[0];
+}
+AthPool<extDistRC>* extMetRCTable::getRCPool()
+{
+	return _rcPoolPtr;
+}
 uint extMain::GenExtRules(const char *rulesFileName)
 {
+	uint widthCnt = 12;
+	uint layerCnt = _tech->getRoutingLayerCount();
+
+	extRCModel *model= new extRCModel(layerCnt, "TYPICAL");
+	// _modelTable->add(m);
+	// extRCModel *model= _modelTable->get(0);
+	model->setOptions("./", "", false, true, false, false);
+
+	extMetRCTable* rcModel= model->initCapTables(layerCnt, widthCnt);
+	AthPool<extDistRC>* rcPool = rcModel->getRCPool();
+	extMeasure m;
+
 	char buff[2000];
 	sprintf(buff, "%s.log", rulesFileName);
 	FILE *logFP= fopen(buff, "w");
@@ -74,27 +100,50 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		int wCnt= w->mkWords(overUnderToken, "ou");
 		if (wCnt < 2)
 			continue;
+
 		if (wCnt == 3 ) { //M2oM1uM3
 			met = w->getInt(0, 1);
 			overMet = w->getInt(1, 1);
 			underMet = w->getInt(2, 1);
 			overUnder= true;
+
+			m._overMet= underMet;
+			m._underMet= overMet;
+			m._overUnder= true;
+			m._over= false;
+			
 		}
 		else if (strstr(overUnderToken, "o") !=NULL) {
 			met = w->getInt(0, 1);
 			overMet = w->getInt(1, 1);
 			over= true;
+
+			m._overMet= -1;
+			m._underMet= overMet;
+			m._overUnder= false;
+			m._over= true;
 		}
 		else if (strstr(overUnderToken, "u") !=NULL) {
 			met = w->getInt(0, 1);
 			underMet = w->getInt(1, 1);
 			under= true;
+
+			m._overMet= underMet;
+			m._underMet= -1;
+			m._overUnder= false;
+			m._over= false;
 		}
+		// TODO DIAGUNDER
+		m._met= met;
+
 		if (w->mkWords(p->get(2), "W") <= 0)
 			continue;
 
 		double w1 = w->getDouble(0) / 1000;
 		double w2 = w->getDouble(1) / 1000;
+
+		m._w_m= w1;
+		m._w_nm= Ath__double2int(m._w_m*1000);
 
 		if (w->mkWords(p->get(3), "S") <= 0)
 			continue;
@@ -102,10 +151,23 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		double s1 = w->getDouble(0) / 1000;
 		double s2 = w->getDouble(1) / 1000;
 
+		m._s_m= s1;
+		m._s_nm= Ath__double2int(m._s_m*1000);
+
 		double wLen= (len+w->getDouble(0)) * 1.0;
 		double totCC = net->getTotalCouplingCap();
 		double totGnd = net->getTotalCapacitance();
 		double res = net->getTotalResistance();
+
+		double cc= totCC / wLen / 2;
+		double gnd= totGnd / wLen / 2;
+		double R= res / ( wLen/(1000*w1));
+
+		extDistRC *rc= rcPool->alloc();
+		rc->set(m._s_nm, cc, gnd, 0.0, R);
+		m._tmpRC= rc;
+		rcModel->addRCw(&m);
+
 		/*
   		std::vector<dbCCSeg*> vec_cc;
  		net->getSrcCCSegs(vec_cc);
@@ -118,10 +180,12 @@ uint extMain::GenExtRules(const char *rulesFileName)
  			dbCapNode* tcnode = cc->getTargetCapNode();
  			totCap += cc->getCapacitance();
  		} */
-
 		fprintf(logFP, "Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
 			met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
 	}
+	rcModel->mkWidthAndSpaceMappings();
+	model->writeRules((char *)rulesFileName, false);
+
 	fclose(logFP);
 	return n;
 }
@@ -461,19 +525,21 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 				contextRaphaelCnt += measure->writeRaphael3D(fp, measure->_overMet, true, mainNetStart, h, t);
 		*/
 		// contextRaphaelCnt += measure->writeRaphael3D(fp, measure->_overMet, true, low, h, t);
-	}
-
-	measure->_ur[measure->_dir] += grid_gap_cnt * (w_layout + s_layout);
-	return cnt;
+        }
+//fprintf(stdout, "\nOBS %d %d %d %d %d\n", met, x, y, bboxUR[0], bboxUR[1]);
+	// dbTechLayer* layer = _tech->findRoutingLayer(met);
+	// dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
+	return 1;
 }
 uint extMeasure::createContextObstruction(char* dirName, int x, int y, int bboxUR[2], int met, double pitchMult)
 {
-	if (met <= 0)
-		return 0;
+       if (met <= 0)
+               return 0;
 
-//fprintf(stdout, "\nOBS %d %d %d %d %d\n", met, x, y, bboxUR[0], bboxUR[1]);
-	dbTechLayer* layer = _tech->findRoutingLayer(met);
-	dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
-	return 1;
-}
+ //fprintf(stdout, "\nOBS %d %d %d %d %d\n", met, x, y, bboxUR[0], bboxUR[1]);
+     dbTechLayer* layer = _tech->findRoutingLayer(met);
+     dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
+       return 1;
+ }
+ 
 END_NAMESPACE_ADS
