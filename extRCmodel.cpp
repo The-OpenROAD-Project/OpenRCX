@@ -696,8 +696,10 @@ extDistWidthRCTable::extDistWidthRCTable(bool over, uint met, uint layerCnt, uin
 		_widthTable->add(w);
 	}
 
+	if (widthCnt>0) {
 	_firstWidth= _widthTable->get(0);
 	_lastWidth= _widthTable->get(widthCnt-1);
+        }
 	_modulo= 4;
 
 	_widthTableAllocFlag= true;

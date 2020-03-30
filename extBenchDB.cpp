@@ -278,6 +278,8 @@ uint extMain::benchVerilog_assign(FILE* fp)
 }
 uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 {
+	Ath__array1D<double>* widthTable = new Ath__array1D<double>(4);
+	Ath__array1D<double>* spaceTable = new Ath__array1D<double>(4);
 	Ath__array1D<double>* wTable = &opt->_widthTable;
 	Ath__array1D<double>* sTable = &opt->_spaceTable;
 	Ath__array1D<double>* gTable = &opt->_gridTable;
@@ -292,14 +294,12 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 	double spacing = pitch - minWidth;
 
 	if (opt->_default_lef_rules) { // minWidth, minSpacing, minThickness, pitch multiplied by grid_list
-		wTable->resetCnt();
-		sTable->resetCnt();
 		for (uint ii = 0; ii < gTable->getCnt(); ii++) {
 			// double s = minWidth + pitch * (gTable->get(ii) - 1);
 			double s = spacing * gTable->get(ii);
-			sTable->add(s);
+			spaceTable->add(s);
 			double w = minWidth * gTable->get(ii);
-			wTable->add(w);
+			widthTable->add(w);
 		}
 	}
 	else if (opt->_nondefault_lef_rules) {
@@ -322,13 +322,23 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 			sTable->add(s);
 		}
 	}
+	else {
+		for (uint ii = 0; ii < sTable->getCnt(); ii++) {
+			double s = spacing * sTable->get(ii);
+			spaceTable->add(s);
+		}
+		for (uint ii = 0; ii < wTable->getCnt(); ii++) {
+			double w = minWidth * wTable->get(ii);
+			widthTable->add(w);
+		}
+	}
 	bool use_symmetric_widths_spacings = false;
 	if (!use_symmetric_widths_spacings) {
-		for (uint ii = 0; ii < wTable->getCnt(); ii++) {
-			double w = wTable->get(ii); // layout
+		for (uint ii = 0; ii < widthTable->getCnt(); ii++) {
+			double w = widthTable->get(ii); // layout
 			double w2 = w;
-			for (uint jj = 0; jj < sTable->getCnt(); jj++) {
-				double s = sTable->get(jj); // layout
+			for (uint jj = 0; jj < spaceTable->getCnt(); jj++) {
+				double s = spaceTable->get(jj); // layout
 				double s2 = s;
 
 				measure->setTargetParams(w, s, 0.0, 0, 0, w2, s2);
