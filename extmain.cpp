@@ -527,6 +527,7 @@ uint extMain::addExtModel(dbTech *tech)
         if (dbunit>1000)
                 dbFactor= dbunit*0.001;
 
+// fprintf(stdout, "dbUnit= %d dbFactor= %g \n", dbunit, dbFactor);
 	dbSet<dbTechLayer> layers = tech->getLayers();
     dbSet<dbTechLayer>::iterator itr;
 
@@ -540,14 +541,20 @@ uint extMain::addExtModel(dbTech *tech)
 			continue;
 
 		n= layer->getRoutingLevel();
-
-		double cap= layer->getCapacitance()/(dbFactor*dbFactor); // PF per square micron : totCap= cap * LW
-		double res= layer->getResistance(); // OHMS per square
 		uint w= layer->getWidth(); // nm
+
+
+		double areacap= layer->getCapacitance()/(dbFactor*dbFactor); // PF per square micron : totCap= cap * LW
+		// double cap= layer->getCapacitance()/(dbFactor*dbFactor); // PF per square micron : totCap= cap * LW
+		double cap= layer->getCapacitance();
+		double res= layer->getResistance(); // OHMS per square
 //		res /= w; // OHMS per nm
 //		cap *= 0.001 * w; // FF per nm : 0.00 
-		cap *= 0.001;
-
+		cap *= 0.001*2;
+/*
+fprintf(stdout, "Layer %d %s W= %d LEF cap=%g res= %g areaCap= %g extCap= %g res= %g\n", 
+    n, layer->getConstName(), w, layer->getCapacitance(), layer->getResistance(), areacap, cap, res);
+*/
 		m->addLefTotRC(n, 0, cap, res);
 
 		double c1= m->getTotCapOverSub(n);

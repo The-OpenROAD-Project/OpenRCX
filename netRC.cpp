@@ -212,8 +212,18 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 		}
 
 		if (_lefRC) {
+			double res= getResistance(level, width, len, 0);;
+			double unitCap= getFringe(level, width, 0, areaCap);
 			//			_tmpCapTable[0]= len*2*getFringe(level, width, 0);
-			_tmpCapTable[0]= len*width*getFringe(level, width, 0, areaCap);
+			double tot= len*width*unitCap;
+			double frTot= len*2*unitCap;
+
+			/*
+			fprintf(stdout, "level= %d width= %d len= %d unitCap= %g tot2= %g  totFr= %g res= %g\n",
+				level, width, len, unitCap, tot,  frTot, res);
+			*/
+			//_tmpCapTable[0]= tot;
+			_tmpCapTable[0]= frTot;
 			_tmpCapTable[0] += 2*areaCap * len*width;
 			_tmpResTable[0]= getResistance(level, width, len, 0);;
 		}
@@ -2694,7 +2704,7 @@ uint extMain::makeBlockRCsegs(bool btermThresholdFlag, const char *cmp_file, boo
 		AthResourceLog ("before remove Model", detailRlog);
 
 	if (!windowFlow) {
-		delete _currentModel;
+		// delete _currentModel;
 		_modelTable->resetCnt(0);
 		if (rlog)
 			AthResourceLog ("After remove Model", detailRlog);
