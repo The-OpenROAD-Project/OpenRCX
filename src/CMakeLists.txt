@@ -98,7 +98,7 @@ target_include_directories(OpenRCX
   PRIVATE
   ${OPENRCX_HOME}/include/OpenRCX
   ${OPENROAD_HOME}/include
-  ${OPENSTA_HOME}/app
+  ${OPENSTA_HOME}/include
 )
 
 target_link_libraries(OpenRCX
