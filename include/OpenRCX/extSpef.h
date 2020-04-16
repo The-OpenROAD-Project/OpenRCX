@@ -131,8 +131,6 @@ class extSpef
   bool _btermFound;
 
   bool _noBackSlash;
-  bool _primeTime;
-  bool _psta;
 
   uint _baseNameMap;
   uint _firstCapNode;
@@ -397,8 +395,6 @@ class extSpef
                   bool                      noCnum,
                   bool                      stopBeforeDnets,
                   bool                      noBackSlash,
-                  bool                      primeTime,
-                  bool                      psta,
                   bool                      flatten,
                   bool                      parallel);
   uint writeBlock(char*                    nodeCoord,
@@ -415,8 +411,6 @@ class extSpef
                   bool                     noCnum,
                   bool                     stopBeforeDnets,
                   bool                     noBackSlash,
-                  bool                     primeTime,
-                  bool                     psta,
                   bool                     flatten,
                   bool                     parallel);
 

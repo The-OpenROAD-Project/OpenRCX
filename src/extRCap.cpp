@@ -133,7 +133,6 @@ static int ext_rctot_cmp_c(const void* a, const void* b)
 
 void extMain::initIncrementalSpef(const char* origp,
                                   const char* newp,
-                                  const char* reader,
                                   const char* excludeC,
                                   bool        noBackSlash)
 {
@@ -157,19 +156,6 @@ void extMain::initIncrementalSpef(const char* origp,
   else
     _bufSpefCnt = 1;
   _incrNoBackSlash  = noBackSlash;
-  _incrSpefPrimtime = false;
-  _incrSpefPsta     = false;
-  if (reader) {
-    if (strcmp(reader, "prime_time") == 0)
-      _incrSpefPrimtime = true;
-    else if (strcmp(reader, "psta") == 0)
-      _incrSpefPsta = true;
-    else
-      warning(0, "unknown reader %s\n", reader);
-  } else {
-    _incrSpefPrimtime = false;
-    _incrSpefPsta     = false;
-  }
 }
 #ifndef DEFAULT_BILL_WAY
 void extMain::reportTotalCap(const char* file,

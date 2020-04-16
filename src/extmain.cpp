@@ -242,8 +242,6 @@ void extMain::writeIncrementalSpef(char*                     filename,
                               false /*noCnum*/,
                               false /*initOnly*/,
                               _incrNoBackSlash /*noBackSlash*/,
-                              _incrSpefPrimtime /*primeTime*/,
-                              _incrSpefPsta /*psta*/,
                               false /*flatten*/,
                               false /*parallel*/);
     return;
@@ -269,8 +267,6 @@ void extMain::writeIncrementalSpef(char*                     filename,
                             false /*noCnum*/,
                             false /*initOnly*/,
                             _incrNoBackSlash /*noBackSlash*/,
-                            _incrSpefPrimtime /*primeTime*/,
-                            _incrSpefPsta /*psta*/,
                             false /*flatten*/,
                             false /*parallel*/);
   _block->restoreOldParasitics(bnets, oldNetCap, oldNetRseg);
@@ -292,8 +288,6 @@ void extMain::writeIncrementalSpef(char*                     filename,
                             false /*noCnum*/,
                             false /*initOnly*/,
                             _incrNoBackSlash /*noBackSlash*/,
-                            _incrSpefPrimtime /*primeTime*/,
-                            _incrSpefPsta /*psta*/,
                             false /*flatten*/,
                             false /*parallel*/);
 }
@@ -302,8 +296,7 @@ void writeSpef(odb::dbBlock* block,
                char*         filename,
                char*         nets,
                int           corner,
-               char*         coord,
-               char*         reader)
+               char*         coord)
 {
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
@@ -312,14 +305,13 @@ void writeSpef(odb::dbBlock* block,
   }
   std::vector<odb::dbNet*> tnets;
   block->findSomeNet(nets, tnets);
-  tmiExt->writeSpef(filename, tnets, corner, coord, reader);
+  tmiExt->writeSpef(filename, tnets, corner, coord);
 }
 
 void extMain::writeSpef(char*                     filename,
                         std::vector<odb::dbNet*>& tnets,
                         int                       corner,
-                        char*                     coord,
-                        char*                     reader)
+                        char*                     coord)
 {
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
@@ -336,12 +328,6 @@ void extMain::writeSpef(char*                     filename,
     for (uint nn = 0; nn < cCnt; nn++)
       _spef->_active_corner_number[nn] = nn;
   }
-  bool primeTime = false;
-  bool psta      = false;
-  if (reader && strcmp(reader, "primeTime") == 0)
-    primeTime = true;
-  else if (reader && strcmp(reader, "psta") == 0)
-    psta = true;
   uint cnt;
   if (openSpefFile(filename, 1) > 0) {
     odb::notice(0, "Can not open file \"%s\" to write spef.\n", filename);
@@ -361,8 +347,6 @@ void extMain::writeSpef(char*                     filename,
                             false /*noCnum*/,
                             false /*initOnly*/,
                             false /*noBackSlash*/,
-                            primeTime /*primeTime*/,
-                            psta /*psta*/,
                             false /*flatten*/,
                             false /*parallel*/);
   delete _spef;

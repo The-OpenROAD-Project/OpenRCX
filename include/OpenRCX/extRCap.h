@@ -1511,8 +1511,6 @@ class extMain
   char*            _excludeCells;
   uint             _bufSpefCnt;
   bool             _incrNoBackSlash;
-  bool             _incrSpefPrimtime;
-  bool             _incrSpefPsta;
   uint             _cornerCnt;
   uint             _extDbCnt;
 
@@ -2197,8 +2195,6 @@ class extMain
                  bool        initOnly,
                  bool        single_pi,
                  bool        no_backslash,
-                 bool        prime_time,
-                 bool        psta,
                  int         corner,
                  const char* corner_name,
                  bool        flatten,
@@ -2209,7 +2205,6 @@ class extMain
 
   void   initIncrementalSpef(const char* origp,
                              const char* newp,
-                             const char* reader,
                              const char* excludeCell,
                              bool        noBackSlash);
   void   reportTotalCap(const char* file,
@@ -2295,8 +2290,7 @@ class extMain
   void        writeSpef(char*                     filename,
                         std::vector<odb::dbNet*>& tnets,
                         int                       corner,
-                        char*                     coord,
-                        char*                     reader);
+                        char*                     coord);
   static int  getExtCornerIndex(odb::dbBlock* block, const char* cornerName);
 
   static void initExtractedCorners(odb::dbBlock* block);
