@@ -1045,6 +1045,7 @@ public:
 
 	uint _overDist;
 	uint _underDist;
+	int _met_cnt;
 	int _met;
 	int _underMet;
 	int _overMet;

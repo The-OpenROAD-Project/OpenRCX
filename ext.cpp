@@ -166,6 +166,7 @@ TCL_METHOD ( Ext::bench_wires )
 	extMainOptions opt;
 
  	opt._topDir= in_args->dir();
+	opt._met_cnt= in_args->met_cnt();
 	opt._met= in_args->met();
 	opt._overDist= in_args->over_dist();
 	opt._underDist= in_args->under_dist();

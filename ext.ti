@@ -114,6 +114,7 @@ module Ext
         in string block="blk" [ usage = "Block Name to store wire patterns" ; ],
         in int over_dist = 100 [ usage = "over metal distance" ; ],
         in int under_dist = 100 [ usage = "under metal distance" ; ],
+        in int met_cnt = 1000 [ usage = "only does fist metals; default runs all metals in LEF" ; ],
         in int met = -1 [ usage = "default runs all metals" ; ],
         in int over_met=-1 [ usage = "under met, default sets all possible metals" ; ],
         in int under_met=-1 [ usage = "over met, default sets all possible metals" ; ],

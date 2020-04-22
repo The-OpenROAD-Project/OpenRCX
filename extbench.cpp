@@ -232,6 +232,8 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
    
     for (int met= 1; met<(int)_layerCnt; met++) {
 
+        if (opt->_met_cnt>met)
+            continue;
         if ((opt->_met>0) && (opt->_met!=met))
             continue;
 
@@ -288,6 +290,8 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 	
 	for (int met= 1; met<(int)_layerCnt-1; met++) {
 		
+        	if (opt->_met_cnt>met)
+            		continue;
 		if ((opt->_met>0) && (opt->_met!=met))
 			continue;
 		
@@ -392,6 +396,8 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 
 	for (int met= 1; met<(int)_layerCnt-1; met++) {	
 
+        	if (opt->_met_cnt>met)
+            		continue;
 		if ((opt->_met>0) && (opt->_met!=met))
 			continue;
 		
@@ -409,6 +415,8 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 			
 			for (uint overMet= met+1; overMet<_layerCnt; overMet++) {
 				
+        			if (opt->_met_cnt>overMet)
+            				continue;
 				if (overMet-met>opt->_overDist)
 					continue;
 				if ((opt->_overMet>0) && (opt->_overMet!=(int)overMet))
