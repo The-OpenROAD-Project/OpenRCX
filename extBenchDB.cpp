@@ -345,6 +345,7 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 				// measureResistance(measure, ro, top_widthR, bot_widthR, thicknessR);
 				// measurePatternVar(measure, top_width, bot_width, thickness, measure->_wireCnt, NULL);
 				writeBenchWires_DB(measure);
+				notice(0,"\n");
 
 				cnt++;
 			}
@@ -392,11 +393,15 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 }
 int extRCModel::writeBenchWires_DB(extMeasure* measure)
 {
+	bool debug= true;
 	//mkFileNames(measure, "");
 	mkNet_prefix(measure, "");
 	measure->_skip_delims= true;
 	uint grid_gap_cnt = 20;
 
+	int gap = grid_gap_cnt *  (measure->_minWidth + measure->_minSpace);
+	measure->_ur[0] += gap;
+	measure->_ur[1] += gap;
 	int bboxLL[2];
 	bboxLL[measure->_dir] = measure->_ur[measure->_dir];
 	bboxLL[!measure->_dir] = measure->_ll[!measure->_dir];
@@ -414,6 +419,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int x1= bboxLL[0];
 	int y1= bboxLL[1];
 
+	notice(0, "                                     %12d %12d\n", x1, y1);
 	measure->clean2dBoxTable(measure->_met, false);
 
 	double x_tmp[50];

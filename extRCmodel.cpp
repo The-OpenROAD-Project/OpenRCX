@@ -688,8 +688,10 @@ extDistWidthRCTable::extDistWidthRCTable(bool over, uint met, uint layerCnt, uin
 	_over= over;
 	_layerCnt= layerCnt;
 	_met= met;
+        if ( widthTable->getCnt()==0)
+		return;
 
-	uint widthCnt= widthTable->getCnt();
+	int widthCnt= widthTable->getCnt();
 	_widthTable= new Ath__array1D<int>(widthCnt);
 	for (uint ii= 0; ii<widthCnt; ii++) {
 		int w= Ath__double2int(dbFactor*1000*widthTable->get(ii));
