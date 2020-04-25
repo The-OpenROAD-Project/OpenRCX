@@ -87,33 +87,39 @@ class Ext
                  bool               read_from_solver,
                  bool               run_solver,
                  int                max_track_count);
+  bool bench_verilog_out(const std::string& file);
   bool run_solver(const std::string& dir, int net, int shape);
-  bool bench_wires(const std::string& block,
-                   int                over_dist,
-                   int                under_dist,
-                   int                met,
-                   int                over_met,
-                   int                under_met,
-                   int                len,
-                   int                cnt,
-                   const std::string& w,
-                   const std::string& s,
-                   const std::string& th,
-                   const std::string& d,
-                   const std::string& w_list,
-                   const std::string& s_list,
-                   const std::string& th_list,
-                   const std::string& grid_list,
-                   bool               default_lef_rules,
-                   bool               nondefault_lef_rules,
-                   const std::string& dir,
-                   bool               Over,
-                   bool               ddd,
-                   bool               multiple_widths,
-                   bool               write_to_solver,
-                   bool               read_from_solver,
-                   bool               run_solver,
-                   bool               diag);
+  
+  struct BenchWiresOptions 
+  {         const char* block = "blk";
+            int                over_dist = 100;
+            int                under_dist = 100;
+            int                met = -1;
+            int                over_met = -1;
+            int                under_met = -1;
+            int                len = 100;
+            int                cnt = 0;
+            const char* w = "1";
+            const char* s = "1";
+            const char* th = "1";
+            const char* d = "0.0";
+            const char* w_list = "";
+            const char* s_list = "";
+            const char* th_list = "";
+            const char* grid_list = "";
+            bool               default_lef_rules = false;
+            bool               nondefault_lef_rules = false;
+            const char* dir = "./Bench";
+            bool               Over = false;
+            bool               ddd = false;
+            bool               multiple_widths = false;
+            bool               write_to_solver = false;
+            bool               read_from_solver = false;
+            bool               run_solver = false;
+            bool               diag = false;
+  };
+
+  bool bench_wires(const BenchWiresOptions& bwo);
   bool assembly(odb::dbBlock* block, odb::dbBlock* main_block);
   bool write_spef_nets(odb::dbObject* block,
                        bool           flatten,
@@ -245,24 +251,30 @@ class Ext
                  bool               no_cap_num_collapse,
                  const std::string& cap_node_map_file,
                  bool               log);
-  bool diff_spef(const std::string& net,
-                 bool               use_ids,
-                 bool               test_parsing,
-                 const std::string& file,
-                 const std::string& db_corner_name,
-                 int                spef_corner,
-                 const std::string& exclude_net_subword,
-                 const std::string& net_subword,
-                 const std::string& rc_stats_file,
-                 bool               r_conn,
-                 bool               r_cap,
-                 bool               r_cc_cap,
-                 bool               r_res,
-                 int                ext_corner,
-                 float              low_guard,
-                 float              upper_guard,
-                 bool               m_map,
-                 bool               log);
+
+  struct DiffOptions 
+  {
+       const char* net = nullptr;
+       bool               use_ids = false;
+       bool               test_parsing = 0;
+       const char* file = nullptr;
+       const char* db_corner_name = nullptr;
+       int                spef_corner = -1;
+       const char* exclude_net_subword = nullptr;
+       const char* net_subword = nullptr;
+       const char* rc_stats_file = nullptr;
+       bool               r_conn = false;
+       bool               r_cap = false;
+       bool               r_cc_cap= false;
+       bool               r_res = false;
+       int                ext_corner = -1;
+       float              low_guard = 1;
+       float              upper_guard = -1;
+       bool               m_map = false;
+       bool               log = false;
+  };
+
+  bool diff_spef(const DiffOptions& opt);
   bool calibrate(const std::string& spef_file,
                  const std::string& db_corner_name,
                  int                corner,

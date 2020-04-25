@@ -112,3 +112,109 @@ proc adjust_rc { args } {
 
    rcx::adjust_rc $res_factor $cc_factor $gndc_factor
 }
+
+sta::define_cmd_args "diff_spef" {
+    [-file filename]
+}
+
+proc diff_spef { args } {
+  sta::parse_key_args "diff_spef" args keys \
+      { -file }
+  
+  set filename "" 
+  if { [info exists keys(-file)] } {
+    set filename $keys(-file)
+  }
+
+  rcx::diff_spef $filename
+}
+
+sta::define_cmd_args "bench_wires" {
+    [-met_cnt mcnt]
+    [-cnt count]
+    [-len wire_len]
+    [-over]
+    [-under_met layer]
+    [-w_list width]
+    [-s_list space]
+}
+
+proc bench_wires { args } {
+  sta::parse_key_args "bench_wires" args keys \
+      { -met_cnt -cnt -len -under_met
+        -w_list -s_list } \
+      flags { -over }
+
+  set over [info exists flags(-over)]
+
+  set met -1
+  if { [info exists keys(-met_cnt)] } {
+    set metal_count $keys(-met_cnt)
+  }
+
+  set cnt 0
+  if { [info exists keys(-cnt)] } {
+    set cnt $keys(-cnt)
+  }
+
+  set len 100
+  if { [info exists keys(-len)] } {
+    set len $keys(-len)
+  }
+
+  set under_met "1"
+  if { [info exists keys(-under_met)] } {
+    set under_met $keys(-under_met)
+  }
+
+  set w_list "1"
+  if { [info exists keys(-w_list)] } {
+    set w_list $keys(-w_list)
+  }
+  
+  set s_list "1"
+  if { [info exists keys(-s_list)] } {
+    set s_list $keys(-s_list)
+  }
+  
+  puts "$over $met $len $cnt $under_met $w_list $s_list"
+  rcx::bench_wires $over $met $len $cnt $under_met $w_list $s_list 
+}
+
+sta::define_cmd_args "write_rules" {
+    [-file filename]
+    [-dir dir]
+    [-name name]
+    [-pattern pattern]
+    [-read_from_db]
+}
+
+proc write_rules { args } {
+  sta::parse_key_args "write_rules" args keys \
+      { -file -dir -name -pattern } \
+      flags { -read_from_solver }
+  
+  set filename "extRules" 
+  if { [info exists keys(-file)] } {
+    set filename $keys(-file)
+  }
+
+  set dir "./extRulesGen" 
+  if { [info exists keys(-dir)] } {
+    set dir $keys(-dir)
+  }
+  
+  set name "TYP" 
+  if { [info exists keys(-name)] } {
+    set name $keys(-name)
+  }
+
+  set pattern 0
+  if { [info exists keys(-pattern)] } {
+    set name $keys(-pattern)
+  }
+  set solver [info exists flags(-read_from_solver)]
+
+  rcx::write_rules $filename $dir $name $pattern $solver
+}
+

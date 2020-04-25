@@ -93,6 +93,51 @@ adjust_rc(double res_factor,
   ext->adjust_rc(res_factor, cc_factor, gndc_factor);
 }
 
+void
+diff_spef(const char* file)
+{
+  Ext* ext = getOpenRCX();
+  Ext::DiffOptions opts;
+  opts.file = file;
+  ext->diff_spef(opts);
+}
+
+void
+bench_wires(bool over,
+          int metal,
+          int cnt,
+          int len,
+          int under_met,
+          const char* w_list,
+          const char* s_list)
+{
+  Ext* ext = getOpenRCX();
+  Ext::BenchWiresOptions opts;
+  
+  opts.w_list = w_list;
+  opts.s_list = s_list;
+  opts.Over = over;
+  opts.cnt = cnt;
+  opts.len = len;
+  opts.under_met = under_met;
+  opts.met = metal;
+
+  ext->bench_wires(opts);
+}
+
+void
+write_rules(const char* file,
+            const char* dir,
+            const char* name,
+            int pattern,
+            bool read_from_solver)
+{
+  Ext* ext = getOpenRCX();
+  Ext::BenchWiresOptions opts;
+  
+  ext->write_rules(name, dir, file, pattern, read_from_solver);
+}
+
 %} // inline
 
 
