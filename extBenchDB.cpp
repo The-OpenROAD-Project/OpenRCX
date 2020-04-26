@@ -87,7 +87,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		if (wireNum != targetWire/2)
 			continue;
 
-		fprintf(logFP, "%s\n", netName);
+		//fprintf(logFP, "%s\n", netName);
 		bool over = false;
 		bool overUnder = false;
 		bool under = false;
@@ -180,8 +180,8 @@ uint extMain::GenExtRules(const char *rulesFileName)
  			dbCapNode* tcnode = cc->getTargetCapNode();
  			totCap += cc->getCapacitance();
  		} */
-		fprintf(logFP, "Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
-			met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
+		fprintf(logFP, "%s -- Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
+			netName, met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
 	}
 	rcModel->mkWidthAndSpaceMappings();
 	model->writeRules((char *)rulesFileName, false);
@@ -400,8 +400,8 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	uint grid_gap_cnt = 20;
 
 	int gap = grid_gap_cnt *  (measure->_minWidth + measure->_minSpace);
-	measure->_ur[0] += gap;
-	measure->_ur[1] += gap;
+	// does NOT work measure->_ll[!measure->_dir] += gap;
+	// measure->_ur[1] += gap;
 	int bboxLL[2];
 	bboxLL[measure->_dir] = measure->_ur[measure->_dir];
 	bboxLL[!measure->_dir] = measure->_ll[!measure->_dir];
@@ -419,7 +419,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int x1= bboxLL[0];
 	int y1= bboxLL[1];
 
-	notice(0, "                                     %12d %12d\n", x1, y1);
+	notice(0, "\n                                     %12d %12d", x1, y1);
 	measure->clean2dBoxTable(measure->_met, false);
 
 	double x_tmp[50];
@@ -492,7 +492,10 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 		return cnt;
 	}
 
-	int bboxUR[2] = { measure->_ur[0], measure->_ur[1] };
+	int extend_blockage = (measure->_minWidth + measure->_minSpace);
+	int bboxUR[2] = { measure->_ur[0]+extend_blockage, measure->_ur[1]+extend_blockage };
+	bboxLL[0] -= extend_blockage;
+	bboxLL[1] -= extend_blockage;
 
 	double pitchMult = 1.0;
 
@@ -503,6 +506,8 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	measure->clean2dBoxTable(measure->_overMet, true);
 	//measure->createContextNets(_wireDirName, bboxLL, bboxUR, measure->_overMet, pitchMult);
 	measure->createContextObstruction(_wireDirName, bboxLL[0], bboxLL[1], bboxUR, measure->_overMet, pitchMult);
+
+	measure->_ur[measure->_dir] += gap;
 
 	//	double mainNetStart= X[0];
 	int main_xlo, main_ylo, main_xhi, main_yhi, low;
