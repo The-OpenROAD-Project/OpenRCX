@@ -149,9 +149,9 @@ proc bench_wires { args } {
   set over [info exists flags(-over)]
   set db_only [info exists flags(-db_only)]
 
-  set met 1000 
+  set met_cnt 1000 
   if { [info exists keys(-met_cnt)] } {
-    set metal_count $keys(-met_cnt)
+    set met_cnt $keys(-met_cnt)
   }
 
   set cnt 0
@@ -164,22 +164,22 @@ proc bench_wires { args } {
     set len $keys(-len)
   }
 
-  set under_met "1"
+  set under_met -1
   if { [info exists keys(-under_met)] } {
     set under_met $keys(-under_met)
   }
 
-  set w_list "1"
+  set w_list ""
   if { [info exists keys(-w_list)] } {
     set w_list $keys(-w_list)
   }
   
-  set s_list "1"
+  set s_list ""
   if { [info exists keys(-s_list)] } {
     set s_list $keys(-s_list)
   }
   
-  rcx::bench_wires $db_only $over $met $len $cnt $under_met $w_list $s_list 
+  rcx::bench_wires $db_only $over $met_cnt $cnt $len $under_met $w_list $s_list 
 }
 
 sta::define_cmd_args "bench_verilog" { filename }

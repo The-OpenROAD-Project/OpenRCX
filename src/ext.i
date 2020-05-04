@@ -105,7 +105,7 @@ diff_spef(const char* file)
 void
 bench_wires(bool db_only,
           bool over,
-          int metal,
+          int met_cnt,
           int cnt,
           int len,
           int under_met,
@@ -121,7 +121,7 @@ bench_wires(bool db_only,
   opts.cnt = cnt;
   opts.len = len;
   opts.under_met = under_met;
-  opts.met_cnt = metal;
+  opts.met_cnt = met_cnt;
   opts.db_only = db_only;
 
   ext->bench_wires(opts);
