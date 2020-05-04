@@ -1015,10 +1015,18 @@ uint extMeasure::createNetSingleWire(char* dirName,
 
   char netName[1024];
   sprintf(netName, "%s%c%d%c", dirName, left, idCnt, right);
+  if (_skip_delims)
+		sprintf(netName, "%s_%d", dirName, idCnt);
+  
   assert(_create_net_util.getBlock() == _block);
   odb::dbNet* net = _create_net_util.createNetSingleWire(
       netName, ll[0], ll[1], ur[0], ur[1], _met);
 
+  odb::dbBTerm *in1= net->get1stBTerm();
+  if (in1!=NULL) {
+		in1->rename(net->getConstName());
+	}
+  
   uint netId = net->getId();
   addNew2dBox(net, ll, ur, _met, _dir, netId, false);
 
@@ -1325,8 +1333,8 @@ uint extMeasure::createContextNets(char*  dirName,
   if (met <= 0)
     return 0;
 
-  char left, right;
-  _block->getBusDelimeters(left, right);
+  // char left, right;
+  // _block->getBusDelimeters(left, right);
 
   odb::dbTechLayer* layer    = _tech->findRoutingLayer(met);
   odb::dbTechLayer* mlayer   = _tech->findRoutingLayer(_met);
@@ -1362,7 +1370,8 @@ uint extMeasure::createContextNets(char*  dirName,
     ur[not_dir] = lenXY + minWidth;
 
     char netName[1024];
-    sprintf(netName, "%s_m%d_cntxt%c%d%c", dirName, met, left, cnt++, right);
+    // sprintf(netName, "%s_m%d_cntxt%c%d%c", dirName, met, left, cnt++, right);
+		sprintf(netName, "%s_m%d_cntxt_%d", dirName, met, cnt++);
     odb::dbNet* net;
     assert(_create_net_util.getBlock() == _block);
     if (mlayer->getDirection() != odb::dbTechLayerDir::HORIZONTAL)
@@ -1481,6 +1490,7 @@ void extMeasure::updateForBench(extMainOptions* opt, extMain* extMain)
   _tech      = opt->_tech;
   _extMain   = extMain;
   _3dFlag    = opt->_3dFlag;
+  _create_net_util.setBlock(_block, false);
 }
 uint extMeasure::defineBox(int* options)
 {

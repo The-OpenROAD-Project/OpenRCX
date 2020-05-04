@@ -742,15 +742,20 @@ extDistWidthRCTable::extDistWidthRCTable(bool                  over,
   _layerCnt      = layerCnt;
   _met           = met;
 
-  uint widthCnt = widthTable->getCnt();
+  if ( widthTable->getCnt()==0)
+    return;
+
+  int widthCnt = widthTable->getCnt();
   _widthTable   = new Ath__array1D<int>(widthCnt);
   for (uint ii = 0; ii < widthCnt; ii++) {
     int w = Ath__double2int(dbFactor * 1000 * widthTable->get(ii));
     _widthTable->add(w);
   }
+  if (widthCnt>0) {
+    _firstWidth = _widthTable->get(0);
+    _lastWidth  = _widthTable->get(widthCnt - 1);
+  }
 
-  _firstWidth = _widthTable->get(0);
-  _lastWidth  = _widthTable->get(widthCnt - 1);
   _modulo     = 4;
 
   _widthTableAllocFlag = true;
@@ -2920,6 +2925,42 @@ void extRCModel::mkFileNames(extMeasure* m, char* wiresNameSuffix)
 
   fprintf(_logFP, "pattern Dir %s\n\n", _wireDirName);
   fflush(_logFP);
+}
+
+void extRCModel::mkNet_prefix(extMeasure* m, const char* wiresNameSuffix)
+{
+        char overUnder[128];
+
+        if ((m->_overMet > 0) && (m->_underMet > 0))
+                sprintf(overUnder, "M%doM%duM%d", m->_met, m->_underMet, m->_overMet);
+
+        else if (m->_overMet > 0)
+                if (m->_diag)
+                        sprintf(overUnder, "M%duuM%d", m->_met, m->_overMet);
+                else
+                        sprintf(overUnder, "M%duM%d", m->_met, m->_overMet);
+
+        else if (m->_underMet >= 0)
+                sprintf(overUnder, "M%doM%d", m->_met, m->_underMet);
+
+        else
+                sprintf(overUnder, "Unknown");
+
+        double w = m->_w_m;
+        double s = m->_s_m;
+        double r = m->_r;
+        double w2 = m->_w2_m;
+        double s2 = m->_s2_m;
+
+        sprintf(_wireDirName, "%s_%s_W%gW%g_S%gS%g", _patternName, overUnder, w*1000, w2*1000, s*1000, s2*1000);
+
+        if (wiresNameSuffix != NULL)
+                sprintf(_wireFileName, "%s.%s", "wires", wiresNameSuffix);
+        else
+                sprintf(_wireFileName, "%s", "wires");
+
+        fprintf(_logFP, "pattern Dir %s\n\n", _wireDirName);
+        fflush(_logFP);
 }
 
 FILE* extRCModel::mkPatternFile()
@@ -5191,8 +5232,14 @@ uint extMain::writeRules(const char* name,
                          const char* topDir,
                          const char* rulesFile,
                          int         pattern,
+                         bool        readDb,
                          bool        readFiles)
 {
+  if (readDb) {
+		GenExtRules(rulesFile);
+		return 0;
+	}
+  
   if (!readFiles) {
     extRCModel* m = _modelTable->get(0);
 

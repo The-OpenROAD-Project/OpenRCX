@@ -73,6 +73,7 @@ add_custom_command(OUTPUT ${OPENRCX_TCL_INIT}
 add_library(OpenRCX
     ext.cpp
     extBench.cpp
+    extBenchDB.cpp
     extCC.cpp
     extCoords.cpp
     extFlow.cpp

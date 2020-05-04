@@ -426,6 +426,7 @@ class extMetRCTable
   extDistRC* getCapOver(uint met, uint metUnder);
   extDistRC* getCapUnder(uint met, uint metOver);
   extDistRC* getOverFringeRC(extMeasure* m);
+	AthPool<extDistRC>* getRCPool();
 };
 class extRCTable
 {
@@ -502,6 +503,7 @@ class extRCModel
 
   int  getModelCnt() { return _modelCnt; };
   int  getLayerCnt() { return _layerCnt; };
+	void setLayerCnt(uint n) { _layerCnt = n; };
   int  getDiagModel() { return _diagModel; };
   bool getVerticalDiagFlag() { return _verticalDiag; };
   void setDiagModel(uint i) { _diagModel = i; }
@@ -580,6 +582,7 @@ class extRCModel
                  const char* suffix,
                  const char* permissions);
   FILE* openSolverFile();
+	void mkNet_prefix(extMeasure *m, const char *wiresNameSuffix);
   void  mkFileNames(extMeasure* m, char* wiresNameSuffix);
   void  writeWires(FILE*               fp,
                    extMasterConductor* m,
@@ -754,6 +757,9 @@ class extRCModel
   {
     return _modelTable[_tmpDataRate]->_capOverUnder[met]->_metCnt;
   }
+	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
+	int writeBenchWires_DB(extMeasure* measure);
+	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
 };
 class extNetStats
 {
@@ -814,6 +820,7 @@ class extMeasure
   extMeasure();
   ~extMeasure();
 
+	bool _skip_delims;
   void printTraceNetInfo(const char* msg, uint netId, int rsegId);
   bool printTraceNet(const char*   msg,
                      bool          init,
@@ -897,6 +904,7 @@ class extMeasure
                                  int    bboxUR[2],
                                  int    met,
                                  double pitchMult);
+	uint createContextObstruction(const char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
   double       getCCfringe(uint lastNode, uint n, uint start, uint end);
   double       getCCfringe3D(uint lastNode, uint n, uint start, uint end);
 
@@ -1412,6 +1420,7 @@ class extMainOptions
 
   uint        _overDist;
   uint        _underDist;
+	int         _met_cnt;
   int         _met;
   int         _underMet;
   int         _overMet;
@@ -1440,6 +1449,7 @@ class extMainOptions
   bool _over;
   bool _overUnder;
   bool _diag;
+	bool _db_only;
 
   odb::dbTech*  _tech;
   odb::dbBlock* _block;
@@ -2258,8 +2268,10 @@ class extMain
                          const char* topDir,
                          const char* rulesFile,
                          int         pattern,
+                         bool        readDb = false,
                          bool        readFiles = false);
   uint        benchWires(extMainOptions* options);
+  uint        GenExtRules(const char *rulesFileName);
   FILE*       getPtFile() { return _ptFile; };
   static void destroyExtSdb(std::vector<odb::dbNet*>& nets, void* ext);
   void        writeIncrementalSpef(char*                     filename,
@@ -2981,6 +2993,10 @@ class extMain
   // 041713D
   void formOverlapVias(std::vector<odb::Rect*> mergeTable[16],
                        odb::dbNet*             pNet);
+  
+  uint benchVerilog(FILE* fp);
+	uint benchVerilog_bterms(FILE* fp, odb::dbIoType iotype, const char* prefix, const char* postfix, bool v=false);
+	uint benchVerilog_assign(FILE* fp);
 };
 
 }  // namespace OpenRCX

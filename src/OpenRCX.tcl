@@ -134,6 +134,7 @@ sta::define_cmd_args "bench_wires" {
     [-cnt count]
     [-len wire_len]
     [-over]
+    [-db_only]
     [-under_met layer]
     [-w_list width]
     [-s_list space]
@@ -143,11 +144,12 @@ proc bench_wires { args } {
   sta::parse_key_args "bench_wires" args keys \
       { -met_cnt -cnt -len -under_met
         -w_list -s_list } \
-      flags { -over }
+      flags { -over -db_only }
 
   set over [info exists flags(-over)]
+  set db_only [info exists flags(-db_only)]
 
-  set met -1
+  set met 1000 
   if { [info exists keys(-met_cnt)] } {
     set metal_count $keys(-met_cnt)
   }
@@ -177,8 +179,21 @@ proc bench_wires { args } {
     set s_list $keys(-s_list)
   }
   
-  puts "$over $met $len $cnt $under_met $w_list $s_list"
-  rcx::bench_wires $over $met $len $cnt $under_met $w_list $s_list 
+  rcx::bench_wires $db_only $over $met $len $cnt $under_met $w_list $s_list 
+}
+
+sta::define_cmd_args "bench_verilog" { filename }
+
+proc bench_verilog { args } {
+  sta::check_argc_eq1 "bench_verilog" $args
+  rcx::bench_verilog $args
+}
+
+sta::define_cmd_args "bench_read_spef" { filename }
+
+proc bench_read_spef { args } {
+  sta::check_argc_eq1 "bench_read_spef" $args
+  rcx::read_spef $args
 }
 
 sta::define_cmd_args "write_rules" {
@@ -186,20 +201,21 @@ sta::define_cmd_args "write_rules" {
     [-dir dir]
     [-name name]
     [-pattern pattern]
-    [-read_from_db]
+    [-read_from_solver]
+    [-db]
 }
 
 proc write_rules { args } {
   sta::parse_key_args "write_rules" args keys \
       { -file -dir -name -pattern } \
-      flags { -read_from_solver }
+      flags { -read_from_solver -db }
   
   set filename "extRules" 
   if { [info exists keys(-file)] } {
     set filename $keys(-file)
   }
 
-  set dir "./extRulesGen" 
+  set dir "./" 
   if { [info exists keys(-dir)] } {
     set dir $keys(-dir)
   }
@@ -214,7 +230,8 @@ proc write_rules { args } {
     set name $keys(-pattern)
   }
   set solver [info exists flags(-read_from_solver)]
+  set db [info exists flags(-db)]
 
-  rcx::write_rules $filename $dir $name $pattern $solver
+ rcx::write_rules $filename $dir $name $pattern $solver $db
 }
 

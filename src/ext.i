@@ -103,7 +103,8 @@ diff_spef(const char* file)
 }
 
 void
-bench_wires(bool over,
+bench_wires(bool db_only,
+          bool over,
           int metal,
           int cnt,
           int len,
@@ -120,9 +121,17 @@ bench_wires(bool over,
   opts.cnt = cnt;
   opts.len = len;
   opts.under_met = under_met;
-  opts.met = metal;
+  opts.met_cnt = metal;
+  opts.db_only = db_only;
 
   ext->bench_wires(opts);
+}
+
+void
+bench_verilog(const char* file)
+{
+  Ext* ext = getOpenRCX();
+  ext->bench_verilog(file);
 }
 
 void
@@ -130,13 +139,26 @@ write_rules(const char* file,
             const char* dir,
             const char* name,
             int pattern,
+            bool read_from_db,
             bool read_from_solver)
 {
   Ext* ext = getOpenRCX();
   Ext::BenchWiresOptions opts;
   
-  ext->write_rules(name, dir, file, pattern, read_from_solver);
+  ext->write_rules(name, dir, file, pattern, read_from_solver,
+                   read_from_db);
 }
+
+void 
+read_spef(const char* file)
+{
+  Ext* ext = getOpenRCX();
+  Ext::ReadSpefOpts opts;
+
+  opts.file = file;
+  ext->read_spef(opts);
+}
+
 
 %} // inline
 

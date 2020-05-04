@@ -170,11 +170,13 @@ bool Ext::write_rules(const std::string& name,
                       const std::string& dir,
                       const std::string& file,
                       int                pattern,
+                      bool               read_from_db,
                       bool               read_from_solver)
 {
   dbUpdate();
   _ext->writeRules(
-      name.c_str(), dir.c_str(), file.c_str(), pattern, read_from_solver);
+      name.c_str(), dir.c_str(), file.c_str(), pattern,
+      read_from_db, read_from_solver);
   return TCL_OK;
 }
 
@@ -232,10 +234,16 @@ bool Ext::run_solver(const std::string& dir, int net, int shape)
 
 bool Ext::bench_wires(const BenchWiresOptions& bwo)
 {
-  dbUpdate();
+  if (!_initWithChip && !_db->getChip()) {
+    _ext->setDB(_db);
+  }
+  else
+    dbUpdate();
+
   extMainOptions opt;
 
   opt._topDir    = bwo.dir;
+	opt._met_cnt   = bwo.met_cnt;
   opt._met       = bwo.met;
   opt._overDist  = bwo.over_dist;
   opt._underDist = bwo.under_dist;
@@ -256,6 +264,7 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
   opt._read_from_solver = bwo.read_from_solver;
   opt._run_solver       = bwo.run_solver;
   opt._diag             = bwo.diag;
+  opt._db_only          = bwo.db_only;
 
   Ath__parser parser;
   
@@ -310,6 +319,26 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
   }
   _ext->benchWires(&opt);
 
+  return TCL_OK;
+}
+
+bool Ext::bench_verilog(const std::string& file)
+{
+	dbUpdate();
+
+	char* filename = (char*) file.c_str();
+	if (!filename || !filename[0])
+	{
+		notice(0, "Please set file name.\n");
+		return 0;
+	}
+	FILE* fp = fopen(filename, "w");
+	if (fp == NULL) {
+		notice(0, "Cannot open file %s\n", filename);
+		return 0;
+	}
+	_ext->benchVerilog(fp);
+	
   return TCL_OK;
 }
 
@@ -781,49 +810,24 @@ bool Ext::independent_spef_corner()
   return 0;
 }
 
-bool Ext::read_spef(const std::string& file,
-                    const std::string& net,
-                    bool               force,
-                    bool               use_ids,
-                    bool               keep_loaded_corner,
-                    bool               stamp_wire,
-                    int                test_parsing,
-                    const std::string& N,
-                    bool               r_conn,
-                    bool               r_cap,
-                    bool               r_cc_cap,
-                    bool               r_res,
-                    float              cc_threshold,
-                    float              cc_ground_factor,
-                    int                app_print_limit,
-                    int                corner,
-                    const std::string& db_corner_name,
-                    const std::string& calibrate_base_corner,
-                    int                spef_corner,
-                    bool               m_map,
-                    bool               more_to_read,
-                    float              length_unit,
-                    int                fix_loop,
-                    bool               no_cap_num_collapse,
-                    const std::string& cap_node_map_file,
-                    bool               log)
+bool Ext::read_spef(ReadSpefOpts& opt)
 {
   dbUpdate();
   // fprintf(stdout, "Hello Extraction %s\n", "Ext::read_spef");
   //    fprintf(stdout, "reading %s\n",in_args->file());
-  odb::notice(0, "reading %s\n", file.c_str());
+  odb::notice(0, "reading %s\n", opt.file);
 
   odb::ZPtr<odb::ISdb> netSdb    = NULL;
-  bool                 stampWire = stamp_wire;
+  bool                 stampWire = opt.stamp_wire;
 #ifdef ZUI
   if (stampWire)
     netSdb = _ext->getBlock()->getSignalNetSdb(_context, _db->getTech());
 #endif
-  bool useIds      = use_ids;
-  uint testParsing = test_parsing;
+  bool useIds      = opt.use_ids;
+  uint testParsing = opt.test_parsing;
 
   Ath__parser parser;
-  char*       filename = (char*) file.c_str();
+  char*       filename = (char*) opt.file;
   if (!filename || !filename[0]) {
     odb::notice(0, "Please input file name.\n");
     return 0;
@@ -831,39 +835,39 @@ bool Ext::read_spef(const std::string& file,
   parser.mkWords(filename);
 
   _ext->readSPEF(parser.get(0),
-                 (char*) net.c_str(),
-                 force,
+                 (char*) opt.net,
+                 opt.force,
                  useIds,
-                 r_conn,
-                 (char*) N.c_str(),
-                 r_cap,
-                 r_cc_cap,
-                 r_res,
-                 cc_threshold,
-                 cc_ground_factor,
-                 length_unit,
-                 m_map,
-                 no_cap_num_collapse,
-                 (char*) cap_node_map_file.c_str(),
-                 log,
-                 corner,
+                 opt.r_conn,
+                 (char*) opt.N,
+                 opt.r_cap,
+                 opt.r_cc_cap,
+                 opt.r_res,
+                 opt.cc_threshold,
+                 opt.cc_ground_factor,
+                 opt.length_unit,
+                 opt.m_map,
+                 opt.no_cap_num_collapse,
+                 (char*) opt.cap_node_map_file,
+                 opt.log,
+                 opt.corner,
                  0.0,
                  0.0,
                  NULL,
                  NULL,
                  NULL,
-                 db_corner_name.c_str(),
-                 calibrate_base_corner.c_str(),
-                 spef_corner,
-                 fix_loop,
-                 keep_loaded_corner,
+                 opt.db_corner_name,
+                 opt.calibrate_base_corner,
+                 opt.spef_corner,
+                 opt.fix_loop,
+                 opt.keep_loaded_corner,
                  stampWire,
                  netSdb,
                  testParsing,
-                 more_to_read,
+                 opt.more_to_read,
                  false /*diff*/,
                  false /*calibrate*/,
-                 app_print_limit);
+                 opt.app_print_limit);
 
   for (int ii = 1; ii < parser.getWordCnt(); ii++)
     _ext->readSPEFincr(parser.get(ii));

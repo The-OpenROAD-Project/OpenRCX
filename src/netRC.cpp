@@ -208,12 +208,15 @@ void extMain::getShapeRC(odb::dbNet*           net,
     }
 
     if (_lefRC) {
-      //			_tmpCapTable[0]= len*2*getFringe(level, width,
-      // 0);
-      _tmpCapTable[0] = len * width * getFringe(level, width, 0, areaCap);
-      _tmpCapTable[0] += 2 * areaCap * len * width;
-      _tmpResTable[0] = getResistance(level, width, len, 0);
-      ;
+      double res= getResistance(level, width, len, 0);;
+			double unitCap= getFringe(level, width, 0, areaCap);
+			double tot= len*width*unitCap;
+			double frTot= len*2*unitCap;
+
+			_tmpCapTable[0]= frTot;
+			_tmpCapTable[0] += 2*areaCap * len*width;
+			_tmpResTable[0]= res;
+      
     } else {
       for (uint ii = 0; ii < _metRCTable.getCnt(); ii++) {
 #ifdef HI_ACC_10312011
@@ -2897,7 +2900,7 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
     AthResourceLog("before remove Model", detailRlog);
 
   if (!windowFlow) {
-    delete _currentModel;
+    //delete _currentModel;
     _modelTable->resetCnt(0);
     if (rlog)
       AthResourceLog("After remove Model", detailRlog);
