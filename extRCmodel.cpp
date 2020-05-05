@@ -124,6 +124,10 @@ double extDistRC::getRes()
 {
 	return _res;
 }
+void extDistRC::writeRC()
+{
+	notice(0, "%g %g %g %g  %g\n", 0.001*_sep, _coupling, _fringe, _res, _coupling+_fringe);
+}
 void extDistRC::writeRC(AFILE *fp, bool bin)
 {
 	//fprintf(fp, "%g %g %g %g\n", _dist, _coupling, _fringe, _res);
@@ -277,6 +281,12 @@ uint extDistRCTable::interpolate(uint distUnit, int maxDist, AthPool<extDistRC> 
 uint extDistRCTable::writeRules(AFILE *fp, Ath__array1D<extDistRC*> *table, double w, bool bin)
 {
 	uint cnt= table->getCnt();
+
+	if (cnt>0) {
+		extDistRC *rc1 = table->get(cnt-1);
+        	if (rc1!=NULL)
+			rc1->set(rc1->_sep, 0, rc1->_coupling+rc1->_fringe, 0.0, rc1->_res);
+	}
 
 	ATH__fprintf(fp, "DIST count %d width %g\n", cnt, w);
 
@@ -1388,6 +1398,11 @@ extDistRC* extDistWidthRCTable::getFringeRC(uint mou, uint w)
 		return NULL;
 
 	extDistRC *rc= _rcDistTable[mou][wIndex]->getLastRC();
+	/*
+	if (rc!=NULL) {
+		rc->writeRC();
+	}
+	*/
 	return rc;
 }
 extDistRC* extDistWidthRCTable::getLastWidthFringeRC(uint mou)

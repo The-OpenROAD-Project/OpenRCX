@@ -194,6 +194,7 @@ public:
 	double getRes();
 	void addRC(extDistRC *rcUnit, uint len, bool addCC);
 	void writeRC(AFILE *fp, bool bin);
+	void writeRC();
 	void interpolate(uint d, extDistRC* rc1, extDistRC* rc2);
 
 	friend class extDistRCTable;

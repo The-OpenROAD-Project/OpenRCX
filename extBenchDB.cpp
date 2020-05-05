@@ -32,7 +32,7 @@ AthPool<extDistRC>* extMetRCTable::getRCPool()
 uint extMain::GenExtRules(const char *rulesFileName)
 {
 	uint widthCnt = 12;
-	uint layerCnt = _tech->getRoutingLayerCount();
+	uint layerCnt = _tech->getRoutingLayerCount()+1;
 
 	extRCModel *model= new extRCModel(layerCnt, "TYPICAL");
 	// _modelTable->add(m);
@@ -95,6 +95,11 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		uint met = p->getInt(0, 1);
 		uint overMet = 0;
 		uint underMet = 0;
+
+			m._overMet= -1;
+			m._underMet= -1;
+			m._overUnder= false;
+			m._over= false;
 
 		char *overUnderToken= strdup(p->get(1)); //M2oM1uM3
 		int wCnt= w->mkWords(overUnderToken, "ou");
