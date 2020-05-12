@@ -225,6 +225,8 @@ public:
 	uint addMeasureRC(extDistRC *rc);
 	void makeComputeTable(uint maxDist, uint distUnit);
 	extDistRC* getLastRC();
+	extDistRC* getRC_index(int n);
+
 	extDistRC* getComputeRC(double dist);
 	extDistRC* getComputeRC(uint dist);
 	extDistRC* getRC(uint s, bool compute);
@@ -308,7 +310,7 @@ public:
 	//extDistRC* getRC(uint mou, double w, double s);
 	extDistRC* getRC(uint mou, uint w, uint s);
 	extDistRC* getRC(uint mou, uint w,uint dw, uint ds, uint s);
-	extDistRC* getFringeRC(uint mou, uint w);
+	extDistRC* getFringeRC(uint mou, uint w, int index_dist=-1);
 	void getFringeTable(uint mou, uint w, Ath__array1D<int> *sTable, Ath__array1D<double> *rcTable, bool map);
 
 	extDistRC* getLastWidthFringeRC(uint mou);
@@ -345,7 +347,7 @@ public:
 	uint addCapUnder(uint met, uint metOver, extDistRC *rc);
 	extDistRC* getCapOver(uint met, uint metUnder);
 	extDistRC* getCapUnder(uint met, uint metOver);
-	extDistRC* getOverFringeRC(extMeasure *m);
+	extDistRC* getOverFringeRC(extMeasure *m, int index_dist=-1);
 	AthPool<extDistRC>* getRCPool();
 };
 class extRCTable

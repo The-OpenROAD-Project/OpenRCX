@@ -1340,6 +1340,13 @@ double extRCModel::getFringeOver(uint met, uint mUnder, uint w, uint s)
 	if ((_tmpDataRate<=0)||(_modelTable!=NULL))
 		return 0.0;
 */
+extDistRC* extDistRCTable::getRC_index(int n)
+{
+	int cnt= _measureTable->getCnt();
+	if (n>=cnt)
+		return NULL;
+	return _measureTable->get(n);
+}
 extDistRC* extDistRCTable::getLastRC()
 {
 	int cnt= _measureTable->getCnt();
@@ -1388,7 +1395,7 @@ extDistRC* extDistWidthRCTable::getRC(uint mou, uint w, uint s)
 	return _rcDistTable[mou][wIndex]->getRC( s, true);
 }
 */
-extDistRC* extDistWidthRCTable::getFringeRC(uint mou, uint w)
+extDistRC* extDistWidthRCTable::getFringeRC(uint mou, uint w, int index_dist)
 {
 	int wIndex= getWidthIndex(w);
 	if ((wIndex<0) || (wIndex>=(int)_widthTable->getCnt()))
@@ -1397,7 +1404,11 @@ extDistRC* extDistWidthRCTable::getFringeRC(uint mou, uint w)
 	if (mou>=_metCnt || wIndex>=(int)_widthTable->getCnt() || _rcDistTable[mou][wIndex] == NULL)
 		return NULL;
 
-	extDistRC *rc= _rcDistTable[mou][wIndex]->getLastRC();
+	extDistRC *rc;
+	if (index_dist<0)
+		rc= _rcDistTable[mou][wIndex]->getLastRC();
+	else
+		rc= _rcDistTable[mou][wIndex]->getRC_index(index_dist);
 	/*
 	if (rc!=NULL) {
 		rc->writeRC();
@@ -1526,12 +1537,12 @@ extDistRC* extRCModel::getOverFringeRC(uint met, uint underMet, uint width)
 
 	return rc;
 }
-extDistRC* extMetRCTable::getOverFringeRC(extMeasure *m)
+extDistRC* extMetRCTable::getOverFringeRC(extMeasure *m, int index_dist)
 {
 	if (m->_met>=(int)_layerCnt)
 		return NULL;
 
-	extDistRC* rc= _capOver[m->_met]->getFringeRC(m->_underMet, m->_width);
+	extDistRC* rc= _capOver[m->_met]->getFringeRC(m->_underMet, m->_width, index_dist);
 
 	return rc;
 }
@@ -1691,7 +1702,11 @@ extDistRC* extMeasure::getDiagUnderCC2(extMetRCTable *rcModel, uint diagWidth, u
 }
 double extRCModel::getRes(uint met)
 {
+	if (met>13)
+return 0;
 	extDistRC* rc= _capOver->getCapOver(met, 0);
+        if (rc==NULL)
+		return 0;
 	return rc->getRes();
 }
 uint extRCTable::addCapOver(uint met, uint metUnder, extDistRC *rc)
