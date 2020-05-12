@@ -219,6 +219,7 @@ double extSpef::printDiff(dbNet *net, double dbCap, double refCap, const char *c
 {
 	if (_calib)
 		return 0.0;
+// debug("EXT_SPEF", "R", "%s %s %g %g\n",ctype,  net->getConstName(), dbCap, refCap); 
 
 	double diffCap= 100.0;
 	if (refCap<0.0) {
@@ -236,7 +237,7 @@ double extSpef::printDiff(dbNet *net, double dbCap, double refCap, const char *c
 	if ((diffCap<=_upperThres) && (diffCap>=_lowerThres))
 		return diffCap;
 
-	fprintf(_diffOutFP, "%4.1f - %s %g ref %g corner %d ", 
+	fprintf(_diffOutFP, "%4.2f - %s %g ref %g corner %d ", 
 		diffCap, ctype, dbCap, refCap, ii);
 	
 	if (id>0)
@@ -1864,7 +1865,7 @@ uint extSpef::readDNet(uint debug)
 		{
 			while (_parser->parseNextLine()>0)
 			{
-				//_parser->printWords(stdout);
+				// _parser->printWords(stdout);
 
 				if (strcmp("*RES", _parser->get(0))==0) {
 					break;
@@ -1900,14 +1901,16 @@ uint extSpef::readDNet(uint debug)
 					netId = 1;
 					uint srcId= getCapNodeId(_parser->get(1), NULL, &netId);
 					if (!srcId)
-						return 0;
+						continue;
+						//return 0;
 					if (!_testParsing)
 						srcNet= dbNet::getNet(_block, netId);
 
 					netId = 2;
 					uint dstId= getCapNodeId(_parser->get(2), NULL, &netId);
 					if (!dstId)
-						return 0;
+						continue;
+						//return 0;
 
 					if (_testParsing)
 						continue;
@@ -1963,7 +1966,7 @@ uint extSpef::readDNet(uint debug)
 //				dbCCSeg::relinkTgtCC(tgtNet, fseg, 0, 0);
 		}
 
-		
+
 		if (strcmp("*RES", _parser->get(0))==0) 
 		{
 			if (_diff) diffNetGndCap(_d_corner_net);
