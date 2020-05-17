@@ -159,7 +159,8 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		m._s_m= s1;
 		m._s_nm= Ath__double2int(m._s_m*1000);
 
-		double wLen= (len+w->getDouble(0)) * 1.0;
+		// double wLen= (len+w->getDouble(0)) * 1.0;
+		double wLen= len * 1.0;
 		double totCC = net->getTotalCouplingCap();
 		double totGnd = net->getTotalCapacitance();
 		double res = net->getTotalResistance();
@@ -167,7 +168,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		double cc= totCC / wLen / 2;
 		double gnd= totGnd / wLen / 2;
 		// double R= res / ( wLen/(1000*w1));
-		double R= res / wLen;
+		double R= res / wLen / 2;
 
 		extDistRC *rc= rcPool->alloc();
 		rc->set(m._s_nm, cc, gnd, 0.0, R);
