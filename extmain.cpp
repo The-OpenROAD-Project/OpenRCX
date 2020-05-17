@@ -617,10 +617,21 @@ uint extMain::getResCapTable(bool lefRC)
 			_capacitanceTable[jj][n]= 0.0;
 			
 			extDistRC *rc= rcModel->getOverFringeRC(&m);
-
 			if (rc!=NULL) {
+				 double r1= rc->getRes();
 				_capacitanceTable[jj][n]= rc->getFringe();
-				//_resistanceTable[jj][n]= rc->getRes();
+		debug("EXT_RES", "R", "Layer= %s met= %d    w= %d cc= %g fr=%g res= %g  model_res= %g\n",
+				layer->getConstName(),  n, w, rc->getCoupling(), rc->getFringe(), res, r1);
+			}
+			extDistRC *rc0= rcModel->getOverFringeRC(&m, 0);
+
+			if (rc0!=NULL) {
+				 double r1= rc->getRes();
+				 //     double r1= rc0->getRes();
+				_resistanceTable[jj][n]= r1;
+		debug("EXT_RES", "R", "Layer= %s met= %d    w= %d cc= %g fr=%g res= %g  model_res= %g\n",
+				layer->getConstName(),  n, w, rc0->getCoupling(), rc0->getFringe(), res, r1);
+//		notice(0, "met= %d    w= %d  res= %g  model_res= %g\n", n, w, res, r1);
 			}
 		}
 		cnt ++;
@@ -664,10 +675,15 @@ bool extMain::checkLayerResistance()
 double extMain::getLefResistance(uint level, uint width, uint len, uint model)
 {
 	double res= _resistanceTable[model][level];
-	double n= 1.0*len/width;
+	double n= 1.0*len;
+	if (_lefRC) 
+		n /= width;
 
-	res *= n;
-	return res;
+	double r= n*res;
+
+        debug("EXT_RES", "R", "\tgetLefResistance:  %g  %d   M %d  W %d  LEN %d %g\n", r, model, level, width, len, res);
+
+	return r;
 }
 double extMain::getResistance(uint level, uint width, uint len, uint model)
 {
@@ -993,11 +1009,12 @@ void extMain::updateTotalCap(dbRSeg *rseg, double frCap, double ccCap, double de
 }
 void extMain::updateTotalRes(dbRSeg *rseg1, dbRSeg *rseg2, extMeasure *m, double *delta, uint modelCnt)
 {	
-	return; // tttt -- to activate later
+	// return; // tttt -- to activate later
 	for (uint modelIndex= 0; modelIndex<modelCnt; modelIndex++) {
 		extDistRC *rc= m->_rc[modelIndex];
 		
 		double res= rc->_res - delta[modelIndex];
+			debug("updateTotalRes","R","delta %g %g   %g \n", res, rc->_res, delta[modelIndex]);
 		if (_resModify)
 			res *= _resFactor;
 		
@@ -1015,6 +1032,7 @@ void extMain::updateTotalRes(dbRSeg *rseg1, dbRSeg *rseg2, extMeasure *m, double
 			}
 			*/
 			
+			debug("updateTotalRes","R","RES %g %g   %d %s\n", res, tot, rseg1->getId(), rseg1->getNet()->getConstName());
 			rseg1->setResistance(tot, modelIndex);
 //			double T= rseg1->getResistance(modelIndex);
 		}
@@ -1033,6 +1051,7 @@ void extMain::updateTotalRes(dbRSeg *rseg1, dbRSeg *rseg2, extMeasure *m, double
 			}
 			*/
 			
+			debug("updateTotalRes","R","RES %g %g   %d %s\n", res, tot, rseg2->getId(), rseg2->getNet()->getConstName());
 			rseg2->setResistance(tot, modelIndex);
 //			double T= rseg2->getResistance(modelIndex);
 		}

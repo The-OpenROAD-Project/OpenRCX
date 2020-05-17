@@ -3285,13 +3285,20 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 	//	int mUnder= _underMet; // will be replaced
 	if (_dist<0) { // dist is infinit
 		
+		 	computeR(_len, deltaRes);
+		 	_extMain->updateTotalRes(rseg1, rseg2, this, deltaRes, modelCnt);
 		if (totLenCovered>0) {
 			_underMet= 0;
 			for (uint jj= 0; jj<_metRCTable.getCnt(); jj++) {
 				extDistRC *rc= _metRCTable.get(jj)->getOverFringeRC(this);
-				if (rc!=NULL)
+				if (rc!=NULL) {
 					deltaFr[jj]= rc->getFringe() * totLenCovered;
+					deltaRes[jj]= rc->getRes() * totLenCovered;
+				}
 			}
+		 	// computeR(_len, deltaRes);
+		 	// _extMain->updateTotalRes(rseg1, rseg2, this, deltaRes, modelCnt);
+
 			if (rseg1!=NULL)
 #ifdef HI_ACC_1
 				_extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, true);
@@ -3303,6 +3310,7 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 
 			if (traceFlag)
 				printTraceNet("0D", false, NULL, lenOverSub, totLenCovered);
+
 		}
 	}
 	else { // dist based

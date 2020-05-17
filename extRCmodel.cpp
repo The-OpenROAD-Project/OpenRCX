@@ -2119,12 +2119,18 @@ extDistRC *extMeasure::computeR(uint len, double *valTable)
 		extMetRCTable* rcModel= _metRCTable.get(ii);
 		
 		rcUnit= getOverRC(rcModel);
-		if (rcUnit!=NULL)
+		if (rcUnit!=NULL) {
 			_rc[ii]->_res += rcUnit->_res * len;
+debug("EXT_RES", "R", "computeR: getOverRC: %g %g %d\n", rcUnit->_res * len, rcUnit->_res , len);
+		}
 		
+		/* DKF TO_EVAL
 		extDistRC *rcFarRC= rcModel->getOverFringeRC(this);
-		if (rcFarRC!=NULL)
+		if (rcFarRC!=NULL) {
 			valTable[ii]= rcFarRC->getRes() * len;
+debug("EXT_RES", "R", "computeR: getOverFringeRC: %g %g %d\n", rcFarRC->getRes() * len,rcFarRC->getRes() , len);
+		}
+		*/
 		
 	}
 	return rcUnit;

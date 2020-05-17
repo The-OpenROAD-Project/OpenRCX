@@ -238,7 +238,11 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 				_tmpCapTable[ii]= len*2*getFringe(level, width, ii, areaCap);
 #endif
 				_tmpCapTable[ii] += 2*areaCap * len*width;
-				_tmpResTable[ii]= getResistance(level, width, len, ii);;
+				 double r= getResistance(level, width, len, ii);;
+// INIT VALUE for resistance
+				_tmpResTable[ii]= r;
+				_tmpResTable[ii]= 0;
+				debug("EXT_RES", "R", "getShapeRC:  \n");
 			}
 		}
 	}
