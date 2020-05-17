@@ -414,6 +414,9 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	bboxLL[!measure->_dir] = measure->_ll[!measure->_dir];
 
 	int n = measure->_wireCnt / 2; // ASSUME odd number of wires, 2 will also work
+        if (measure->_s_nm==0) {
+              n= 1;
+        } 
 
 	double pitchUp_print= measure->_topWidth;
 	double pitch_print = 0.001 * (measure->_minWidth + measure->_minSpace);
@@ -426,7 +429,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int x1= bboxLL[0];
 	int y1= bboxLL[1];
 
-	notice(0, "\n                                     %12d %12d", x1, y1);
+	notice(0, "\n                                     %12d %12d n=%d sp=%d", x1, y1,n,measure->_s_nm);
 	measure->clean2dBoxTable(measure->_met, false);
 
 	double x_tmp[50];
@@ -455,6 +458,8 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	uint WW2 = measure->_w2_nm;
 	uint SS2 = measure->_s2_nm;
 
+	uint base ;
+	if (n>1) {
 	X[cnt++] = -pitchUp_print; int mid = cnt;
 	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW, s_layout);
 	idCnt++;
@@ -462,7 +467,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	X[cnt++] = 0.0;
 	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW, SS1);
 	idCnt++;
-	uint base = measure->_ll[measure->_dir] + WW / 2;
+	base = measure->_ll[measure->_dir] + WW / 2;
 
 	X[cnt++] = (SS2 + WW * 0.5) * 0.001;
 	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW2, SS2);
@@ -475,6 +480,12 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 		x += pitch_print;
 		netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, w_layout, s_layout);
 		idCnt++;
+	}
+	} else {
+	base = measure->_ll[measure->_dir] + WW / 2;
+	X[cnt++] = (SS2 + WW * 0.5) * 0.001;
+	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, 3, WW2, SS2);
+	idCnt++;
 	}
 
 	if (measure->_diag) {
