@@ -118,22 +118,22 @@ module Ext
         in int met = -1 [ usage = "default runs all metals" ; ],
         in int over_met=-1 [ usage = "under met, default sets all possible metals" ; ],
         in int under_met=-1 [ usage = "over met, default sets all possible metals" ; ],
-        in int len  = 100 [ usage = "Length of each wire in microns" ; ],
-        in int cnt  = 0 [ usage = "wire cnt per pattern" ; ],
+        in int len  = 200 [ usage = "Length of each wire in db_units" ; ],
+        in int cnt  = 5 [ usage = "wire cnt per pattern" ; ],
 
         in string w="1" [ usage = "Multiplier List for minimum width" ; ],
         in string s="1" [ usage = "Multiplier List for minimum spacing" ; ],
         in string th="1" [ usage = "Multiplier List for nominal thickness" ; ],
         in string d="0.0" [ usage = "List of wire density coefficients" ; ],
 
-        in string w_list="" [ usage = "List for widths per met in microns" ; ],
-        in string s_list="" [ usage = "List for spacings per met in microns" ; ],
-        in string th_list="" [ usage = "List for thickness per met in microns" ; ],
+        in string w_list="1" [ usage = "List for widths per met in microns" ; ],
+        in string s_list="1 2 2.5 3 3.5 4 4.5 5 6 8 10 12" [ usage = "List for spacings per met in microns" ; ],
+        in string th_list="0 1 2 2.5 3 3.5 4 4.5 5 6 8 10 12" [ usage = "List for thickness per met in microns" ; ],
 
         in string grid_list="" [ usage = "Multiplier List for minimum width/spacing and pitch" ; ],
         in bool default_lef_rules [ usage = "Use default min width and spacing" ; ],
         
-	in bool nondefault_lef_rules [ usage = "Use non default width and spacing" ; ],
+	    in bool nondefault_lef_rules [ usage = "Use non default width and spacing" ; ],
 
         in string dir = "./Bench" [ usage = "Directory for solver runs" ; ],
 
