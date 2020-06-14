@@ -576,10 +576,9 @@ bool extMain::isIncluded(adsRect & r, uint dir, int *ll, int *ur)
 
 uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthTable, uint *dirTable, adsRect & extRect, bool skipBaseCalc)
 {
-	uint W[16];
-	uint S[16];
-	//int X1[16];
-	//int Y1[16];
+	uint W[32];
+	uint S[32];
+	
 
 	dbSet<dbTechLayer> layers = _tech->getLayers();
 	dbSet<dbTechLayer>::iterator itr;
