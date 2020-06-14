@@ -208,6 +208,7 @@ module Ext
         in string cmp_file [usage = "CMP modeling file with variable thickness per geographical pixxel";] ,
         in string ext_model_file [ usage = "Extraction RC Model File" ; ],
         in string net = "" [ usage = "List of net Ids to extract" ; ],
+        in string debug_net = "" [ usage = "List of net Ids to debug" ; ],
         in string bbox = "" [ usage = "Area to extract: x0 y0 x1 y1" ; ],
         in string ibox = "" [ usage = "Incremental area to extract: x0 y0 x1 y1" ; ],
         in int test = 0 [usage = "Test level";],
