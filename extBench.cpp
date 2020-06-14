@@ -508,9 +508,24 @@ uint extMain::benchWires(extMainOptions *opt)
 	}
 	opt->_block= _block;
 
-	if (opt->_over)
-		notice(0, "\npattern MET_OVER_MET\n");
-
+if (opt->_gen_def_patterns) {
+		m->linesOverBench(opt);
+		m->linesOverUnderBench(opt);
+		m->linesUnderBench(opt);
+		m->linesDiagUnderBench(opt);
+	} else {
+		if (opt->_over)
+			m->linesOverBench(opt);
+		else if (opt->_overUnder)
+			m->linesOverUnderBench(opt);
+		else {	
+			if (opt->_diag)
+				m->linesDiagUnderBench(opt);
+			else
+				m->linesUnderBench(opt);
+		}
+	}
+	/*
 	if (opt->_over)
 		m->linesOverBench(opt);
 
@@ -523,7 +538,7 @@ uint extMain::benchWires(extMainOptions *opt)
 	
 	if ((!opt->_over)&&(opt->_overMet!=0)&&(opt->_underMet!=0))
 		m->linesOverUnderBench(opt);
-	
+	*/
 	dbBox *bb=_block->getBBox();		
 	adsRect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
 	_block->setDieArea(r);
