@@ -1460,10 +1460,7 @@ uint extSpef::sortRSegs()
 				break;
 			}
 		}
-	}
-	if (drvCapNode == NULL)
-	{
-		notice (0, "Warning: Can't find driver capnode for net %d %s\n", _d_net->getId(), _d_net->getConstName());
+		// TODO: add flag notice (0, "Warning: Can't find driver capnode for net %d %s\n", _d_net->getId(), _d_net->getConstName());
 		_d_corner_net->setRCDisconnected(true);
 		return 0;
 	}
@@ -1833,7 +1830,7 @@ uint extSpef::readDNet(uint debug)
 			{
 				//_parser->printWords(stdout);
 				
-				if (_readingNodeCoords==C_STARRC) {
+				if (_readingNodeCoords==C_STARRC && !_diff) {
 					cpos = 0;
 					if (strcmp("*N", _parser->get(0))==0)
 						cpos = 2;
@@ -2260,6 +2257,9 @@ uint extSpef::readBlock(uint debug, std::vector<dbNet *> tnets, bool force, bool
 	if (force)
 		_rRun = 1;
 	_lengthUnit = length_unit;
+	
+
+
 	_fixloop = fixLoop;
 	//_nodeCoordFactor = 1000.0;
 	int dbunit= _block->getDbUnitsPerMicron();
@@ -2284,8 +2284,8 @@ uint extSpef::readBlock(uint debug, std::vector<dbNet *> tnets, bool force, bool
 		return 0;
 	}
 	_readingNodeCoordsInput = _readingNodeCoords;
-	if (_readingNodeCoords == C_NONE)
-		_readingNodeCoords = C_STARRC;
+	// 0620 if (_readingNodeCoords == C_NONE)
+	// 0620	_readingNodeCoords = C_STARRC;
 	if (_readingNodeCoords != C_NONE && _nodeCoordParser == NULL)
 		_nodeCoordParser = new Ath__parser();
 	if (capStatsFile!=NULL) {
