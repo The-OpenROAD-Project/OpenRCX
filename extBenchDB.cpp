@@ -340,6 +340,9 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 		}
 	}
 	else {
+		if (measure->_diag) {
+			spaceTable->add(0.0);
+		}
 		for (uint ii = 0; ii < sTable->getCnt(); ii++) {
 			double s = spacing * sTable->get(ii);
 			spaceTable->add(s);
@@ -351,6 +354,7 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 	}
 	bool use_symmetric_widths_spacings = false;
 	if (!use_symmetric_widths_spacings) {
+
 		for (uint ii = 0; ii < widthTable->getCnt(); ii++) {
 			double w = widthTable->get(ii); // layout
 			double w2 = w;
@@ -362,8 +366,6 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 				// measureResistance(measure, ro, top_widthR, bot_widthR, thicknessR);
 				// measurePatternVar(measure, top_width, bot_width, thickness, measure->_wireCnt, NULL);
 				writeBenchWires_DB(measure);
-				notice(0,"\n");
-
 				cnt++;
 			}
 		}
@@ -424,7 +426,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	bboxLL[!measure->_dir] = measure->_ll[!measure->_dir];
 
 	int n = measure->_wireCnt / 2; // ASSUME odd number of wires, 2 will also work
-        if (measure->_s_nm==0) {
+        if (measure->_s_nm==0 && !measure->_diag) {
               n= 1;
         } 
 
@@ -439,7 +441,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int x1= bboxLL[0];
 	int y1= bboxLL[1];
 
-	notice(0, "\n                                     %12d %12d n=%d sp=%d", x1, y1,n,measure->_s_nm);
+	//notice(0, "\n                                     %12d %12d n=%d sp=%d", x1, y1,n,measure->_s_nm);
 	measure->clean2dBoxTable(measure->_met, false);
 
 	double x_tmp[50];
@@ -475,13 +477,28 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	idCnt++;
 
 	X[cnt++] = 0.0;
-	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW, SS1);
-	idCnt++;
-	base = measure->_ll[measure->_dir] + WW / 2;
+	if ( !measure->_diag) {
+		netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW, SS1);
+		base = measure->_ll[measure->_dir] + WW / 2;
+		idCnt++;
+		X[cnt++] = (SS2 + WW * 0.5) * 0.001;
+		netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW2, SS2);
+		idCnt++;
+	} else {
+		uint met_tmp= measure->_met;
+		measure->_met= measure->_overMet;
+		uint ss2= SS1;
+		if (measure->_s_nm==0)
+			ss2= measure->_s_nm;
 
-	X[cnt++] = (SS2 + WW * 0.5) * 0.001;
-	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, WW2, SS2);
-	idCnt++;
+		netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, 0, ss2);		
+			idCnt++;
+	measure->_met= met_tmp;
+		//notice(0, "WW2= %d SS2= %d\n", WW2, SS2);
+		// TOD 620 for different widthd
+		netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, idCnt, w_layout, s_layout);
+			idCnt++;
+	}
 
 	//	x= measure->_topWidth*0.5+pitchUp_print+0.001*measure->_minSpace; 
 	x = measure->_topWidth * 0.5 + 0.001 * (WW2 + SS2 + measure->_minSpace);
@@ -499,6 +516,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	}
 
 	if (measure->_diag) {
+		return cnt;
 		int met;
 		if (measure->_overMet > 0)
 			met = measure->_overMet;
