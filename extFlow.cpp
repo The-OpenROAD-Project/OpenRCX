@@ -2319,9 +2319,11 @@ uint extMain::couplingFlow(bool rlog, adsRect & extRect, uint trackStep, uint cc
 			stepNum++;
 			//totalWiresExtracted += extractedWireCnt;
 			totalWiresExtracted += processWireCnt;
-			if ((totWireCnt>0)&&(totalWiresExtracted>0)) {
-				notice(0, "%c%d completion -- %d wires have been extracted\n", 
-					'%', Ath__double2int(100.0*(1.0*totalWiresExtracted/totWireCnt)), totalWiresExtracted);
+			    float percent_extracted= Ath__double2int(100.0*(1.0*totalWiresExtracted/totWireCnt));
+
+			if ((totWireCnt>0)&&(totalWiresExtracted>0) && (percent_extracted-_previous_percent_extracted>=5.0)) {
+				notice(0, "%.1f%c completion -- %d wires have been extracted\n", percent_extracted, '%',  totalWiresExtracted);
+				_previous_percent_extracted= percent_extracted;
 			}
 			//break;
 		}
@@ -2469,6 +2471,7 @@ void extWindow::init(uint maxLayerCnt)
 	_gsRotatedFlag= false;
 	_totalWiresExtracted= 0;
 	_totWireCnt= 0;
+	_prev_percent_extracted=0;
 }
 void extWindow::updateExtLimits(int **limitArray)
 {
@@ -2826,9 +2829,10 @@ void extWindow::updateLoBounds(bool reportFlag)
 	if (! reportFlag)
 		return;
 
-	if ((_totWireCnt>0)&&(_totalWiresExtracted>0)) {
-		notice(0, "%c%d completion -- %d wires have been extracted\n", 
-			'%', Ath__double2int(100.0*(1.0*_totalWiresExtracted/_totWireCnt)), _totalWiresExtracted);
+    double percent_extracted= Ath__double2int(100.0*(1.0*_totalWiresExtracted/_totWireCnt));
+	if ((_totWireCnt>0)&&(_totalWiresExtracted>0)&&(percent_extracted-_prev_percent_extracted>5.0)) {
+		notice(0, "%c%d completion -- %d wires have been extracted\n", '%', percent_extracted, _totalWiresExtracted);
+		_prev_percent_extracted= percent_extracted;
 	}
 }
 uint extMain::mkNetPropertiesForRsegs(dbBlock *blk, uint dir)
