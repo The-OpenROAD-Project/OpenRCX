@@ -231,7 +231,7 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
 
     uint cnt= 0;
    
-    for (int met= 1; met<(int)_layerCnt; met++) {
+    for (int met= 1; met<=(int)_layerCnt; met++) {
 
         if (met > opt->_met_cnt)
             continue;
@@ -239,7 +239,7 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
             continue;
 
         measure._met= met;
-	if (!opt->_db_only)
+		if (!opt->_db_only)
         	computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
 
         uint patternSep= measure.initWS_box(opt, 20);
@@ -292,7 +292,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 		openCapLogFile();
 	uint cnt= 0;
 	
-	for (int met= 1; met<(int)_layerCnt-1; met++) {
+	for (int met= 1; met<(int)_layerCnt; met++) {
 		
 		if (met>opt->_met_cnt)
 			continue;
@@ -300,15 +300,17 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 			continue;
 		
 		measure._met= met;
+
 		if (!opt->_db_only)
 			computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
 		
 		patternSep= measure.initWS_box(opt, 20);
 
-		for (int overMet= met+1; overMet<(int)_layerCnt; overMet++) {
+		for (int overMet= met+1; overMet<=(int)_layerCnt; overMet++) {
 
 			if (overMet>opt->_met_cnt)
 				continue;
+
 			if ((opt->_overMet>0) && (opt->_overMet!=overMet))
 				continue;
 
@@ -343,28 +345,35 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
          
         extMeasure measure;
         measure.updateForBench(opt, _extMain);
-	measure._diag=true;
+		measure._diag=true;
  
         uint patternSep= 1000;
          
         sprintf(_patternName, "DU%d", opt->_wireCnt+1);
-	if (!opt->_db_only)
+		if (!opt->_db_only)
         	openCapLogFile();
+
         uint cnt= 0;
          
-        for (int met= 1; met<(int)_layerCnt-1; met++) {
+        for (int met= 1; met<(int)_layerCnt; met++) {
                  
+				if (met>opt->_met_cnt)
+					continue;
                 if ((opt->_met>0) && (opt->_met!=met))
                         continue;
                  
                 measure._met= met;
-		if (!opt->_db_only)
+
+				if (!opt->_db_only)
                 	computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
                                                                          
                 patternSep= measure.initWS_box(opt, 20);
                                                                          
-                for (int overMet= met+1; overMet<met+5 && overMet<(int)_layerCnt; overMet++) {
-                                                                         
+                for (int overMet= met+1; overMet<met+5 && overMet<=(int)_layerCnt; overMet++) {
+
+					   if (overMet>opt->_met_cnt)
+							continue;        
+
                         if ((opt->_overMet>0) && (opt->_overMet!=overMet))
                                 continue;
                                                                          
@@ -406,7 +415,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 		openCapLogFile();
 	uint cnt= 0;
 
-	for (int met= 1; met<(int)_layerCnt-1; met++) {	
+	for (int met= 1; met<=(int)_layerCnt-1; met++) {	
 
 		if (met>opt->_met_cnt)
 			continue;
@@ -426,7 +435,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 			if ((opt->_underMet>0) && ((int)opt->_underMet!=underMet))
 				continue;
 			
-			for (uint overMet= met+1; overMet<_layerCnt; overMet++) {
+			for (uint overMet= met+1; overMet<=_layerCnt; overMet++) {
 				
 				if ( overMet>opt->_met_cnt)
 					continue;
