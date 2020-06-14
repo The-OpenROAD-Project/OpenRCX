@@ -186,6 +186,8 @@ private:
 	double _res;
 	
 public:
+	void printDebug(char*, char*, uint, uint, extDistRC *rcUnit=NULL);
+	void printDebugRC(char*);
 	void set(uint d, double cc, double fr, double a, double r);
 	void readRC(Ath__parser *parser, double dbFactor=1.0);
 	double getFringe();
@@ -253,10 +255,10 @@ public:
 
 	Ath__array1D<int> *_widthTable;
 	Ath__array1D<uint> *_widthMapTable;
-	Ath__array1D<int> *_diagWidthTable[12];
-	Ath__array1D<int> *_diagDistTable[12];
-	Ath__array1D<uint>*_diagWidthMapTable[12];
-	Ath__array1D<uint> *_diagDistMapTable[12];
+	Ath__array1D<int> *_diagWidthTable[32];
+	Ath__array1D<int> *_diagDistTable[32];
+	Ath__array1D<uint>*_diagWidthMapTable[32];
+	Ath__array1D<uint> *_diagDistMapTable[32];
 
 	uint _modulo;
 	int _firstWidth;
@@ -615,6 +617,9 @@ public:
 	extMeasure();
 	~extMeasure();
 
+	bool IsDebugNet();
+	void printNetCaps();
+
 	void printTraceNetInfo(const char* msg, uint netId, int rsegId);
 	bool printTraceNet(const char *msg, bool init, dbCCSeg *cc=NULL, uint overSub=0, uint covered=0);
 
@@ -765,6 +770,7 @@ public:
 	uint getRSeg(dbNet* net, uint shapeId);
 
 	void allocOUpool();
+	int get_nm(double n) { return 1000*(n/_dbunit); };
 
 	int _met;
 	int _underMet;
@@ -772,7 +778,7 @@ public:
 	uint _wireCnt;
 
 	uint _dirTable[10000];
-	int _minSpaceTable[20];
+	int _minSpaceTable[32];
 
 	int _minWidth;
 	int _minSpace;
@@ -921,6 +927,7 @@ public:
 	bool _rotatedGs;
 
     dbCreateNetUtil _create_net_util;
+	int _dbunit;
 };
 class extWire
 {
@@ -1010,6 +1017,7 @@ public:
 	uint _processPowerWireCnt;
 	uint _processSignalWireCnt;
 	uint _totalWiresExtracted;
+	double _prev_percent_extracted;
 
 
 	uint _currentDir;
@@ -1079,6 +1087,7 @@ public:
 	bool _overUnder;
 	bool _diag;
 	bool _db_only;
+	bool _gen_def_patterns;
 
 	dbTech *_tech;
 	dbBlock *_block;
@@ -1404,6 +1413,9 @@ private:
 	std::vector<adsRect *> _multiViaTable[20];
 	std::vector<dbBox *> _multiViaBoxTable[20];
 
+    uint _debug_net_id;
+	bool _skip_via_wires;
+	float _previous_percent_extracted;
 public:
 
 	enum INCR_SPEF_TYPE
@@ -1415,6 +1427,14 @@ public:
 		ISPEF_NEW_PLUS_HALO,
 	} ;
 	extMain(uint menuId);
+	void set_debug_nets(const char *nets) {
+		_debug_net_id= 0;
+		if (nets!=NULL) {
+			_debug_net_id= atoi(nets);
+			// TODO: 531 - make a list
+		}
+	}
+	void skip_via_wires(bool v) { _skip_via_wires=v;};
 
     uint getDir(int x1, int y1, int x2, int y2);
 	uint getDir(adsRect &r);
@@ -1429,6 +1449,9 @@ public:
 	uint addNetSBoxes2(dbNet *net, uint dir, int *bb_ll, int *bb_ur, uint wtype, uint step=0);
 	uint addPowerNets(uint dir, int *bb_ll, int *bb_ur, uint wtype, dbCreateNetUtil *netUtil=NULL);
 	uint addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur, uint wtype, FILE *fp, dbCreateNetUtil *netUtil=NULL);
+	int GetDBcoords2(int coord);
+	double GetDBcoords1(int coord);
+	uint addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype);
 	uint addSignalNets(uint dir, int *bb_ll, int *bb_ur, uint wtype, dbCreateNetUtil *netUtil=NULL);
 	uint addInstsGs(Ath__array1D<uint> *instTable, Ath__array1D<uint> *tmpInstIdTable, uint dir);
 	uint mkSignalTables(uint *nm_step, int *bb_ll, int *bb_ur, Ath__array1D<uint> ***sdbSignalTable, Ath__array1D<uint> ***signalGsTable, uint *bucketCnt);
@@ -1572,6 +1595,8 @@ public:
 	uint addInstShapesOnPlanes(uint dir=0, int *ll=NULL, int *ur=NULL);
 
 	void getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePathShape & pshape);
+	double getViaResistance(dbTechVia *tvia);
+	double getViaResistance_b(dbVia *via, dbNet *net= NULL);
 	void setResAndCap(dbRSeg *rc, double *restbl, double *captbl);
 	void setBranchCapNodeId(dbNet *net, uint junction);
 	void addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl);
