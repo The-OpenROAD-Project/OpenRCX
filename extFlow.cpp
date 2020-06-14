@@ -609,9 +609,12 @@ uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthT
 			continue;
 
 		n= layer->getRoutingLevel();
+		int w= GetDBcoords2(layer->getWidth());
 		widthTable[n]= layer->getWidth();
 		W[n]= 1;
+		int s= GetDBcoords2(layer->getSpacing());
 		S[n]= layer->getSpacing();
+		int p= GetDBcoords2(layer->getPitch());
 		pitchTable[n]= layer->getPitch();
 		if (pitchTable[n] <= 0) 
 			error(0, "Layer %s, routing level %d, has pitch %d !!\n", layer->getConstName(), n, pitchTable[n]);
@@ -638,11 +641,92 @@ uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthT
 		}
 	}
 	uint layerCnt= n+1;
-
+		
 	_search= new Ath__gridTable(&maxRect, 2, layerCnt, W, pitchTable, S, X1, Y1);
 	_search->setBlock(_block);
 	return layerCnt;
 }
+/*
+uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthTable, uint *dirTable, adsRect & extRect, bool skipBaseCalc)
+{
+	uint W[16];
+	uint S[16];
+	
+
+	dbSet<dbTechLayer> layers = _tech->getLayers();
+	dbSet<dbTechLayer>::iterator itr;
+	dbTrackGrid *tg = NULL;
+  
+	adsRect maxRect;
+	if ((extRect.dx()>0) && (extRect.dy()>0))
+	{
+		maxRect= extRect;
+	}
+	else
+	{
+	_block->getDieArea( maxRect );
+	if (!((maxRect.dx()>0) && (maxRect.dy()>0)))
+		error(1, "Die Area for the block has 0 size, or is undefined!\n\n");
+	}
+
+	//notice(0, "Block= %s\n", _block->getConstName());
+	//maxRect.print("---------------- Search Grid BBox ---- ");
+	std::vector<int> trackXY(32000);
+	uint n= 0;  
+	for ( itr = layers.begin(); itr != layers.end(); ++itr )
+	{
+		dbTechLayer * layer = *itr;
+		dbTechLayerType type = layer->getType();
+        
+		if ( type.getValue() != dbTechLayerType::ROUTING )
+			continue;
+
+		n= layer->getRoutingLevel();
+		int w= GetDBcoords2(layer->getWidth());
+		widthTable[n]= w;
+		W[n]= 1;
+		int s= GetDBcoords2(layer->getSpacing());
+		S[n]= s;
+		int p= GetDBcoords2(layer->getPitch());
+		pitchTable[n]= p;
+		if (pitchTable[n] <= 0) 
+			error(0, "Layer %s, routing level %d, has pitch %d !!\n", layer->getConstName(), n, pitchTable[n]);
+
+		dirTable[n]= 0;
+		if (layer->getDirection()==dbTechLayerDir::HORIZONTAL)
+			dirTable[n]= 1;
+
+		if (skipBaseCalc)
+			continue;
+
+		tg = _block->findTrackGrid(layer);
+		if (tg)
+		{
+			tg->getGridX(trackXY);
+			X1[n] = trackXY[0] - layer->getWidth()/2;
+			tg->getGridY(trackXY);
+			Y1[n] = trackXY[0] - layer->getWidth()/2;
+		}
+		else
+		{
+			X1[n] =GetDBcoords2( maxRect.xMin());
+			Y1[n] =GetDBcoords2( maxRect.yMin());
+		}
+	}
+	uint layerCnt= n+1;
+
+	int x1= GetDBcoords2(maxRect.xMin());
+	int x2=		GetDBcoords2(maxRect.xMax());
+	int y1=		GetDBcoords2(maxRect.yMin());
+	int y2=		GetDBcoords2(maxRect.yMax());
+
+	maxRect.reset(x1, y1, x2, y2);
+		
+	_search= new Ath__gridTable(&maxRect, 2, layerCnt, W, pitchTable, S, X1, Y1);
+	_search->setBlock(_block);
+	return layerCnt;
+}
+*/
 
 uint extMain::sBoxCounter(dbNet *net, uint &maxWidth)
 {	
