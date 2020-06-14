@@ -482,8 +482,10 @@ TCL_METHOD ( Ext::extract )
 		}
 #endif
 	}
-	if (!_ext->checkLayerResistance())
-		return TCL_ERROR;
+// ---------------------------------------------------- DKF 523
+//
+	// if (!_ext->checkLayerResistance())
+		// return TCL_ERROR;
 	
 
 	if (tilingDegree==1)
