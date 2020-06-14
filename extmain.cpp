@@ -319,6 +319,7 @@ void extMain::setupMapping(uint itermCnt)
 }
 extMain::extMain(uint menuId)
 {
+	_previous_percent_extracted=0;
         _power_extract_only= false;
         _skip_power_stubs= false;
         _power_exclude_cell_list= NULL;
@@ -681,7 +682,7 @@ double extMain::getLefResistance(uint level, uint width, uint len, uint model)
 
 	double r= n*res;
 
-        debug("EXT_RES", "R", "\tgetLefResistance:  %g  %d   M %d  W %d  LEN %d %g\n", r, model, level, width, len, res);
+      //  debug("EXT_RES", "R", "\tgetLefResistance:  %g  %d   M %d  W %d  LEN %d %g\n", r, model, level, width, len, res);
 
 	return r;
 }
@@ -1096,7 +1097,9 @@ void extMain::updateTotalCap(dbRSeg *rseg, extMeasure *m, double *deltaFr, uint 
 			_updateTotalCcnt++;
 			fprintf (_printFile, "%d %d %g %g\n", _updateTotalCcnt, rseg->getId(), tot, cap);
 		}
-		
+		if (m->IsDebugNet() && rseg->getNet()->getId()==_debug_net_id)
+			debug("Trace", "C", "updateTotalCap:  %d %d tot %g  add %g\n", rseg->getNet()->getId(), rseg->getId(), tot, cap);
+
 		rseg->setCapacitance(tot, extDbIndex);
 //		double T= rseg->getCapacitance(extDbIndex);
 		getScaledCornerDbIndex(modelIndex, sci, scDbIdx);
@@ -1110,7 +1113,14 @@ void extMain::updateTotalCap(dbRSeg *rseg, extMeasure *m, double *deltaFr, uint 
 }
 
 void extMain::updateCCCap(dbRSeg *rseg1, dbRSeg *rseg2, double ccCap)
-{			
+{	
+	int net1= rseg1->getNet()->getId();
+	int net2= rseg2->getNet()->getId();
+		if (net1==_debug_net_id || net2==_debug_net_id) {
+			debug("Trace", "C", "updateCCCap:  %d-%d %d-%d CC %g\n", 
+			net1, rseg1->getId(), net2, rseg2->getId(), ccCap);
+		}
+		
 		dbCCSeg *ccap= dbCCSeg::create(
 			dbCapNode::getCapNode(_block, rseg1->getTargetNode()), 
 			dbCapNode::getCapNode(_block, rseg2->getTargetNode()), 
@@ -1340,6 +1350,15 @@ void extMain::printNet(dbNet *net, uint netId)
 	if (netId==net->getId())
  		net->printNetName(stdout);
 }
+bool IsDebugNets(dbNet* srcNet, dbNet* tgtNet, uint debugNetId)
+{
+	if (srcNet!=NULL && srcNet->getId()==debugNetId)
+		return true;
+	if (tgtNet!=NULL && tgtNet->getId()==debugNetId)
+		return true;
+
+    return false;
+}
 void extMain::measureRC(int *options)
 {
 	_totSegCnt++;
@@ -1359,7 +1378,7 @@ void extMain::measureRC(int *options)
 //	fprintf(stdout, "extCompute:: met= %d  len= %d  dist= %d  <===>  modelCnt= %d  layerCnt= %d\n", 
 //		met, len, dist,	m->getModelCnt(), m->getLayerCnt());
 
-	uint debugNetId= 6;
+	uint debugNetId= _debug_net_id;
 
 	dbRSeg *rseg1= NULL;
 	dbNet* srcNet= NULL;
@@ -1379,6 +1398,8 @@ void extMain::measureRC(int *options)
 	if (_lefRC)
 		return;
 
+    bool watchNets= IsDebugNets(srcNet, tgtNet, debugNetId);
+	
 	m._ouPixelTableIndexMap= _overUnderPlaneLayerMap;
 	m._pixelTable= _geomSeq;
 	
