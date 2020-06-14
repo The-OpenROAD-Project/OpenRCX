@@ -35,6 +35,8 @@ uint extMain::GenExtRules(const char *rulesFileName)
 	uint layerCnt = _tech->getRoutingLayerCount()+1;
 
 	extRCModel *model= new extRCModel(layerCnt, "TYPICAL");
+	model->setDiagModel(1);
+//	model->_diag= true;
 	// _modelTable->add(m);
 	// extRCModel *model= _modelTable->get(0);
 	model->setOptions("./", "", false, true, false, false);
@@ -42,6 +44,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 	extMetRCTable* rcModel= model->initCapTables(layerCnt, widthCnt);
 	AthPool<extDistRC>* rcPool = rcModel->getRCPool();
 	extMeasure m;
+	m._diagModel= 1;
 
 	char buff[2000];
 	sprintf(buff, "%s.log", rulesFileName);
@@ -74,7 +77,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 			targetWire = p->getInt(0, 1);
 		} else {
 			char *w1= p->get(0);
-			if (w1[1]=='U') //OU
+			if (w1[1]=='U') //OU,DU
 				targetWire = p->getInt(0, 2);
 			else
 				targetWire = p->getInt(0, 1);
@@ -91,6 +94,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		bool over = false;
 		bool overUnder = false;
 		bool under = false;
+		bool diag = false;
 
 		uint met = p->getInt(0, 1);
 		uint overMet = 0;
@@ -128,6 +132,17 @@ uint extMain::GenExtRules(const char *rulesFileName)
 			m._overUnder= false;
 			m._over= true;
 		}
+		else if (strstr(overUnderToken, "uu") !=NULL) {
+			met = w->getInt(0, 1);
+			underMet = w->getInt(1, 1);
+			under= false;
+			diag= true;
+			m._diag= true;
+			m._overMet= underMet;
+			m._underMet= -1;
+			m._overUnder= false;
+			m._over= false;
+		}
 		else if (strstr(overUnderToken, "u") !=NULL) {
 			met = w->getInt(0, 1);
 			underMet = w->getInt(1, 1);
@@ -160,7 +175,8 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		m._s_nm= Ath__double2int(m._s_m*1000);
 
 		// double wLen= (len+w->getDouble(0)) * 1.0;
-		double wLen= len * 1.0;
+		double wLen=GetDBcoords2( len) * 1.0;
+		// double wLen= len * 1.0;
 		double totCC = net->getTotalCouplingCap();
 		double totGnd = net->getTotalCapacitance();
 		double res = net->getTotalResistance();
