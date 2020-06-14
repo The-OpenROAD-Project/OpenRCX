@@ -223,6 +223,7 @@ module Ext
 	in int context_depth = 0 [usage = "number of upper/lower layers context on CC";],
 	in int cc_model = 40 [usage = "number of maximum tracks for coupling nets on same layer";],
         in bool over_cell [usage = "Add cell iterm and obstruction shapes as extraction context nets";],
+        in bool skip_via_wires [usage = "Exclude via top and bottom wires ";],
         in bool remove_cc [usage = "Remove CC";],
         in bool remove_ext [usage = "Remove RC and CC";],
         in bool unlink_ext [usage = "Unlink RC and CC";],
