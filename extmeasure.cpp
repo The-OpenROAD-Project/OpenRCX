@@ -892,7 +892,18 @@ void extMeasure::updateBox(uint w_layout, uint s_layout, int dir)
 }
 uint extMeasure::createNetSingleWire(char *dirName, uint idCnt, uint w_layout, uint s_layout, int dir)
 {
-	updateBox(w_layout, s_layout, dir);
+	if (w_layout==0) {
+		dbTechLayer * layer = _create_net_util._routingLayers[_met];
+		w_layout= layer->getWidth();
+	}
+	if (s_layout==0) {
+		uint d= _dir;
+		if (dir>=0)
+			d= dir;
+		_ur[d] = _ll[d] + w_layout;
+	} else {
+		updateBox(w_layout, s_layout, dir);
+	}
 //	uint w2= w_layout/2;
 	int ll[2];
 	int ur[2];
@@ -953,6 +964,8 @@ uint extMeasure::createDiagNetSingleWire(char *dirName, uint idCnt, int begin, i
                                                                                 
         char netName[1024];
         sprintf(netName, "%s%c%d%c", dirName, left, idCnt, right);
+		    if (_skip_delims)
+		sprintf(netName, "%s_%d", dirName, idCnt);
         assert( _create_net_util.getBlock() == _block );
         dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], met);
         addNew2dBox(net, ll, ur, met, _dir, net->getId(), false);
@@ -1324,6 +1337,8 @@ void extMeasure::updateForBench(extMainOptions *opt, extMain *extMain)
 	_extMain= extMain;
 	_3dFlag= opt->_3dFlag;
 	_create_net_util.setBlock(_block, false);
+    _dbunit= _block->getDbUnitsPerMicron();
+
 
 }
 uint extMeasure::defineBox(int *options)
