@@ -42,7 +42,7 @@
 #define MAXINT 0x7FFFFFFF;
 //#define HI_ACC_10312011
 
-#define DEBUG_NET_ID 228157
+// #define DEBUG_NET_ID 2655
 
 
 BEGIN_NAMESPACE_ADS
@@ -157,6 +157,52 @@ void extMain::set_adjust_colinear(bool v)
 {
 	_adjust_colinear= v;
 }
+double extMain::getViaResistance(dbTechVia *tvia)
+{
+	//if (_viaResHash[tvia->getConstName()])
+	double res=0;
+	dbSet<dbBox> boxes = tvia->getBoxes();
+    dbSet<dbBox>::iterator bitr;
+    
+    for( bitr = boxes.begin(); bitr != boxes.end(); ++bitr )
+    {
+        dbBox * box = *bitr;
+        dbTechLayer * layer1 = box->getTechLayer();
+		if (layer1->getType()==dbTechLayerType::CUT) 
+			res= layer1->getResistance();
+
+		debug("EXT_RES", "V", "getViaResistance: %s %s %g ohms\n", tvia->getConstName(),  layer1->getConstName(), layer1->getResistance());
+	}
+	return res;
+}
+double extMain::getViaResistance_b(dbVia *tvia, dbNet *net)
+{
+	//if (_viaResHash[tvia->getConstName()])
+	double tot_res=0;
+	dbSet<dbBox> boxes = tvia->getBoxes();
+    dbSet<dbBox>::iterator bitr;
+    
+	uint cutCnt=0;
+    for( bitr = boxes.begin(); bitr != boxes.end(); ++bitr )
+    {
+        dbBox * box = *bitr;
+        dbTechLayer * layer1 = box->getTechLayer();
+		if (layer1->getType()==dbTechLayerType::CUT) {
+			tot_res += layer1->getResistance();
+			cutCnt ++;
+			// debug("EXT_RES", "R", "getViaResistance_b: %d %s %s %g ohms\n", cutCnt, tvia->getConstName(),  layer1->getConstName(), layer1->getResistance());
+		}
+	}
+	double Res= tot_res;
+	if (cutCnt>1) {
+		float avgCutRes= tot_res/cutCnt;
+		 Res= avgCutRes/cutCnt;
+	}
+	if (net!=NULL && net->getId()==_debug_net_id) {
+		debug("EXT_RES", "R", "getViaResistance_b: cutCnt= %d %s  %g ohms\n", cutCnt, tvia->getConstName(), Res);
+	}
+	return Res;
+}
 void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePathShape & pshape)
 {
 	double res=0.0;
@@ -167,12 +213,23 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 	{
 		uint width= 0;
 		dbTechVia *tvia= s.getTechVia();
+
 		if (tvia!=NULL) {
+			int i = 0;
+       
 			level= tvia->getBottomLayer()->getRoutingLevel();
 			width= tvia->getBottomLayer()->getWidth();
+			//res= tvia->getResistance();
 			res= tvia->getResistance();
+			if (res==0)
+			 	res= getViaResistance(tvia);
+			if (res>0)
+				tvia->setResistance(res);
 			if (res<=0.0)
 				res= getResistance(level, width, width, 0);
+			if (net->getId()==_debug_net_id) {
+				debug("EXT_RES", "R", "tvia %s %g\n", tvia->getConstName(), res);
+			}
 		}
 		else {
 			dbVia *bvia= s.getVia();
@@ -180,7 +237,14 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 				level= bvia->getBottomLayer()->getRoutingLevel();
 				width= bvia->getBottomLayer()->getWidth();
 				len= width;
-				res= getResistance(level, width, len, 0);
+			 	res= getViaResistance_b(bvia, net);
+			
+				if (res<=0.0)
+					res= getResistance(level, width, len, 0);
+
+				if (net!=NULL && net->getId()==_debug_net_id) {
+					debug("EXT_RES", "R", "bvia %s %g\n", bvia->getConstName(), res);
+				}
 			}
 		}
 		if (level>0) {				
@@ -194,6 +258,7 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 					_tmpCapTable[ii]= width*2*getFringe(level, width, ii, areaCap);
 					_tmpCapTable[ii] += 2*areaCap * width*width;
 					_tmpResTable[ii]= res;
+					
 				}
 			}
 		}
@@ -210,7 +275,7 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 			if (len<=0)
 				len += width;
 		}
-
+	
 		if (_lefRC) {
 			double res= getResistance(level, width, len, 0);;
 			double unitCap= getFringe(level, width, 0, areaCap);
@@ -229,20 +294,29 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 		}
 		else {
 			for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
+				double c1= getFringe(level, width, ii, areaCap);
 #ifdef HI_ACC_10312011
 				if (width<400)
 					_tmpCapTable[ii]= (len+width)*2*getFringe(level, width, ii, areaCap);
 				else
 					_tmpCapTable[ii]= len*2*getFringe(level, width, ii, areaCap);
 #else
-				_tmpCapTable[ii]= len*2*getFringe(level, width, ii, areaCap);
+				len = GetDBcoords2(len);
+
+				_tmpCapTable[ii]= len*2*c1;
 #endif
-				_tmpCapTable[ii] += 2*areaCap * len*width;
+				// _tmpCapTable[ii] += 2*areaCap * len*width;
 				 double r= getResistance(level, width, len, ii);;
 // INIT VALUE for resistance
 				_tmpResTable[ii]= r;
 				_tmpResTable[ii]= 0;
-				debug("EXT_RES", "R", "getShapeRC:  \n");
+				if (net->getId()==_debug_net_id) {
+					debug("EXT_RES", "R", "getShapeRC: %d %d   %d %d  M%d  W %d  LEN %d C=%g tC=%g  tR=%g %d n%d\n",
+							pshape.shape.xMin(),pshape.shape.xMax(), pshape.shape.yMin(),pshape.shape.yMax(),
+							level, width, len, c1, _tmpCapTable[ii], r, ii, _debug_net_id);
+
+				  //	debug("EXT_RES", "R", "\tR %g C %g  M%d  W %d  LEN %d  corner %d netId=%d\n", r, c1, level, width, len, res, ii, _debug_net_id);
+				}
 			}
 		}
 	}
@@ -860,6 +934,10 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 			addRSeg (net, _rsegJid, srcId, prevPoint, path, ppshape, path.is_branch, _tmpSumResTable, _tmpSumCapTable);
 			rcCnt++;
 		}
+	}
+	if (net->getId()==_debug_net_id) {
+		debug("EXT_RES", "R", "\t\t\t\ttC %g  R %g\n", 
+			net->getTotalCapacitance(), net->getTotalResistance());
 	}
 	dbSet<dbRSeg> rSet= net->getRSegs();
 	rSet.reverse();
@@ -2586,6 +2664,7 @@ uint extMain::makeBlockRCsegs(bool btermThresholdFlag, const char *cmp_file, boo
 
 				m._debugFP= NULL;
 				m._netId= 0;
+				debugNetId= 0;
 				if (debugNetId>0) {
 					m._netId= debugNetId;
 					char bufName[32];
