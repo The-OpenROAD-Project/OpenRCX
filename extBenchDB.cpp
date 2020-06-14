@@ -187,22 +187,13 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		double R= res / wLen / 2;
 
 		extDistRC *rc= rcPool->alloc();
-		rc->set(m._s_nm, cc, gnd, 0.0, R);
+		if (diag)
+			rc->set(m._s_nm, 0.0, gnd, cc, R);
+		else
+			rc->set(m._s_nm, cc, gnd, 0.0, R);
 		m._tmpRC= rc;
 		rcModel->addRCw(&m);
 
-		/*
-  		std::vector<dbCCSeg*> vec_cc;
- 		net->getSrcCCSegs(vec_cc);
- 		uint cnt = vec_cc.size();
- 		for (uint j = 0; j < cnt; j++)
- 		{
- 			dbCCSeg* cc = vec_cc[j];
-
- 			dbCapNode* scnode = cc->getSourceCapNode();
- 			dbCapNode* tcnode = cc->getTargetCapNode();
- 			totCap += cc->getCapacitance();
- 		} */
 		fprintf(logFP, "%s -- Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
 			netName, met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
 	}
