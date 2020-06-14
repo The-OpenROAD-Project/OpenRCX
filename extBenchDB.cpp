@@ -302,10 +302,13 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 	int met = measure->_met;
 	dbTechLayer* layer = opt->_tech->findRoutingLayer(met);
 
-	double minWidth = 0.001 * layer->getWidth();;
-	double pitch = 0.001 * layer->getPitch();
-	// double spacing = 0.001 * layer->getSpacing(); TODO
-	double spacing = pitch - minWidth;
+	double minWidth = 0.001 * layer->getWidth();
+	
+	double spacing = 0.001 * layer->getSpacing();
+	if (layer->getSpacing()==0) {
+		double pitch = 0.001 * layer->getPitch();
+	    spacing = pitch - minWidth;
+	}
 
 	if (opt->_default_lef_rules) { // minWidth, minSpacing, minThickness, pitch multiplied by grid_list
 		for (uint ii = 0; ii < gTable->getCnt(); ii++) {
