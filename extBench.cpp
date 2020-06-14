@@ -256,20 +256,18 @@ uint extRCModel::linesOverBench(extMainOptions *opt)
 
             uint cnt1= benchWithVar_density(opt, &measure);
 
-//          fprintf(stdout, "\nFinished %d measurements for bench pattern M%d_over_M%d\n\n",
-//              cnt1, met, underMet);
-            notice (0, "\nFinished %d measurements for bench pattern M%d_over_M%d", cnt1, met, underMet);
+            debug("RulesGen", "P", "Finished %d measurements for bench pattern M%d_over_M%d\n", cnt1, met, underMet);
             cnt += cnt1;
             measure._ur[measure._dir] += patternSep;
 
-            if (opt->_underMet==0)
+            if (opt->_underMet==0 && !opt->_gen_def_patterns)
                 break;
         }
         opt->_ur[0]= MAX(opt->_ur[0], measure._ur[0]);
         opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
     }
 //  fprintf(stdout, "\nFinished %d bench measurements for pattern MET_OVER_MET\n", cnt);
-    notice(0, "\nFinished %d bench measurements for pattern MET_OVER_MET", cnt);
+    notice(0, "Finished %d bench measurements for pattern MET_OVER_MET\n", cnt);
 
 	if (!opt->_db_only)
     		closeCapLogFile();
@@ -321,9 +319,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 
 			uint cnt1= benchWithVar_density(opt, &measure);
 
-//			fprintf(stdout, "\nFinished %d bench measurements for pattern M%d_under_M%d\n\n", 
-//				cnt1, met, overMet);
-			notice(0,"\nFinished %d bench measurements for pattern M%d_under_M%d", cnt1, met, overMet);
+			debug("RulesGen", "P","Finished %d bench measurements for pattern M%d_under_M%d\n", cnt1, met, overMet);
 
 			cnt += cnt1;
 			measure._ur[measure._dir] += patternSep;
@@ -332,7 +328,7 @@ uint extRCModel::linesUnderBench(extMainOptions *opt)
 		opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
 	}
 //	fprintf(stdout, "\nFinished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
-	notice(0,"\nFinished %d bench measurements for pattern MET_UNDER_MET", cnt);
+	notice(0,"Finished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
 
 	if (!opt->_db_only)
 		closeCapLogFile();
@@ -384,7 +380,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                                                                          
                         uint cnt1= benchWithVar_density(opt, &measure);
                                                                          
-                        notice(0,"\nFinished %d bench measurements for pattern M%d_diagunder_M%d", cnt1, met, overMet);
+                        debug("RulesGen", "P", "\nFinished %d bench measurements for pattern M%d_diagunder_M%d", cnt1, met, overMet);
                                                                          
                         cnt += cnt1;
                         measure._ur[measure._dir] += patternSep;
@@ -393,9 +389,9 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                 opt->_ur[1]= MAX(opt->_ur[1], measure._ur[1]);
         }
 //      fprintf(stdout, "\nFinished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
-        notice(0,"\nFinished %d bench measurements for pattern MET_DIAGUNDER_MET", cnt);
+        notice(0,"Finished %d bench measurements for pattern MET_DIAGUNDER_MET\n", cnt);
                                                                          
-	if (!opt->_db_only)
+		if (!opt->_db_only)
         	closeCapLogFile();
         return cnt;
 }
@@ -448,11 +444,8 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 				measure.setMets(met, underMet, overMet);
 				
 				uint cnt1= benchWithVar_density(opt, &measure);
-				
-/*				fprintf(stdout, "\nFinished %d bench measurements for pattern M%d_over_M%d_under_M%d\n\n", 
-					cnt1, met, underMet, overMet);
-*/
-				notice(0, "\nFinished %d bench measurements for pattern M%d_over_M%d_under_M%d", cnt1, met, underMet, overMet);
+
+				debug("RulesGen", "P", "Finished %d bench measurements for pattern M%d_over_M%d_under_M%d\n", cnt1, met, underMet, overMet);
 				
 				cnt += cnt1;
 				
@@ -461,8 +454,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions *opt)
 			}
 		}
 	}
-//	fprintf(stdout, "\nFinished %d measurements for pattern MET_UNDER_MET\n", cnt);
-	notice(0, "\nFinished %d measurements for pattern MET_UNDER_MET\n", cnt);
+	notice(0, "Finished %d measurements for pattern MET_OVERUNDER_MET\n", cnt);
 
 	if (!opt->_db_only)
 		closeCapLogFile();
