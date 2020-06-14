@@ -186,8 +186,18 @@ TCL_METHOD ( Ext::bench_wires )
 	opt._write_to_solver= in_args->write_to_solver();
 	opt._read_from_solver= in_args->read_from_solver();
 	opt._run_solver= in_args->run_solver();
+
 	opt._diag=in_args->diag();
+	opt._overUnder=in_args->overunder();
 	opt._db_only=in_args->db_only();
+	opt._gen_def_patterns=in_args->all();
+	if (opt._gen_def_patterns) {
+		opt._diag= true;
+		opt._overUnder= true;
+		opt._db_only= true;
+		opt._over=true;
+		opt._underMet= 0;
+	}
 
 	Ath__parser parser;
 
