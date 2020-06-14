@@ -446,6 +446,7 @@ TCL_METHOD ( Ext::extract )
 	const char *bbox= in_args->bbox();
 	const char *ibox= in_args->ibox();
 	const char *nets= in_args->net();
+	const char *debug_nets= in_args->debug_net();
 	bool eco = in_args->eco();
 	bool gs = in_args->no_gs() ? false : true;
 	bool re_run = in_args->re_run();
@@ -454,6 +455,8 @@ TCL_METHOD ( Ext::extract )
 	int ccContextDepth = in_args->context_depth();
 	bool overCell = in_args->over_cell();
 	bool btermThresholdFlag= in_args->tile();
+		_ext->set_debug_nets(debug_nets);
+		_ext->skip_via_wires(in_args->skip_via_wires());
 
 	uint tilingDegree= in_args->tiling();
 
