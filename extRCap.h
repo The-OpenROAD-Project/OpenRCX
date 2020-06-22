@@ -188,12 +188,14 @@ private:
 public:
 	void printDebug(char*, char*, uint, uint, extDistRC *rcUnit=NULL);
 	void printDebugRC(char*);
+	void debugRC(char *debugWord, char *from, int width, int level);
 	void set(uint d, double cc, double fr, double a, double r);
 	void readRC(Ath__parser *parser, double dbFactor=1.0);
 	double getFringe();
 	double getCoupling();
 	double getDiag();
 	double getRes();
+	double getTotalCap() { return _coupling + _fringe + _diag; };
 	void addRC(extDistRC *rcUnit, uint len, bool addCC);
 	void writeRC(AFILE *fp, bool bin);
 	void writeRC();
@@ -564,6 +566,8 @@ public:
 	int writeBenchWires_DB(extMeasure* measure);
 	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
 
+	extDistRC* getMinRC(int met, int width);
+	extDistRC* getMaxRC(int met, int width, int dist);
 };
 class extNetStats 
 {
@@ -1416,7 +1420,21 @@ private:
     uint _debug_net_id;
 	bool _skip_via_wires;
 	float _previous_percent_extracted;
+
+    // 620 DF: this is to be used for stats used in diff_spef
+	double _minCapTable[64][64];
+	double _maxCapTable[64][64];
+	double _minResTable[64][64];
+	double _maxResTable[64][64];
+	uint _rcLayerCnt;
+	uint _rcCornerCnt;
+
+
 public:
+	uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
+	void resetMinMaxRC(uint ii, uint jj);
+	uint getExtStats(dbNet *net, uint corner, int & wlen, double & min_cap, double & max_cap, double & min_res, double &max_res, double &via_res, uint &via_cnt);
+	char _tmpLenStats[1024000];
 
 	enum INCR_SPEF_TYPE
 	{
@@ -1975,6 +1993,9 @@ public:
 	uint benchVerilog(FILE* fp);
 	uint benchVerilog_bterms(FILE* fp, dbIoType iotype, char* prefix, char* postfix, bool v=false);
 	uint benchVerilog_assign(FILE* fp);
+
+	void setMinRC(uint ii, uint jj, extDistRC* rc);
+	void setMaxRC(uint ii, uint jj, extDistRC* rc);
 
 };
 
