@@ -205,6 +205,7 @@ double extMain::getViaResistance_b(dbVia *tvia, dbNet *net)
 }
 void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePathShape & pshape)
 {
+	bool USE_DB_UNITS= false;
 	double res=0.0;
 	double areaCap;
 	uint len;
@@ -293,6 +294,9 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 			_tmpResTable[0]= getResistance(level, width, len, 0);;
 		}
 		else {
+			if (USE_DB_UNITS)
+            width = GetDBcoords2(width);
+
 			for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
 				double c1= getFringe(level, width, ii, areaCap);
 #ifdef HI_ACC_10312011
@@ -301,7 +305,8 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 				else
 					_tmpCapTable[ii]= len*2*getFringe(level, width, ii, areaCap);
 #else
-				len = GetDBcoords2(len);
+				if (USE_DB_UNITS)
+			len = GetDBcoords2(len);
 
 				_tmpCapTable[ii]= len*2*c1;
 #endif

@@ -573,9 +573,24 @@ bool extMain::isIncluded(adsRect & r, uint dir, int *ll, int *ur)
 	
 	return true;
 }
-
+void extMain::GetDBcoords2(adsRect & r)
+{
+	int x1= r.xMin();
+	int x2= r.xMax();
+	int y1= r.yMin();
+	int y2= r.yMax();
+	x1= GetDBcoords2(x1);
+	x2= GetDBcoords2(x2);
+    y1= GetDBcoords2(y1);
+	y2= GetDBcoords2(y2);
+    r.set_xlo(x1);
+    r.set_ylo(y1); 
+	r.set_xhi(x2);
+    r.set_yhi(y2);
+}
 uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthTable, uint *dirTable, adsRect & extRect, bool skipBaseCalc)
 {
+	bool USE_DB_UNITS= false;
 	uint W[32];
 	uint S[32];
 	
@@ -595,6 +610,10 @@ uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthT
 	if (!((maxRect.dx()>0) && (maxRect.dy()>0)))
 		error(1, "Die Area for the block has 0 size, or is undefined!\n\n");
 	}
+	if (USE_DB_UNITS) {
+	GetDBcoords2(maxRect);
+	GetDBcoords2(extRect);
+	}
 
 	//notice(0, "Block= %s\n", _block->getConstName());
 	//maxRect.print("---------------- Search Grid BBox ---- ");
@@ -611,11 +630,17 @@ uint extMain::initSearchForNets(int *X1, int *Y1, uint *pitchTable, uint *widthT
 		n= layer->getRoutingLevel();
 		int w= GetDBcoords2(layer->getWidth());
 		widthTable[n]= layer->getWidth();
+		if (USE_DB_UNITS)
+		widthTable[n]= w;
 		W[n]= 1;
 		int s= GetDBcoords2(layer->getSpacing());
 		S[n]= layer->getSpacing();
+		if (USE_DB_UNITS)
+		S[n]= s;
 		int p= GetDBcoords2(layer->getPitch());
 		pitchTable[n]= layer->getPitch();
+			if (USE_DB_UNITS)
+	pitchTable[n]= p;
 		if (pitchTable[n] <= 0) 
 			error(0, "Layer %s, routing level %d, has pitch %d !!\n", layer->getConstName(), n, pitchTable[n]);
 
@@ -1011,13 +1036,14 @@ double extMain::GetDBcoords1(int coord)
 int extMain:: GetDBcoords2(int coord)
 {
     int db_factor= _block->getDbUnitsPerMicron();
-	int n= 1000* coord/db_factor;
+	double d= (1.0*coord)/db_factor;
+	int n= (int) ceil(1000* d);
 	return n;
 }
 
 uint extMain::addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur, uint wtype, FILE *fp, dbCreateNetUtil *netUtil)
 {	
-	bool use_nm= false;
+	bool USE_DB_UNITS= false;
 
 	dbWire * wire = net->getWire();
 	
@@ -1094,7 +1120,7 @@ uint extMain::addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur
 						net->getId(), shapeId, wtype);
 					}
 				} else {				
-					if (use_nm) {
+					if (USE_DB_UNITS) {
 						trackNum= _search->addBox(
 							GetDBcoords2(r.xMin()), GetDBcoords2(r.yMin()), GetDBcoords2(r.xMax()), GetDBcoords2(r.yMax()),
 							level, net->getId(), shapeId, wtype);
@@ -1130,7 +1156,7 @@ uint extMain::addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype)
 {
 	wtype= 5; // Via Type
 
-	bool use_nm=false;
+	bool USE_DB_UNITS=false;
 
 	uint cnt= 0;
 
@@ -1158,7 +1184,7 @@ uint extMain::addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype)
 		uint track_num;
 		uint level= s.getTechLayer()->getRoutingLevel();
 
-		if (use_nm) {
+		if (USE_DB_UNITS) {
 			track_num= _search->addBox(GetDBcoords2(x1), GetDBcoords2(y1), GetDBcoords2(x2), GetDBcoords2(y2), 
 			level, net->getId(), shapeId, wtype);
 		} else {
@@ -1542,6 +1568,7 @@ uint extMain::addShapeOnGS(dbNet * net, uint sId, adsRect &r, bool plane, dbTech
 }
 uint extMain::addNetShapesGs(dbNet * net, bool gsRotated, bool swap_coords, int dir, dbCreateNetUtil *createDbNet)
 {	
+	bool USE_DB_UNITS= false;
 	uint cnt= 0;
 	dbWire * wire = net->getWire();
 	if ( wire ==NULL )
@@ -1561,7 +1588,9 @@ uint extMain::addNetShapesGs(dbNet * net, bool gsRotated, bool swap_coords, int 
 		
 		adsRect r;
 		s.getBox(r);
-		
+
+		if (USE_DB_UNITS) 
+			this->GetDBcoords2(r);
 		
 		cnt += addShapeOnGS(net, shapeId, r, plane, s.getTechLayer(), gsRotated, swap_coords, dir, true, createDbNet);
 /*		
