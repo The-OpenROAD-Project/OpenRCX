@@ -2913,7 +2913,7 @@ uint extMain::writeSPEF(uint netId, bool single_pi, uint debug, int corner, cons
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	dbNet *net= dbNet::getNet(_block, netId);
 	
@@ -2985,7 +2985,7 @@ uint extMain::writeSPEF(char *filename, char *netNames, bool useIds, bool noName
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	_spef->_termJxy = termJxy;
 	_spef->incr_wRun();
@@ -3058,7 +3058,7 @@ uint extMain::readSPEF(char *filename, char *netNames, bool force, bool useIds, 
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	_spef->_moreToRead = moreToRead;
 	_spef->incr_rRun();
