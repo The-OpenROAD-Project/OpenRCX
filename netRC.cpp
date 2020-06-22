@@ -2074,6 +2074,14 @@ bool extMain::setCorners(const char *rulesFileName, const char *cmp_file)
 				
 		notice(0, "Reading extraction model file %s ...\n", rulesFileName);
 
+
+		int dbunit= _block->getDbUnitsPerMicron();
+	double dbFactor=1;
+	if (dbunit>1000)
+		dbFactor= dbunit*0.001;
+
+		notice(0, "dbFactor= %g  dbunit= %d \n", dbFactor, dbunit);
+
 		extRCModel *m= new extRCModel("MINTYPMAX");
 		_modelTable->add(m);
 		
@@ -2090,7 +2098,7 @@ bool extMain::setCorners(const char *rulesFileName, const char *cmp_file)
 				_modelMap.add(ii);
 			}
 		}
-		if (!(m->readRules((char *) rulesFileName, false, true, true, true, true, extDbCnt, cornerTable))) {
+		if (!(m->readRules((char *) rulesFileName, false, true, true, true, true, extDbCnt, cornerTable, dbFactor))) {
 			delete m;
 			return false;
 		}
@@ -3179,7 +3187,7 @@ uint extMain::calibrate(char *filename, bool m_map, float upperLimit, float lowe
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	_spef->setCalibLimit(upperLimit, lowerLimit);
 	readSPEF(filename, NULL/*netNames*/, false/*force*/, false/*useIds*/, false/*rConn*/, NULL/*N*/, false/*rCap*/, false/*rOnlyCCcap*/, false/*rRes*/, -1.0/*cc_thres*/, 0.0/*cc_gnd_factor*/, 1.0/*length_unit*/, m_map, false/*noCapNumCollapse*/, NULL/*capNodeMapFile*/, false/*log*/, corner, 0.0/*low*/, 0.0/*up*/, NULL/*excludeSubWord*/, NULL/*subWord*/, NULL/*statsFile*/, 
