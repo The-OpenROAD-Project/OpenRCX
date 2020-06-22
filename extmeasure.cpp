@@ -3353,22 +3353,24 @@ bool extMeasure::printTraceNet(const char *msg, bool init, dbCCSeg *cc, uint ove
 void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 {
 	bool no_ou=true;
-	bool debug_db_units= false;
+	bool USE_DB_UBITS= false;
 	if (rseg1==NULL && rseg2==NULL)
 		return;
 
     bool gotit= _netSrcId==635 || _netTgtId==635;
 
 	bool traceFlag= false;
+	bool watchFlag= IsDebugNet();
     _netId= _extMain->_debug_net_id;
 	if (_netId>0)
 		traceFlag= printTraceNet("\nBEGIN", true, NULL, 0, 0);
 
 	uint modelCnt= _metRCTable.getCnt();
-	uint totLenCovered= 0;
+	int totLenCovered= 0;
 	_lenOUtable->resetCnt();
 	if (_extMain->_usingMetalPlanes && (_extMain->_geoThickTable==NULL)) {
 			
+			_diagLen=0;
 		// if (_extMain->_usingMetalPlanes) {
 		// notice(0, "OU flow\n");
 		if (_extMain->_ccContextDepth>0) {
@@ -3391,21 +3393,29 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 		deltaFr[jj]= 0.0;
 		deltaRes[jj]= 0.0;
 	}
-	if (!debug_db_units) {
+	if (USE_DB_UBITS) {
 		totLenCovered= _extMain->GetDBcoords2(totLenCovered);
 		_len= _extMain->GetDBcoords2(_len);
+		_diagLen= _extMain->GetDBcoords2(_diagLen);
 	}
 	int lenOverSub= _len - totLenCovered;
+	if (_diagLen>0)
+		lenOverSub -= _diagLen;
+	if (lenOverSub<0)
+		lenOverSub = 0;
 
 	if (traceFlag) {
-		debug("Trace", "C", "            OU %d  SUB %d  ", totLenCovered, lenOverSub );
+		debug("Trace", "C", "            OU %d  SUB %d  DIAG %d", totLenCovered, lenOverSub, _diagLen );
 		printNetCaps();
 	}
 	//	printTraceNet("OU", false, NULL, lenOverSub, totLenCovered);
 	
 	//	int mUnder= _underMet; // will be replaced
 	if (_dist<0) { // dist is infinit
-		
+		totLenCovered -= _diagLen;
+		if (totLenCovered<0)
+			totLenCovered= 0;
+
 		 	computeR(_len, deltaRes);
 		 	_extMain->updateTotalRes(rseg1, rseg2, this, deltaRes, modelCnt);
 		if (totLenCovered>0) {
@@ -3422,7 +3432,7 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 
 			if (rseg1!=NULL)
 #ifdef HI_ACC_1
-				_extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, true);
+				_extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, false);
 #else
 				_extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false);
 #endif
@@ -3659,11 +3669,15 @@ void extMeasure::measureRC(int *options)
 			debug("DistRC", "C", "measureRC: %d met= %d  len= %d  dist= %d \n", _totSignalSegCnt, _met, _len, _dist);
 		}
 // -------------------------------- db units -------------
+bool USE_DB_UNITS=false;
+	if (USE_DB_UNITS) {
 		if (_dist>0)
 			_dist= _extMain->GetDBcoords2(_dist);
 
 		_width= _extMain->GetDBcoords2(_width);
-
+	}
+	// if (_dist>0)
+	 //  _dist= 64;
 	computeAndStoreRC(rseg1, rseg2);
 
 	//ccReportProgress();
