@@ -660,8 +660,13 @@ public:
 	dbRSeg* getFirstDbRseg(uint netId);
 	uint createNetSingleWire(char *dirName, uint idCnt, uint w_layout, uint s_layout, int dir=-1);
 	uint createDiagNetSingleWire(char *dirName, uint idCnt, int base, int w_layout, int s_layout, int dir=-1);
+	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2]);
 	uint createContextNets(char *dirName, int bboxLL[2], int bboxUR[2], int met, double pitchMult);
+
+	
 	uint createContextObstruction(char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
+	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met);
+
 	double getCCfringe(uint lastNode, uint n, uint start, uint end);
 	double getCCfringe3D(uint lastNode, uint n, uint start, uint end);
 
