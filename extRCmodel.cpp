@@ -474,8 +474,12 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
 
 	extDistRC* firstRC= _measureTable->get(0);
 	uint firstDist= firstRC->_sep;
-	if (dist<firstDist) {
+	if (dist<=firstDist) {
 		return firstRC;
+	}
+	extDistRC* secondRC= _measureTable->get(1);
+	if (dist<=secondRC->_sep) {
+		return secondRC;
 	}
     if ( _measureTable->getLast()->_sep == 100000 )
     {
@@ -542,6 +546,8 @@ uint extDistWidthRCTable::getWidthIndex(uint w)
 }
 uint extDistWidthRCTable::getDiagWidthIndex(uint m, uint w)
 {
+	if (_lastDiagWidth==NULL) // TO_DEBUG 620
+	return -1;
 	if ((int)w>=_lastDiagWidth->geti(m))
                 return _diagWidthTable[m]->getCnt() - 1;
 
@@ -601,7 +607,7 @@ extDistWidthRCTable::extDistWidthRCTable(bool over, uint met, uint layerCnt, uin
 	_firstDiagDist=NULL;
 	_lastDiagDist=NULL;
 
-	for (jj= 0; jj<12; jj++)
+	for (jj= 0; jj<16; jj++)
 	{
 		_diagWidthMapTable[jj]=NULL;
 		_diagDistMapTable[jj]=NULL;
@@ -1511,6 +1517,7 @@ extDistRC* extRCModel::getOverRC(extMeasure *m)
 
 	return rc;
 }
+
 extDistRC* extRCModel::getUnderRC(extMeasure *m)
 {
 	uint n= getUnderIndex(m);
@@ -1679,7 +1686,7 @@ double extMeasure::getDiagUnderCC(extMetRCTable *rcModel, uint dist, uint overMe
 	extDistRC* rc= rcModel->_capDiagUnder[_met]->getRC(n, _width, dist);
 
 	if (rc!=NULL)
-		return rc->_coupling;
+		return rc->_fringe; // TODO 620
 	else
 		return 0.0;
 }
