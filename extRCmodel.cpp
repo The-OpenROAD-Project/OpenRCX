@@ -4878,6 +4878,8 @@ uint extMain::readExtRules(const char *name, const char *filename, int min, int 
 	double dbFactor=1;
 	if (dbunit>1000)
 		dbFactor= dbunit*0.001;
+
+		notice(0, "dbFactor= %g  dbunit= %d \n", dbFactor, dbunit);
 	
 	_minModelIndex= 0;
 	_maxModelIndex= 0;
