@@ -935,6 +935,8 @@ uint extMeasure::createNetSingleWire(char *dirName, uint idCnt, uint w_layout, u
         assert( _create_net_util.getBlock() == _block );
 	dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], _met);
 	dbBTerm *in1= net->get1stBTerm();
+
+
 	if (in1!=NULL) {
 		in1->rename(net->getConstName());
 	}
@@ -944,6 +946,35 @@ uint extMeasure::createNetSingleWire(char *dirName, uint idCnt, uint w_layout, u
 	_extMain->makeNetRCsegs(net);
 
 	return netId;
+}
+uint extMeasure::createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2])
+{
+	
+	dbTechLayer * layer = _create_net_util._routingLayers[met];
+	int	w_layout= layer->getWidth();
+	int	s_layout= layer->getSpacing();
+	if (s_layout==0) {
+		s_layout= layer->getPitch()-w_layout;
+	}
+	// ll[d] = ur[d] + s_layout + w_layout; // w_layout makes it less dense
+	ll[d] = ur[d] + s_layout; // w_layout makes it less dense
+	ur[d] = ll[d] + w_layout;
+
+
+	char netName[1024];
+
+	sprintf(netName, "%s_cntxM%d_%d", dirName, met, idCnt);
+	debug("RulesGen", "P", "%s %d %d  %d %d  %d d=%d\n", netName, ll[0], ll[1], ur[0], ur[1], met, d);
+// return 0;
+    assert( _create_net_util.getBlock() == _block );
+	dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], met);
+	dbBTerm *in1= net->get1stBTerm();
+	if (in1!=NULL) {
+		in1->rename(net->getConstName());
+	}
+	_extMain->makeNetRCsegs(net);
+
+	return net->getId();
 }
 uint extMeasure::createDiagNetSingleWire(char *dirName, uint idCnt, int begin, int w_layout, int s_layout, int dir)
 {
@@ -2560,8 +2591,9 @@ int extMeasure::underFlowStep(Ath__array1D<SEQ*> *srcTable, Ath__array1D<SEQ*> *
 		SEQ *s2= table1.get(jj);
 		
 		if (s2->type==0) {
-			if (_diagFlow)
-				int diagLen= computeDiagOU(s2, 0,3, _overMet, NULL);
+			if (_diagFlow) {
+				_diagLen += computeDiagOU(s2, 0,3, _overMet, NULL);
+			}
 			whiteTable.add(s2);
 			continue;
 		}
