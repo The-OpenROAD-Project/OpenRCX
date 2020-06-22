@@ -153,7 +153,7 @@ void extMain::writeIncrementalSpef (std::vector<dbNet *> & bnets, INCR_SPEF_TYPE
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
         // copy block name for incremental spef - needed for magma
         // Mattias - Nov 19/07
         _spef->setDesign((char*)_block->getName().c_str());
@@ -244,7 +244,7 @@ void extMain::writeSpef (char *filename, std::vector<dbNet *> &tnets, int corner
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	_spef->setDesign((char *)_block->getConstName());
 	uint cCnt= _block->getCornerCount();
@@ -576,8 +576,12 @@ extRCModel* extMain::getRCmodel(uint n)
 
 	return _modelTable->get(n); 
 }
+
 uint extMain::getResCapTable(bool lefRC)
 {
+	// if (!lefRC)
+		calcMinMaxRC();
+
 	_currentModel= getRCmodel(0);
 
 	dbSet<dbTechLayer> layers = _tech->getLayers();

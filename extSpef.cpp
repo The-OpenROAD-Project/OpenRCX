@@ -30,6 +30,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "extSpef.h"
+#include "extRCap.h"
 //#include "dbExtControl.h"
 #include <dbExtControl.h>
 #include "parse.h"
@@ -45,9 +46,11 @@
 //#endif
 
 BEGIN_NAMESPACE_ADS
+class extMain;
 
-extSpef::extSpef(dbTech *tech, dbBlock *blk, uint btermCnt, uint itermCnt)
+extSpef::extSpef(dbTech *tech, dbBlock *blk, extMain *extmain, uint btermCnt, uint itermCnt)
 {
+	_ext= extmain;
 	_tech= tech;
 	_block= blk;
 	_blockId= 0;

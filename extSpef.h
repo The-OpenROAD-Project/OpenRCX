@@ -38,6 +38,7 @@
 #endif
 
 #include "db.h"
+#include "extRCap.h"
 //#include "dbShape.h"
 #include <dbShape.h>
 //#include "array1.h"
@@ -59,6 +60,8 @@ BEGIN_NAMESPACE_ADS
 
 class extRcTripplet
 {
+	friend class extMain;
+
 private:
 	uint _srcId;
 	uint _dstId;
@@ -297,9 +300,11 @@ public:
 	char *_msgBuf1;
 	char *_msgBuf2;
 
+	extMain *_ext;
+
 
 public:
-	extSpef(dbTech *tech, dbBlock *blk, uint btermCnt=0, uint itermCnt=0);
+	extSpef(dbTech *tech, dbBlock *blk, extMain *extmain, uint btermCnt=0, uint itermCnt=0);
 	~extSpef();
 	
 	bool matchNetGndCap(dbNet *net, uint dbCorner, double dbCap, double refCap);
@@ -532,6 +537,11 @@ public:
 	//022310D BEGIN
 	void setBlock(dbBlock *blk);
 	//022310D END
+
+	// 620 DF DIFF SPEF
+	const char * comp_bounds(double val, double min, double max, double & percent);
+	double percentDiff(double dbCap, double refCap);
+
 };
 
 END_NAMESPACE_ADS
