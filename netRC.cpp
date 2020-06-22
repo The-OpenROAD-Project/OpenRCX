@@ -3171,7 +3171,7 @@ uint extMain::match(char *filename, bool m_map, const char *dbCornerName, int co
 	{
 		if (_spef)
 			delete _spef;
-		_spef= new extSpef(_tech, _block);
+		_spef= new extSpef(_tech, _block, this);
 	}
 	_spef->setCalibLimit(0.0, 0.0);
 	readSPEF(filename, NULL/*netNames*/, false/*force*/, false/*useIds*/, false/*rConn*/, NULL/*N*/, false/*rCap*/, false/*rOnlyCCcap*/, false/*rRes*/, -1.0/*cc_thres*/, 0.0/*cc_gnd_factor*/, 1.0/*length_unit*/, m_map, false/*noCapNumCollapse*/, NULL/*capNodeMapFile*/, false/*log*/, 
