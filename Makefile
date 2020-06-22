@@ -32,6 +32,7 @@ SRCS=  \
 	gseq.cpp \
 	hierSpef.cpp \
 	extBenchDB.cpp \
+	extstats.cpp \
 	powerConn.cpp
 
 CMAKE_INCLUDES=\
