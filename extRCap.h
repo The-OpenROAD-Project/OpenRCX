@@ -916,6 +916,7 @@ public:
 	Ath__array1D<SEQ*> *_ouTable;
 	Ath__array1D<SEQ*> *_overTable;
 
+    int _diagLen;
 	uint _netId;
 	int _rsegSrcId;
 	int _rsegTgtId;
@@ -1473,6 +1474,7 @@ public:
 	uint addPowerNets(uint dir, int *bb_ll, int *bb_ur, uint wtype, dbCreateNetUtil *netUtil=NULL);
 	uint addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur, uint wtype, FILE *fp, dbCreateNetUtil *netUtil=NULL);
 	int GetDBcoords2(int coord);
+	void GetDBcoords2(adsRect & r);
 	double GetDBcoords1(int coord);
 	uint addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype);
 	uint addSignalNets(uint dir, int *bb_ll, int *bb_ur, uint wtype, dbCreateNetUtil *netUtil=NULL);
