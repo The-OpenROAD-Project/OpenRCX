@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "extSpef.h"
+#include "extRCap.h"
 //#include "dbExtControl.h"
 #include <dbExtControl.h>
 #include <math.h>
@@ -49,11 +50,15 @@
 
 namespace OpenRCX {
 
+class extMain;
+
 extSpef::extSpef(odb::dbTech*  tech,
                  odb::dbBlock* blk,
+                 extMain *extmain,
                  uint          btermCnt,
                  uint          itermCnt)
 {
+	_ext= extmain;
   _tech    = tech;
   _block   = blk;
   _blockId = 0;

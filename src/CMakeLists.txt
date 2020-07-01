@@ -85,6 +85,7 @@ add_library(OpenRCX
     extmain.cpp
     extmeasure.cpp
     extplanes.cpp
+    extstats.cpp
     extprocess.cpp
     exttree.cpp
     hierSpef.cpp

@@ -250,6 +250,7 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
   opt._overMet   = bwo.over_met;
   opt._over      = bwo.Over;
   opt._underMet  = bwo.under_met;
+  opt._overUnder = bwo.over_under;
   opt._len       = 1000 * bwo.len;
   opt._wireCnt   = bwo.cnt;
   opt._name      = bwo.block;
@@ -265,6 +266,15 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
   opt._run_solver       = bwo.run_solver;
   opt._diag             = bwo.diag;
   opt._db_only          = bwo.db_only;
+	opt._gen_def_patterns = bwo.gen_def_patterns;
+	
+  if (opt._gen_def_patterns) {
+		opt._diag= true;
+		opt._overUnder= true;
+		opt._db_only= true;
+		opt._over=true;
+		opt._underMet= 0;
+	}
 
   Ath__parser parser;
   
@@ -507,6 +517,7 @@ bool Ext::extract(ExtractOptions opts)
   const char* extRules      = opts.ext_model_file;
   const char* cmpFile       = opts.cmp_file;
   bool        density_model = opts.wire_density;
+  bool litho = opts.litho;
 
   uint ccUp   = opts.cc_up;
   uint ccFlag = opts.cc_model;
@@ -516,11 +527,15 @@ bool Ext::extract(ExtractOptions opts)
   bool        merge_via_res      = opts.no_merge_via_res ? false : true;
   uint        extdbg             = opts.test;
   const char* nets               = opts.net;
+  const char *debug_nets         = opts.debug_net;
   bool        gs                 = opts.no_gs ? false : true;
   double      ccThres            = opts.coupling_threshold;
   int         ccContextDepth     = opts.context_depth;
   bool        overCell           = opts.over_cell;
   bool        btermThresholdFlag = opts.tile;
+  
+  _ext->set_debug_nets(debug_nets);
+  _ext->skip_via_wires(opts.skip_via_wires);
 
   uint tilingDegree = opts.tiling;
 
@@ -549,8 +564,6 @@ bool Ext::extract(ExtractOptions opts)
     }
 #endif
   }
-  if (!_ext->checkLayerResistance())
-    return TCL_ERROR;
 
   if (tilingDegree == 1)
     extdbg = 501;
@@ -586,7 +599,6 @@ bool Ext::extract(ExtractOptions opts)
     odb::notice(0, "777: Final rc segments = %d\n", cnt);
     odb::dbRSeg* rc = odb::dbRSeg::getRSeg(_ext->getBlock(), 113);
   }
-
   if (_ext->makeBlockRCsegs(btermThresholdFlag,
                             cmpFile,
                             density_model,
@@ -706,7 +718,7 @@ bool Ext::extract(ExtractOptions opts)
 
   //    fprintf(stdout, "Finished extracting %s.\n",
   //    _ext->getBlock()->getName().c_str());
-  odb::notice(0, "Finished extracting %s.\n\n", _ext->getBlock()->getName().c_str());
+  odb::notice(0, "Finished extracting %s.\n", _ext->getBlock()->getName().c_str());
   return 0;
 }
 
@@ -771,6 +783,7 @@ bool Ext::write_spef(const SpefOptions& opts)
   bool stop     = opts.stop_after_map;
   bool initOnly = opts.init;
   if (!initOnly)
+    odb::notice(0, "Writing SPEF ...\n");
     initOnly = opts.parallel && opts.flatten;
   _ext->writeSPEF((char*) opts.file,
                   (char*) opts.nets,
@@ -799,6 +812,7 @@ bool Ext::write_spef(const SpefOptions& opts)
                   opts.flatten,
                   opts.parallel);
 
+    odb::notice(0, "Finished writing SPEF ...\n");
   // fprintf(stdout, "Hello Extraction %s\n", "Ext::write_spef");
   return 0;
 }

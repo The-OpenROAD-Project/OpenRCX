@@ -174,7 +174,7 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& bnets,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
     // copy block name for incremental spef - needed for magma
     // Mattias - Nov 19/07
     _spef->setDesign((char*) _block->getName().c_str());
@@ -324,7 +324,7 @@ void extMain::writeSpef(char*                     filename,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->setDesign((char*) _block->getConstName());
   uint cCnt = _block->getCornerCount();
@@ -462,6 +462,7 @@ extMain::extMain(uint menuId)
       _subCktNodeFP{{nullptr, nullptr}, {nullptr, nullptr}},
       _junct2iterm(nullptr)
 {
+  _previous_percent_extracted=0;
   _power_extract_only      = false;
   _skip_power_stubs        = false;
   _power_exclude_cell_list = NULL;
@@ -676,15 +677,21 @@ uint extMain::addExtModel(odb::dbTech* tech)
       continue;
 
     n = layer->getRoutingLevel();
+    
+    uint w= layer->getWidth(); // nm
 
-    double cap
-        = layer->getCapacitance()
-          / (dbFactor * dbFactor);  // PF per square micron : totCap= cap * LW
+    
+    double areacap= layer->getCapacitance()/(dbFactor*dbFactor);  
+    double cap= layer->getCapacitance();
+
+    //double cap
+    //    = layer->getCapacitance()
+    //      / (dbFactor * dbFactor);  // PF per square micron : totCap= cap * LW
     double res = layer->getResistance();  // OHMS per square
-    uint   w   = layer->getWidth();       // nm
+    //uint   w   = layer->getWidth();       // nm
                                           //		res /= w; // OHMS per nm
     //		cap *= 0.001 * w; // FF per nm : 0.00
-    cap *= 0.001;
+    cap *= 0.001 * 2;
 
     m->addLefTotRC(n, 0, cap, res);
 
@@ -707,6 +714,7 @@ extRCModel* extMain::getRCmodel(uint n)
 }
 uint extMain::getResCapTable(bool lefRC)
 {
+  calcMinMaxRC();
   _currentModel = getRCmodel(0);
 
   odb::dbSet<odb::dbTechLayer>           layers = _tech->getLayers();
@@ -748,8 +756,15 @@ uint extMain::getResCapTable(bool lefRC)
       extDistRC* rc = rcModel->getOverFringeRC(&m);
 
       if (rc != NULL) {
+        double r1= rc->getRes();
         _capacitanceTable[jj][n] = rc->getFringe();
-        //_resistanceTable[jj][n]= rc->getRes();
+      }
+
+      extDistRC *rc0= rcModel->getOverFringeRC(&m, 0);
+
+			if (rc0!=NULL) {
+				 double r1= rc->getRes();
+				_resistanceTable[jj][n]= r1;
       }
     }
     cnt++;
@@ -793,10 +808,14 @@ bool extMain::checkLayerResistance()
 double extMain::getLefResistance(uint level, uint width, uint len, uint model)
 {
   double res = _resistanceTable[model][level];
-  double n   = 1.0 * len / width;
+  double n   = 1.0 * len;
+  
+  if (_lefRC) 
+		n /= width;
 
-  res *= n;
-  return res;
+	double r= n*res;
+  
+  return r;
 }
 double extMain::getResistance(uint level, uint width, uint len, uint model)
 {
@@ -1007,7 +1026,6 @@ void extMain::updateTotalRes(odb::dbRSeg* rseg1,
                              double*      delta,
                              uint         modelCnt)
 {
-  return;  // tttt -- to activate later
   for (uint modelIndex = 0; modelIndex < modelCnt; modelIndex++) {
     extDistRC* rc = m->_rc[modelIndex];
 
@@ -1368,6 +1386,15 @@ void extMain::printNet(odb::dbNet* net, uint netId)
   if (netId == net->getId())
     net->printNetName(stdout);
 }
+bool IsDebugNets(odb::dbNet* srcNet, odb::dbNet* tgtNet, uint debugNetId)
+{
+	if (srcNet!=NULL && srcNet->getId()==debugNetId)
+		return true;
+	if (tgtNet!=NULL && tgtNet->getId()==debugNetId)
+		return true;
+
+    return false;
+}
 void extMain::measureRC(int* options)
 {
   _totSegCnt++;
@@ -1388,7 +1415,7 @@ void extMain::measureRC(int* options)
   // modelCnt= %d  layerCnt= %d\n", 		met, len, dist,
   // m->getModelCnt(), m->getLayerCnt());
 
-  uint debugNetId = 6;
+  uint debugNetId = _debug_net_id;
 
   odb::dbRSeg* rseg1  = NULL;
   odb::dbNet*  srcNet = NULL;
@@ -1408,6 +1435,7 @@ void extMain::measureRC(int* options)
   if (_lefRC)
     return;
 
+  bool watchNets= IsDebugNets(srcNet, tgtNet, debugNetId);
   m._ouPixelTableIndexMap = _overUnderPlaneLayerMap;
   m._pixelTable           = _geomSeq;
 

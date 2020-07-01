@@ -36,6 +36,7 @@
 #include "odb.h"
 
 #include "db.h"
+#include "extRCap.h"
 #include "dbShape.h"
 #include "array1.h"
 #include "parse.h"
@@ -51,6 +52,8 @@ namespace OpenRCX {
 
 class extRcTripplet
 {
+	friend class extMain;
+
  private:
   uint _srcId;
   uint _dstId;
@@ -287,9 +290,12 @@ class extSpef
   char*         _msgBuf1;
   char*         _msgBuf2;
 
+	extMain *_ext;
+
  public:
   extSpef(odb::dbTech*  tech,
           odb::dbBlock* blk,
+          extMain *extmain,
           uint          btermCnt = 0,
           uint          itermCnt = 0);
   ~extSpef();
@@ -620,6 +626,10 @@ class extSpef
   // 022310D BEGIN
   void setBlock(odb::dbBlock* blk);
   // 022310D END
+
+	// 620 DF DIFF SPEF
+	const char * comp_bounds(double val, double min, double max, double & percent);
+	double percentDiff(double dbCap, double refCap);
 };
 
 }  // namespace OpenRCX

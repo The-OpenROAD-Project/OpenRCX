@@ -94,17 +94,27 @@ adjust_rc(double res_factor,
 }
 
 void
-diff_spef(const char* file)
+diff_spef(const char* file,
+          bool r_conn,
+          bool r_res,
+          bool r_cap,
+          bool r_cc_cap)
 {
   Ext* ext = getOpenRCX();
   Ext::DiffOptions opts;
   opts.file = file;
+  opts.r_res = r_res;
+  opts.r_cap = r_cap;
+  opts.r_cc_cap = r_cc_cap;
+  opts.r_conn = r_conn;
   ext->diff_spef(opts);
 }
 
 void
 bench_wires(bool db_only,
           bool over,
+          bool diag,
+          bool all,
           int met_cnt,
           int cnt,
           int len,
@@ -118,6 +128,8 @@ bench_wires(bool db_only,
   opts.w_list = w_list;
   opts.s_list = s_list;
   opts.Over = over;
+  opts.diag = diag;
+  opts.gen_def_patterns = all;
   opts.cnt = cnt;
   opts.len = len;
   opts.under_met = under_met;

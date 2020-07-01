@@ -29,7 +29,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-
+ 
 #include "extRCap.h"
 #include "extSpef.h"
 //#include "wire.h"
@@ -154,11 +154,59 @@ void extMain::set_adjust_colinear(bool v)
 {
   _adjust_colinear = v;
 }
+
+double extMain::getViaResistance(odb::dbTechVia *tvia)
+{
+	//if (_viaResHash[tvia->getConstName()])
+	double res=0;
+	odb::dbSet<odb::dbBox> boxes = tvia->getBoxes();
+    odb::dbSet<odb::dbBox>::iterator bitr;
+    
+    for( bitr = boxes.begin(); bitr != boxes.end(); ++bitr )
+    {
+        odb::dbBox * box = *bitr;
+        odb::dbTechLayer * layer1 = box->getTechLayer();
+		if (layer1->getType()==odb::dbTechLayerType::CUT) 
+			res= layer1->getResistance();
+
+		debug("EXT_RES", "V", "getViaResistance: %s %s %g ohms\n", tvia->getConstName(),  layer1->getConstName(), layer1->getResistance());
+	}
+	return res;
+}
+double extMain::getViaResistance_b(odb::dbVia *tvia, odb::dbNet *net)
+{
+	//if (_viaResHash[tvia->getConstName()])
+	double tot_res=0;
+	odb::dbSet<odb::dbBox> boxes = tvia->getBoxes();
+  odb::dbSet<odb::dbBox>::iterator bitr;
+    
+	uint cutCnt=0;
+    for( bitr = boxes.begin(); bitr != boxes.end(); ++bitr )
+    {
+        odb::dbBox * box = *bitr;
+        odb::dbTechLayer * layer1 = box->getTechLayer();
+		if (layer1->getType()==odb::dbTechLayerType::CUT) {
+			tot_res += layer1->getResistance();
+			cutCnt ++;
+			// debug("EXT_RES", "R", "getViaResistance_b: %d %s %s %g ohms\n", cutCnt, tvia->getConstName(),  layer1->getConstName(), layer1->getResistance());
+		}
+	}
+	double Res= tot_res;
+	if (cutCnt>1) {
+		float avgCutRes= tot_res/cutCnt;
+		 Res= avgCutRes/cutCnt;
+	}
+	if (net!=NULL && net->getId()==_debug_net_id) {
+		debug("EXT_RES", "R", "getViaResistance_b: cutCnt= %d %s  %g ohms\n", cutCnt, tvia->getConstName(), Res);
+	}
+	return Res;
+}
 void extMain::getShapeRC(odb::dbNet*           net,
                          odb::dbShape&         s,
                          Point&                prevPoint,
                          odb::dbWirePathShape& pshape)
 {
+	bool USE_DB_UNITS= false;
   double res = 0.0;
   double areaCap;
   uint   len;
@@ -167,9 +215,14 @@ void extMain::getShapeRC(odb::dbNet*           net,
     uint            width = 0;
     odb::dbTechVia* tvia  = s.getTechVia();
     if (tvia != NULL) {
+			int i = 0;
       level = tvia->getBottomLayer()->getRoutingLevel();
       width = tvia->getBottomLayer()->getWidth();
       res   = tvia->getResistance();
+			if (res==0)
+			 	res= getViaResistance(tvia);
+			if (res>0)
+				tvia->setResistance(res);
       if (res <= 0.0)
         res = getResistance(level, width, width, 0);
     } else {
@@ -178,7 +231,10 @@ void extMain::getShapeRC(odb::dbNet*           net,
         level = bvia->getBottomLayer()->getRoutingLevel();
         width = bvia->getBottomLayer()->getWidth();
         len   = width;
-        res   = getResistance(level, width, len, 0);
+			 	res= getViaResistance_b(bvia, net);
+			
+				if (res<=0.0)
+					res= getResistance(level, width, len, 0);
       }
     }
     if (level > 0) {
@@ -218,7 +274,11 @@ void extMain::getShapeRC(odb::dbNet*           net,
 			_tmpResTable[0]= res;
       
     } else {
+			if (USE_DB_UNITS)
+        width = GetDBcoords2(width);
+
       for (uint ii = 0; ii < _metRCTable.getCnt(); ii++) {
+				double c1= getFringe(level, width, ii, areaCap);
 #ifdef HI_ACC_10312011
         if (width < 400)
           _tmpCapTable[ii]
@@ -226,11 +286,15 @@ void extMain::getShapeRC(odb::dbNet*           net,
         else
           _tmpCapTable[ii] = len * 2 * getFringe(level, width, ii, areaCap);
 #else
-        _tmpCapTable[ii] = len * 2 * getFringe(level, width, ii, areaCap);
+				if (USE_DB_UNITS)
+				  len = GetDBcoords2(len);
+
+				_tmpCapTable[ii]= len*2*c1;
 #endif
-        _tmpCapTable[ii] += 2 * areaCap * len * width;
-        _tmpResTable[ii] = getResistance(level, width, len, ii);
-        ;
+        // _tmpCapTable[ii] += 2 * areaCap * len * width;
+        double r= getResistance(level, width, len, ii);
+        _tmpResTable[ii]= r;
+        _tmpResTable[ii]= 0;
       }
     }
   }
@@ -2122,6 +2186,13 @@ bool extMain::setCorners(const char* rulesFileName, const char* cmp_file)
 
     notice(0, "Reading extraction model file %s ...\n", rulesFileName);
 
+		int dbunit= _block->getDbUnitsPerMicron();
+	  double dbFactor=1;
+	  if (dbunit>1000)
+	  	dbFactor= dbunit*0.001;
+
+		notice(0, "dbFactor= %g  dbunit= %d \n", dbFactor, dbunit);
+
     extRCModel* m = new extRCModel("MINTYPMAX");
     _modelTable->add(m);
 
@@ -2145,7 +2216,8 @@ bool extMain::setCorners(const char* rulesFileName, const char* cmp_file)
                        true,
                        true,
                        extDbCnt,
-                       cornerTable))) {
+                       cornerTable,
+                       dbFactor))) {
       delete m;
       return false;
     }
@@ -2774,6 +2846,7 @@ uint extMain::makeBlockRCsegs(bool        btermThresholdFlag,
 
         m._debugFP = NULL;
         m._netId   = 0;
+				debugNetId= 0;
         if (debugNetId > 0) {
           m._netId = debugNetId;
           char bufName[32];
@@ -3019,7 +3092,7 @@ uint extMain::writeSPEF(uint        netId,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   odb::dbNet* net = odb::dbNet::getNet(_block, netId);
 
@@ -3115,7 +3188,7 @@ uint extMain::writeSPEF(char*       filename,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->_termJxy = termJxy;
   _spef->incr_wRun();
@@ -3232,7 +3305,7 @@ uint extMain::readSPEF(char*       filename,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->_moreToRead = moreToRead;
   _spef->incr_rRun();
@@ -3393,7 +3466,7 @@ uint extMain::match(char*       filename,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->setCalibLimit(0.0, 0.0);
   readSPEF(filename,
@@ -3444,7 +3517,7 @@ uint extMain::calibrate(char*       filename,
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->setCalibLimit(upperLimit, lowerLimit);
   readSPEF(filename,

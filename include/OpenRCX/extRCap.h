@@ -171,14 +171,19 @@ class extDistRC
   double _res;
 
  public:
+  void   printDebug(char*, char*, uint, uint, extDistRC *rcUnit=NULL);
+	void   printDebugRC(const char*);
+	void debugRC(const char *debugWord, const char *from, int width, int level);
   void   set(uint d, double cc, double fr, double a, double r);
   void   readRC(Ath__parser* parser, double dbFactor = 1.0);
   double getFringe();
   double getCoupling();
   double getDiag();
   double getRes();
+	double getTotalCap() { return _coupling + _fringe + _diag; };
   void   addRC(extDistRC* rcUnit, uint len, bool addCC);
   void   writeRC(FILE* fp, bool bin);
+  void writeRC();
   void   interpolate(uint d, extDistRC* rc1, extDistRC* rc2);
 
   friend class extDistRCTable;
@@ -208,6 +213,7 @@ class extDistRCTable
   uint       addMeasureRC(extDistRC* rc);
   void       makeComputeTable(uint maxDist, uint distUnit);
   extDistRC* getLastRC();
+  extDistRC* getRC_index(int n);
   extDistRC* getComputeRC(double dist);
   extDistRC* getComputeRC(uint dist);
   extDistRC* getRC(uint s, bool compute);
@@ -259,10 +265,10 @@ class extDistWidthRCTable
 
   Ath__array1D<int>*  _widthTable;
   Ath__array1D<uint>* _widthMapTable;
-  Ath__array1D<int>*  _diagWidthTable[12];
-  Ath__array1D<int>*  _diagDistTable[12];
-  Ath__array1D<uint>* _diagWidthMapTable[12];
-  Ath__array1D<uint>* _diagDistMapTable[12];
+  Ath__array1D<int>*  _diagWidthTable[32];
+  Ath__array1D<int>*  _diagDistTable[32];
+  Ath__array1D<uint>* _diagWidthMapTable[32];
+  Ath__array1D<uint>* _diagDistMapTable[32];
 
   uint               _modulo;
   int                _firstWidth;
@@ -364,7 +370,7 @@ class extDistWidthRCTable
   // extDistRC* getRC(uint mou, double w, double s);
   extDistRC* getRC(uint mou, uint w, uint s);
   extDistRC* getRC(uint mou, uint w, uint dw, uint ds, uint s);
-  extDistRC* getFringeRC(uint mou, uint w);
+  extDistRC* getFringeRC(uint mou, uint w, int index_dist=-1);
   void       getFringeTable(uint                  mou,
                             uint                  w,
                             Ath__array1D<int>*    sTable,
@@ -425,7 +431,7 @@ class extMetRCTable
   uint       addCapUnder(uint met, uint metOver, extDistRC* rc);
   extDistRC* getCapOver(uint met, uint metUnder);
   extDistRC* getCapUnder(uint met, uint metOver);
-  extDistRC* getOverFringeRC(extMeasure* m);
+  extDistRC* getOverFringeRC(extMeasure* m, int index_dist=-1);
 	AthPool<extDistRC>* getRCPool();
 };
 class extRCTable
@@ -760,6 +766,9 @@ class extRCModel
 	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
 	int writeBenchWires_DB(extMeasure* measure);
 	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
+
+	extDistRC* getMinRC(int met, int width);
+	extDistRC* getMaxRC(int met, int width, int dist);
 };
 class extNetStats
 {
@@ -819,8 +828,11 @@ class extMeasure
  public:
   extMeasure();
   ~extMeasure();
-
-	bool _skip_delims;
+  
+  bool IsDebugNet();
+  void printNetCaps();
+  
+  bool _skip_delims;
   void printTraceNetInfo(const char* msg, uint netId, int rsegId);
   bool printTraceNet(const char*   msg,
                      bool          init,
@@ -899,12 +911,14 @@ class extMeasure
                                        int   w_layout,
                                        int   s_layout,
                                        int   dir = -1);
+	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2]);
   uint         createContextNets(char*  dirName,
                                  int    bboxLL[2],
                                  int    bboxUR[2],
                                  int    met,
                                  double pitchMult);
 	uint createContextObstruction(const char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
+	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met);
   double       getCCfringe(uint lastNode, uint n, uint start, uint end);
   double       getCCfringe3D(uint lastNode, uint n, uint start, uint end);
 
@@ -1120,6 +1134,7 @@ class extMeasure
   uint getRSeg(odb::dbNet* net, uint shapeId);
 
   void allocOUpool();
+  int get_nm(double n) { return 1000*(n/_dbunit); };
 
   int  _met;
   int  _underMet;
@@ -1127,7 +1142,7 @@ class extMeasure
   uint _wireCnt;
 
   uint _dirTable[10000];
-  int  _minSpaceTable[20];
+  int  _minSpaceTable[32];
 
   int _minWidth;
   int _minSpace;
@@ -1257,6 +1272,7 @@ class extMeasure
   Ath__array1D<odb::SEQ*>* _ouTable;
   Ath__array1D<odb::SEQ*>* _overTable;
 
+  int _diagLen;
   uint  _netId;
   int   _rsegSrcId;
   int   _rsegTgtId;
@@ -1277,6 +1293,7 @@ class extMeasure
   bool _rotatedGs;
 
   odb::dbCreateNetUtil _create_net_util;
+  int _dbunit;
 };
 class extWire
 {
@@ -1369,6 +1386,7 @@ class extWindow
   uint _processPowerWireCnt;
   uint _processSignalWireCnt;
   uint _totalWiresExtracted;
+  double _prev_percent_extracted;
 
   uint _currentDir;
   bool _gsRotatedFlag;
@@ -1450,6 +1468,7 @@ class extMainOptions
   bool _overUnder;
   bool _diag;
 	bool _db_only;
+  bool _gen_def_patterns;
 
   odb::dbTech*  _tech;
   odb::dbBlock* _block;
@@ -1759,8 +1778,24 @@ class extMain
 
   std::vector<odb::Rect*>  _multiViaTable[20];
   std::vector<odb::dbBox*> _multiViaBoxTable[20];
+  
+  uint  _debug_net_id;
+  bool  _skip_via_wires;
+  float _previous_percent_extracted;
+
+	double _minCapTable[64][64];
+	double _maxCapTable[64][64];
+	double _minResTable[64][64];
+	double _maxResTable[64][64];
+	uint _rcLayerCnt;
+	uint _rcCornerCnt;
 
  public:
+	uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
+	void resetMinMaxRC(uint ii, uint jj);
+	uint getExtStats(odb::dbNet *net, uint corner, int & wlen, double & min_cap, double & max_cap, double & min_res, double &max_res, double &via_res, uint &via_cnt);
+	char _tmpLenStats[1024000];
+
   enum INCR_SPEF_TYPE
   {
     ISPEF_NONE,
@@ -1770,6 +1805,16 @@ class extMain
     ISPEF_NEW_PLUS_HALO,
   };
   extMain(uint menuId);
+
+  void set_debug_nets(const char *nets) {
+  	_debug_net_id= 0;
+  	if (nets!=NULL) {
+  		_debug_net_id= atoi(nets);
+  		// TODO: 531 - make a list
+  	}
+  }
+
+  void skip_via_wires(bool v) { _skip_via_wires=v; };
 
   uint getDir(int x1, int y1, int x2, int y2);
   uint getDir(odb::Rect& r);
@@ -1816,6 +1861,11 @@ class extMain
                             uint                  wtype,
                             FILE*                 fp,
                             odb::dbCreateNetUtil* netUtil = NULL);
+	int GetDBcoords2(int coord);
+	void GetDBcoords2(odb::Rect & r);
+	double GetDBcoords1(int coord);
+	uint addViaBoxes(odb::dbShape & sVia, odb::dbNet *net, uint shapeId, uint wtype);
+  
   uint addSignalNets(uint                  dir,
                      int*                  bb_ll,
                      int*                  bb_ur,
@@ -2110,6 +2160,8 @@ class extMain
                             bool         rotatedFlag,
                             bool         swap_coords);
   uint addInstShapesOnPlanes(uint dir = 0, int* ll = NULL, int* ur = NULL);
+  double getViaResistance(odb::dbTechVia *tvia);
+	double getViaResistance_b(odb::dbVia *via, odb::dbNet *net= NULL);
 
   void getShapeRC(odb::dbNet*           net,
                   odb::dbShape&         s,
@@ -2997,6 +3049,9 @@ class extMain
   uint benchVerilog(FILE* fp);
 	uint benchVerilog_bterms(FILE* fp, odb::dbIoType iotype, const char* prefix, const char* postfix, bool v=false);
 	uint benchVerilog_assign(FILE* fp);
+
+	void setMinRC(uint ii, uint jj, extDistRC* rc);
+	void setMaxRC(uint ii, uint jj, extDistRC* rc);
 };
 
 }  // namespace OpenRCX

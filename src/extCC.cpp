@@ -150,10 +150,11 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
     }
 
     while (1) {
-      notExtractedW2
-          = useDbSdb && !w2->isPower() && w2->getNet()->getWire()
-            && (!w2->getNet()->getWire()->getProperty((int) w2->_otherId, exid)
-                || exid == 0);
+      notExtractedW2 = 
+          useDbSdb && !w2->isPower() && !w2->isVia() 
+          && w2->getNet()->getWire() 
+          && (!w2->getNet()->getWire()->getProperty((int)w2->_otherId,exid) 
+          || exid==0);
       len1 = 0;
       len2 = 0;
       len3 = 0;
@@ -168,9 +169,11 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
           || (!targetHiTrack
               && w1->_base >= w2->_base + (int) (w2->_width + ccThreshold)))
         inThreshold = false;
+      
       skipCCgen = _grid->getGridTable()->handleEmptyOnly()
                   || (needMarkedNetW2 && !w2->getNet()->isMarked());
       rc = w1->wireOverlap(w2, &len1, &len2, &len3);
+      
       if (inThreshold == true && rc == 0) {
         if (len1 > 0) {
           // create empty wire and ADD on emptyTable!
@@ -211,7 +214,7 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
               coupleOptions[0] = met;
 
               int bBoxId = (int) botwire->_boxId;
-              if (botwire->_otherId && useDbSdb)
+              if (botwire->_otherId && useDbSdb && !botwire->isVia())
                 botwire->getNet()->getWire()->getProperty(
                     (int) botwire->_otherId, bBoxId);
               coupleOptions[1] = bBoxId;  // dbRSeg id for SRC segment
@@ -219,7 +222,7 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
                 coupleOptions[1] = -bBoxId;  // POwer SBox Id
 
               int tBoxId = (int) topwire->_boxId;
-              if (topwire->_otherId && useDbSdb)
+              if (topwire->_otherId && useDbSdb && !topwire->isVia())
                 topwire->getNet()->getWire()->getProperty(
                     (int) topwire->_otherId, tBoxId);
               coupleOptions[2] = tBoxId;  // dbRSeg id for TARGET segment
@@ -284,15 +287,6 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
   }
   return nwTable->getCnt();
 }
-// void Ath__track::initSubTracks (int all)
-//{
-//	bool noPowerTarget = _grid->getGridTable()->noPowerTarget();
-//	if (all)
-//		this->initTargetWire (noPowerTarget);
-//	Ath__track *tstrack = this;
-//	while((tstrack = tstrack->getNextSubTrack()) != NULL)
-//		tstrack->initTargetWire (noPowerTarget);
-//}
 
 uint Ath__track::initTargetTracks(uint srcTrack, uint trackDist, bool tohi)
 {
@@ -417,6 +411,9 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
 
     if (noPowerSource && wire->isPower())
       continue;
+    if (wire->isVia())
+			continue;
+
     if (!allNet && !TargetHighMarkedNet
         && !wire->getNet()->isMarked())  // when !TargetHighMarkedNet, need only
                                          // marked source
@@ -426,10 +423,12 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
       continue;
     if (!tohi && wire->_srcId > 0)
       continue;
-    if (useDbSdb && !wire->isPower() && wire->getNet()->getWire()
-        && (!wire->getNet()->getWire()->getProperty((int) wire->_otherId, exid)
-            || exid == 0))
+    if (useDbSdb && !wire->isPower() 
+        && !wire->isVia() && wire->getNet()->getWire() 
+        && (!wire->getNet()->getWire()->getProperty((int)wire->_otherId,exid) 
+        || exid==0))
       continue;
+    
     wireCnt++;
 
     // ccGrid->placeWire(wire);
@@ -673,6 +672,8 @@ void Ath__track::buildDgContext(Ath__array1D<SEQ*>* dgContext,
     seq->_ur[bidx]   = nwire->_base + nwire->_width;
     if (nwire->isPower())
       seq->type = 0;
+    else if (nwire->isVia())
+			seq->type = 0;
     else {
       nwire->getNet()->getWire()->getProperty((int) nwire->_otherId, rsegid);
       seq->type = rsegid;

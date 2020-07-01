@@ -989,7 +989,19 @@ uint extMeasure::createNetSingleWire(char* dirName,
                                      uint  s_layout,
                                      int   dir)
 {
-  updateBox(w_layout, s_layout, dir);
+	if (w_layout==0) {
+		odb::dbTechLayer * layer = _create_net_util._routingLayers[_met];
+		w_layout= layer->getWidth();
+	}
+	if (s_layout==0) {
+		uint d= _dir;
+		if (dir>=0)
+			d= dir;
+		_ur[d] = _ll[d] + w_layout;
+	} else {
+		updateBox(w_layout, s_layout, dir);
+	}
+
   //	uint w2= w_layout/2;
   int ll[2];
   int ur[2];
@@ -1034,6 +1046,34 @@ uint extMeasure::createNetSingleWire(char* dirName,
 
   return netId;
 }
+uint extMeasure::createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2])
+{
+	
+	odb::dbTechLayer * layer = _create_net_util._routingLayers[met];
+	int	w_layout= layer->getWidth();
+	int	s_layout= layer->getSpacing();
+	if (s_layout==0) {
+		s_layout= layer->getPitch()-w_layout;
+	}
+	// ll[d] = ur[d] + s_layout + w_layout; // w_layout makes it less dense
+	ll[d] = ur[d] + s_layout; // w_layout makes it less dense
+	ur[d] = ll[d] + w_layout;
+
+
+	char netName[1024];
+
+	sprintf(netName, "%s_cntxM%d_%d", dirName, met, idCnt);
+  
+  assert( _create_net_util.getBlock() == _block );
+	odb::dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], met);
+	odb::dbBTerm *in1= net->get1stBTerm();
+	if (in1!=NULL) {
+		in1->rename(net->getConstName());
+	}
+	_extMain->makeNetRCsegs(net);
+
+	return net->getId();
+}
 uint extMeasure::createDiagNetSingleWire(char* dirName,
                                          uint  idCnt,
                                          int   begin,
@@ -1058,6 +1098,9 @@ uint extMeasure::createDiagNetSingleWire(char* dirName,
 
   char netName[1024];
   sprintf(netName, "%s%c%d%c", dirName, left, idCnt, right);
+  if (_skip_delims)
+		sprintf(netName, "%s_%d", dirName, idCnt);
+
   assert(_create_net_util.getBlock() == _block);
   odb::dbNet* net = _create_net_util.createNetSingleWire(
       netName, ll[0], ll[1], ur[0], ur[1], met);
@@ -1491,6 +1534,7 @@ void extMeasure::updateForBench(extMainOptions* opt, extMain* extMain)
   _extMain   = extMain;
   _3dFlag    = opt->_3dFlag;
   _create_net_util.setBlock(_block, false);
+  _dbunit    = _block->getDbUnitsPerMicron();
 }
 uint extMeasure::defineBox(int* options)
 {
@@ -3475,15 +3519,40 @@ void extMeasure::printTraceNetInfo(const char* msg, uint netId, int rsegId)
           rsegId,
           rseg->getCapacitance());
 }
+double GetDBcoords(uint coord)
+{
+	// TODO int db_factor= _block->getDbUnitsPerMicron();
+	int db_factor= 2000;
+	return 1.0*coord/db_factor;
+}
+
+bool extMeasure::IsDebugNet()
+{
+	if (_netSrcId==_netId || _netTgtId==_netId)
+		return true;
+	else
+		return false;
+}
+void extMeasure::printNetCaps()
+{
+	if (_netId<=0)
+		return;
+	odb::dbNet *net= odb::dbNet::getNet(_block, _netId);
+	double gndCap= net->getTotalCapacitance(0, false);
+	double ccCap= net->getTotalCouplingCap(0);
+	double totaCap= gndCap + ccCap;
+	odb::debug("Trace", "C", " netCap  %g CC %g %g %s\n",
+        totaCap, ccCap, gndCap, net->getConstName());
+}
 bool extMeasure::printTraceNet(const char*   msg,
                                bool          init,
                                odb::dbCCSeg* cc,
                                uint          overSub,
                                uint          covered)
 {
-  if ((_netSrcId != _netId) && (_netTgtId != _netId))
-    return false;
-
+  if (!IsDebugNet())
+		return false;
+  
   if (init) {
     fprintf(_debugFP,
             "%s %d - %d %d  %d %d M%d D%d %d ",
@@ -3524,19 +3593,30 @@ bool extMeasure::printTraceNet(const char*   msg,
 
 void extMeasure::computeAndStoreRC(odb::dbRSeg* rseg1, odb::dbRSeg* rseg2)
 {
+  bool no_ou=true;
+	bool USE_DB_UBITS = true;
+	if (rseg1==NULL && rseg2==NULL)
+		return;
+  
   bool traceFlag = false;
+	bool watchFlag= IsDebugNet();
   if (_netId > 0)
     traceFlag = printTraceNet("\nBEGIN", true, NULL, 0, 0);
 
+  bool gotit= _netSrcId==635 || _netTgtId==635;
   uint modelCnt      = _metRCTable.getCnt();
-  uint totLenCovered = 0;
+  int totLenCovered = 0;
   _lenOUtable->resetCnt();
-  // if (_extMain->_usingMetalPlanes && (_extMain->_geoThickTable==NULL)) {
-  if (_extMain->_usingMetalPlanes) {
-    if (!_diagFlow)
-      totLenCovered = measureOverUnderCap();
-    else
-      totLenCovered = measureDiagOU(1, 2);
+  
+  if (_extMain->_usingMetalPlanes && (_extMain->_geoThickTable==NULL)) {
+		_diagLen=0;
+    
+    if (_extMain->_ccContextDepth>0) {
+      if (!_diagFlow)
+        totLenCovered = measureOverUnderCap();
+      else
+        totLenCovered = measureDiagOU(1, 2);
+    }
   }
 
   if (rseg1 == NULL && rseg2 == NULL)
@@ -3555,24 +3635,43 @@ void extMeasure::computeAndStoreRC(odb::dbRSeg* rseg1, odb::dbRSeg* rseg2)
     deltaRes[jj] = 0.0;
   }
 
+  if (USE_DB_UBITS) {
+		totLenCovered = _extMain->GetDBcoords2(totLenCovered);
+		_len = _extMain->GetDBcoords2(_len);
+		_diagLen= _extMain->GetDBcoords2(_diagLen);
+	}
+
   int lenOverSub = _len - totLenCovered;
 
+  if (_diagLen>0)
+		lenOverSub -= _diagLen;
+	if (lenOverSub<0)
+		lenOverSub = 0;
+
   if (traceFlag)
-    printTraceNet("OU", false, NULL, lenOverSub, totLenCovered);
+		printNetCaps();
 
   //	int mUnder= _underMet; // will be replaced
   if (_dist < 0) {  // dist is infinit
+		totLenCovered -= _diagLen;
+		if (totLenCovered<0)
+			totLenCovered= 0;
 
+    computeR(_len, deltaRes);
+		_extMain->updateTotalRes(rseg1, rseg2, this, deltaRes, modelCnt);
+    
     if (totLenCovered > 0) {
       _underMet = 0;
       for (uint jj = 0; jj < _metRCTable.getCnt(); jj++) {
         extDistRC* rc = _metRCTable.get(jj)->getOverFringeRC(this);
-        if (rc != NULL)
+        if (rc != NULL) {
           deltaFr[jj] = rc->getFringe() * totLenCovered;
+          deltaRes[jj]= rc->getRes() * totLenCovered;
+        }
       }
       if (rseg1 != NULL)
 #ifdef HI_ACC_1
-        _extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, true);
+        _extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, false);
 #else
         _extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false);
 #endif
@@ -3657,7 +3756,7 @@ void extMeasure::computeAndStoreRC(odb::dbRSeg* rseg1, odb::dbRSeg* rseg2)
       }
       // updateCCCap(rseg1, rseg2, m._rc->_coupling);
 #ifdef HI_ACC_1
-      _extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, true);
+			_extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false, true);
 #else
       _extMain->updateTotalCap(rseg1, this, deltaFr, modelCnt, false);
 #endif
@@ -3797,7 +3896,14 @@ void extMeasure::measureRC(int* options)
   }
   //	uint modelCnt= _metRCTable.getCnt();
   _verticalDiag = _currentModel->getVerticalDiagFlag();
+	
+  bool USE_DB_UNITS=false;
+	if (USE_DB_UNITS) {
+  if (_dist>0)
+		_dist= _extMain->GetDBcoords2(_dist);
 
+	_width= _extMain->GetDBcoords2(_width);
+  }
   // odb::notice (0, "%d met= %d  len= %d  dist= %d r1= %d r2= %d\n",
   // _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
   computeAndStoreRC(rseg1, rseg2);

@@ -99,15 +99,15 @@ class Ext
             int                met = -1;
             int                over_met = -1;
             int                under_met = -1;
-            int                len = 100;
-            int                cnt = 0;
+            int                len = 200;
+            int                cnt = 5;
             const char* w = "1";
             const char* s = "1";
             const char* th = "1";
             const char* d = "0.0";
-            const char* w_list = "";
-            const char* s_list = "";
-            const char* th_list = "";
+            const char* w_list = "1";
+            const char* s_list = "1 2 2.5 3 3.5 4 4.5 5 6 8 10 12";
+            const char* th_list = "0 1 2 2.5 3 3.5 4 4.5 5 6 8 10 12";
             const char* grid_list = "";
             bool               default_lef_rules = false;
             bool               nondefault_lef_rules = false;
@@ -120,6 +120,8 @@ class Ext
             bool               read_from_solver = false;
             bool               run_solver = false;
             bool               diag = false;
+            bool               over_under = false;
+            bool               gen_def_patterns = false;
   };
 
   bool bench_wires(const BenchWiresOptions& bwo);
@@ -140,6 +142,7 @@ class Ext
     int         set_max             = -1;
     bool        litho               = false;
     bool        wire_density        = false;
+    const char* debug_net           = nullptr;
     const char* cmp_file            = nullptr;
     const char* ext_model_file      = nullptr;
     const char* net                 = nullptr;
@@ -154,8 +157,8 @@ class Ext
     double      max_res             = 50.0;
     bool        no_merge_via_res    = false;
     float       coupling_threshold  = 0.1;
-    int         context_depth       = 0;
-    int         cc_model            = 40;
+    int         context_depth       = 5;
+    int         cc_model            = 10;
     bool        over_cell           = false;
     bool        remove_cc           = false;
     bool        remove_ext          = false;
@@ -163,6 +166,7 @@ class Ext
     bool        eco                 = false;
     bool        no_gs               = false;
     bool        re_run              = false;
+    bool        skip_via_wires      = false;
     bool        tile                = false;
     int         tiling              = 0;
     bool        skip_m1_caps        = false;

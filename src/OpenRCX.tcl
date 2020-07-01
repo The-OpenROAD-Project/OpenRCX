@@ -115,18 +115,27 @@ proc adjust_rc { args } {
 
 sta::define_cmd_args "diff_spef" {
     [-file filename]
+    [-r_res]
+    [-r_cap]
+    [-r_cc_cap]
+    [-r_conn]
 }
 
 proc diff_spef { args } {
   sta::parse_key_args "diff_spef" args keys \
-      { -file }
+      { -file } \
+      flags { -r_res -r_cap -r_cc_cap -r_conn }
   
   set filename "" 
   if { [info exists keys(-file)] } {
     set filename $keys(-file)
   }
+  set res [info exists flags(-over)]
+  set cap [info exists flags(-over)]
+  set cc_cap [info exists flags(-over)]
+  set conn [info exists flags(-over)]
 
-  rcx::diff_spef $filename
+  rcx::diff_spef $filename $conn $res $cap $cc_cap
 }
 
 sta::define_cmd_args "bench_wires" {
@@ -134,6 +143,8 @@ sta::define_cmd_args "bench_wires" {
     [-cnt count]
     [-len wire_len]
     [-over]
+    [-diag]
+    [-all]
     [-db_only]
     [-under_met layer]
     [-w_list width]
@@ -144,9 +155,11 @@ proc bench_wires { args } {
   sta::parse_key_args "bench_wires" args keys \
       { -met_cnt -cnt -len -under_met
         -w_list -s_list } \
-      flags { -over -db_only }
+      flags { -diag -over -all -db_only }
 
   set over [info exists flags(-over)]
+  set all [info exists flags(-all)]
+  set diag [info exists flags(-diag)]
   set db_only [info exists flags(-db_only)]
 
   set met_cnt 1000 
@@ -154,12 +167,12 @@ proc bench_wires { args } {
     set met_cnt $keys(-met_cnt)
   }
 
-  set cnt 0
+  set cnt 5
   if { [info exists keys(-cnt)] } {
     set cnt $keys(-cnt)
   }
 
-  set len 100
+  set len 200
   if { [info exists keys(-len)] } {
     set len $keys(-len)
   }
@@ -169,17 +182,17 @@ proc bench_wires { args } {
     set under_met $keys(-under_met)
   }
 
-  set w_list ""
+  set w_list "1"
   if { [info exists keys(-w_list)] } {
     set w_list $keys(-w_list)
   }
   
-  set s_list ""
+  set s_list "1 2 2.5 3 3.5 4 4.5 5 6 8 10 12"
   if { [info exists keys(-s_list)] } {
     set s_list $keys(-s_list)
   }
   
-  rcx::bench_wires $db_only $over $met_cnt $cnt $len $under_met $w_list $s_list 
+  rcx::bench_wires $db_only $over $diag $all $met_cnt $cnt $len $under_met $w_list $s_list 
 }
 
 sta::define_cmd_args "bench_verilog" { filename }
