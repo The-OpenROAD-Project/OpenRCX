@@ -930,15 +930,16 @@ uint extMeasure::createNetSingleWire(char *dirName, uint idCnt, uint w_layout, u
 	char netName[1024];
 	sprintf(netName, "%s%c%d%c", dirName, left, idCnt, right);
 
-        if (_skip_delims)
+    if (_skip_delims)
 		sprintf(netName, "%s_%d", dirName, idCnt);
-        assert( _create_net_util.getBlock() == _block );
+    assert( _create_net_util.getBlock() == _block );
 	dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], _met);
 	dbBTerm *in1= net->get1stBTerm();
 
 
 	if (in1!=NULL) {
 		in1->rename(net->getConstName());
+		debug("LayoutPattern", "P", "M%d  %8d %8d   %8d %8d DX=%d DY=%d  %s\n", _met, ll[0], ll[1], ur[0], ur[1], ur[0]-ll[0], ur[1]-ll[1], netName);
 	}
 	uint netId= net->getId();
 	addNew2dBox(net, ll, ur, _met, _dir, netId, false);
@@ -1354,8 +1355,10 @@ uint extMeasure::initWS_box(extMainOptions *opt, uint gridCnt)
 
 	_ur[_dir]= _ll[_dir];
 //	_ur[! _dir] = _ll[!_dir] + (opt->_len-_minWidth); // to agree with width extension
-	_ur[! _dir] = _ll[!_dir] + opt->_len;
+	//    DF 620  _ur[! _dir] = _ll[!_dir] + opt->_len;
+	_ur[! _dir] = _ll[!_dir] + opt->_len*_minWidth/1000; // _len is in nm per ext.ti
 
+debug("LayoutPattern", "P", "\ninitWS_box len=%d w=%d LEN=%d\n\n",  opt->_len, _minWidth, opt->_len*_minWidth/1000);
 	return patternSep;
 }
 void extMeasure::updateForBench(extMainOptions *opt, extMain *extMain)
