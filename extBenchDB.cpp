@@ -3,6 +3,7 @@
 #include "extRCap.h"
 #include "extprocess.h"
 #include "extSpef.h"
+#include "db.h"
 
 #ifdef _WIN32
 #include "direct.h"
@@ -188,7 +189,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 
 		extDistRC *rc= rcPool->alloc();
 		if (diag)
-			rc->set(m._s_nm, 0.0, gnd, cc, R);
+			rc->set(m._s_nm, 0.0, cc, cc, R);
 		else
 			rc->set(m._s_nm, cc, gnd, 0.0, R);
 		m._tmpRC= rc;
