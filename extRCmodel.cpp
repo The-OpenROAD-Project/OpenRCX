@@ -2781,9 +2781,12 @@ void extRCModel::mkNet_prefix(extMeasure* m, char* wiresNameSuffix)
                 else
                         sprintf(overUnder, "M%duM%d", m->_met, m->_overMet);
 
-        else if (m->_underMet >= 0)
+        else if (m->_underMet >= 0) {
+			if (m->_diag)
+                sprintf(overUnder, "M%duuM%d", m->_underMet, m->_met);
+			else
                 sprintf(overUnder, "M%doM%d", m->_met, m->_underMet);
-
+		}
         else
                 sprintf(overUnder, "Uknown");
 
