@@ -118,12 +118,12 @@ module Ext
         in int met = -1 [ usage = "default runs all metals" ; ],
         in int over_met=-1 [ usage = "under met, default sets all possible metals" ; ],
         in int under_met=-1 [ usage = "over met, default sets all possible metals" ; ],
-        in int len  = 200 [ usage = "Length of each wire in db_units" ; ],
+        in int len  = 100 [ usage = "Length of each wire in times min width" ; ],
         in int cnt  = 5 [ usage = "wire cnt per pattern" ; ],
 
         in string w="1" [ usage = "Multiplier List for minimum width" ; ],
         in string s="1" [ usage = "Multiplier List for minimum spacing" ; ],
-        in string th="1" [ usage = "Multiplier List for nominal thickness" ; ],
+        in string th="1" [ usage = "Multiplier List for extract thickness" ; ],
         in string d="0.0" [ usage = "List of wire density coefficients" ; ],
 
         in string w_list="1" [ usage = "List for widths per met in microns" ; ],
