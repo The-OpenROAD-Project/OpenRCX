@@ -385,8 +385,8 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 
 		if (noPowerSource && wire->isPower())
 			continue;
-		if (wire->isVia())
-			continue;
+		// if (wire->isVia())
+		//	continue;
 		if (!allNet && !TargetHighMarkedNet && !wire->getNet()->isMarked())  // when !TargetHighMarkedNet, need only marked source
 			continue;
 		if (tohi && _grid->getMinMaxTrackNum(wire->_base+wire->_width) != srcTrack)
@@ -421,6 +421,7 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 		//// if (nelen == 0)  // or nelen < wire->_width
 		if (nelen <= 0)  // or nelen < wire->_width
 			continue;
+		
 		Ath__wire *newEmptyWire= wire->makeWire(wirePool, nexy, nelen);
 		wTable->add(newEmptyWire);
 		
