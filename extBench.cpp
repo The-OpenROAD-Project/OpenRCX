@@ -364,19 +364,18 @@ uint extRCModel::linesDiagUnderBench(extMainOptions *opt)
                 	computeTables(&measure, opt->_wireCnt+1, 1000, 1000, 1000);
                                                                          
                 patternSep= measure.initWS_box(opt, 20);
-                                                                         
+                                                                        
                 for (int overMet= met+1; overMet<met+5 && overMet<=(int)_layerCnt; overMet++) {
 
 					   if (overMet>opt->_met_cnt)
 							continue;        
 
                         if ((opt->_overMet>0) && (opt->_overMet!=overMet))
-                                continue;
+                            	continue;
                                                                          
                         if (overMet-met>(int)opt->_overDist)
-                                continue;
-                                                                         
-                        measure.setMets(met, 0, overMet);
+                            	continue;
+						measure.setMets(met, 0, overMet);
                                                                          
                         uint cnt1= benchWithVar_density(opt, &measure);
                                                                          
