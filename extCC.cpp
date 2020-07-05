@@ -356,6 +356,12 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	for (wire = nwire; wire; pwire = wire, wire = nwire)
 	{
 		nwire = getNextWire(wire);
+		
+		if (wire->_visited)
+			continue;
+		wire->_visited= 1;
+		
+
 #ifdef TEST_GetDgOverlap
 		if (ttttGetDgOverlap)
 		{
