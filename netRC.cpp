@@ -203,6 +203,93 @@ double extMain::getViaResistance_b(dbVia *tvia, dbNet *net)
 	}
 	return Res;
 }
+void extMain::getViaCapacitance(dbShape svia, dbNet *net)
+{
+	bool USE_DB_UNITS=false;
+
+	uint cnt= 0;
+
+	char *tcut= "tcut";
+	char *bcut= "bcut";
+
+	std::vector<dbShape> shapes;
+	dbShape::getViaBoxes(svia, shapes );
+	
+	int Width[32];
+	int Len[32];
+	int Level[32];
+	for (uint jj= 1; jj<32; jj++) {
+		Level[jj]=0;
+		Width[jj]=0;
+		Len[jj]=0;
+	}
+
+	int maxLenBot=0;
+	int maxWidthBot=0;
+	int maxLenTop=0;
+	int maxWidthTop=0;
+
+	int bot=0;
+	int top=1000;
+
+	std::vector<dbShape>::iterator shape_itr;	
+	for ( shape_itr = shapes.begin(); shape_itr != shapes.end(); ++shape_itr )	{
+		
+		dbShape s = *shape_itr;
+		
+		if (s.getTechLayer()->getType()==dbTechLayerType::CUT)
+			continue;
+		
+		int x1= s.xMin();
+		int y1= s.yMin();
+		int x2= s.xMax();
+		int y2= s.yMax();
+		int dx= x2-x1;
+		int dy= y2-y1;
+		int width= MIN(dx,dy);
+		int len= MAX(dx,dy);
+
+		uint level= s.getTechLayer()->getRoutingLevel();
+		if (Len[level]<len) {
+			Len[level]= len;
+			Width[level]= width;
+			Level[level]= level;
+		}
+		if (USE_DB_UNITS) {
+            width = GetDBcoords2(width);
+			len = GetDBcoords2(len);
+		}
+			
+			if (net->getId()==_debug_net_id) {
+				debug("VIA_CAP", "C", "getViaCapacitance: %d %d   %d %d  M%d  W %d  LEN %d n%d\n",
+					x1, x2, y1, y2, level, width, len,_debug_net_id);
+			}
+	}
+	for (uint jj= 1; jj<32; jj++) {
+		if (Level[jj]==0)
+			continue;
+				
+		int w= Width[jj];
+		int len= Len[jj];
+
+		if (USE_DB_UNITS) {
+            w = GetDBcoords2(w);
+			len = GetDBcoords2(len);
+		}
+		for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
+			
+			double areaCap;
+			double c1= getFringe(jj, w, ii, areaCap);
+
+			_tmpCapTable[ii]= len*2*c1;				
+			if (net->getId()==_debug_net_id) {
+				debug("VIA_CAP", "C", "getViaCapacitance: M%d  W %d  LEN %d C=%g tC=%g  %d n%d\n",
+					jj, w, len, c1, _tmpCapTable[ii], ii, _debug_net_id);
+			}
+		}
+	}
+}
+
 void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePathShape & pshape)
 {
 	bool USE_DB_UNITS= false;
@@ -255,9 +342,10 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 				_tmpResTable[0]= res;
 			}
 			else {
+				getViaCapacitance(s, net);
 				for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
-					_tmpCapTable[ii]= width*2*getFringe(level, width, ii, areaCap);
-					_tmpCapTable[ii] += 2*areaCap * width*width;
+					// _tmpCapTable[ii]= width*2*getFringe(level, width, ii, areaCap);
+					// _tmpCapTable[ii] += 2*areaCap * width*width;
 					_tmpResTable[ii]= res;
 					
 				}
@@ -307,7 +395,7 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 #else
 				if (USE_DB_UNITS)
 			len = GetDBcoords2(len);
-
+ 
 				_tmpCapTable[ii]= len*2*c1;
 #endif
 				// _tmpCapTable[ii] += 2*areaCap * len*width;
