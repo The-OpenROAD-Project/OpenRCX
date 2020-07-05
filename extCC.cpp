@@ -715,7 +715,9 @@ uint Ath__gridTable::couplingCaps(Ath__gridTable *resGridTable, uint couplingDis
 //		couplingDist= couplingDist % 10;
 //		ttttGetDgOverlap= 1;
 //	}
+	// DF 720 
 	ttttGetDgOverlap= 1;
+	// ttttGetDgOverlap= 0;
 	setCCFlag (couplingDist);
 	_CCshorts = 0;
 	uint cnt= 0;
@@ -798,10 +800,12 @@ int Ath__grid::couplingCaps(int hiXY, uint couplingDist, uint &wireCnt, void (*c
 			continue;
 
 		int base = btrack -> getBase();
+		/* DF 720 */
 		_gridtable->buildDgContext(base, _level, _dir);
+		
 		if (!ttttGetDgOverlap)
 			coupleAndCompute (NULL, compPtr);  // try print dgContext
-
+		/* */
 		Ath__track *track = NULL;
 		bool tohi = true;
 		while ((track = btrack->getNextSubTrack(track, tohi)))
@@ -960,7 +964,9 @@ int Ath__gridTable::couplingCaps(int hiXY, uint couplingDist, uint dir, uint &wi
 //		couplingDist= couplingDist % 10;
 //		ttttGetDgOverlap= 1;
 //	}
+	// 720 DF 
 	ttttGetDgOverlap= 1;
+	//ttttGetDgOverlap= 0;
 	setCCFlag (couplingDist);
 
 	if (getBandWire) {
@@ -1021,6 +1027,8 @@ void Ath__gridTable::initCouplingCapLoops(uint dir, uint couplingDist, void (*co
 //		couplingDist= couplingDist % 10;
 //		ttttGetDgOverlap= 1;
 //	}
+	// ttttGetDgOverlap= 0;
+	// DF 720 
 	ttttGetDgOverlap= 1;
 	setCCFlag (couplingDist);
 
