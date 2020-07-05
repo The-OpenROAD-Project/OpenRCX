@@ -2282,7 +2282,8 @@ bool skip_high_acc= true;
 int extMeasure::computeDiagOU(SEQ *s, uint trackMin, uint trackMax, uint targetMet, Ath__array1D<SEQ*> *diagTable)
 {
 #ifdef HI_ACC_1
-	int trackDist= _extMain->_couplingFlag;
+//	int trackDist= _extMain->_couplingFlag;
+	int trackDist= 3;
 #else
 	int trackDist= 3;
 #endif
@@ -2310,7 +2311,7 @@ int extMeasure::computeDiagOU(SEQ *s, uint trackMin, uint trackMax, uint targetM
 #endif
 			trackTable[cnt++]= *_dgContextTracks/2 + kk;
 		
-		if (!kk) continue;
+	    if (!kk) continue;
 		if ( -kk >= _dgContextLowTrack[planeIndex])
 			trackTable[cnt++] = *_dgContextTracks/2 - kk;
 	}
