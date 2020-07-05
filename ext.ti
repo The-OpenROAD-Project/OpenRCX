@@ -145,7 +145,7 @@ module Ext
         in bool read_from_solver [ usage = "Read output files from field solver" ; ],
         in bool run_solver [ usage = "run field solver only" ; ],
 	    in bool db_only [ usage = "create patterns in db only" ; ],
-	    in bool diag [ usage = "bench mark diagonal patterns" ; ],
+	    in int diag = 0 [ usage = "bench mark diagonal patterns; 1: 2 wire patterns; 2: 3 wire-patterns" ; ],
 	    in bool overunder [ usage = "bench mark diagonal patterns" ; ],
 	    in bool all [ usage = "create all patterns; sets db_only to true" ; ]
     );

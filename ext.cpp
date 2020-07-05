@@ -192,7 +192,8 @@ TCL_METHOD ( Ext::bench_wires )
 	opt._db_only=in_args->db_only();
 	opt._gen_def_patterns=in_args->all();
 	if (opt._gen_def_patterns) {
-		opt._diag= true;
+		if (opt._diag==0)
+			opt._diag= 1;
 		opt._overUnder= true;
 		opt._db_only= true;
 		opt._over=true;
