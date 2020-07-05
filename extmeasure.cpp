@@ -2229,14 +2229,21 @@ uint extMeasure::computeDiag(SEQ *s, uint targetMet, uint dir, uint planeIndex, 
 	uint len= 0;
 	for (uint jj= 0; jj<overlapSeq.getCnt(); jj++) {
 		SEQ* tgt= overlapSeq.get(jj);
+		
+	
 		uint diagDist= calcDist(tgt->_ll, tgt->_ur);
 		uint tgWidth = tgt->_ur[_dir] - tgt->_ll[_dir];
 		uint len1= getLength(tgt, !_dir);
-		len += len1;
 
+		if (IsDebugNet()) {
+			debug("DIAG_EXT", "C", "computeDiag: M%d to M%d L%d D%d  %d %d  %d %d\n", _met, targetMet, len1, diagDist, 
+			                        tgt->_ll[0], tgt->_ll[1], tgt->_ur[0], tgt->_ur[1]);
+		}
+		len += len1;
+bool skip_high_acc= true;
 #ifdef HI_ACC_1
 		bool verticalOverlap= false;
-		if (_dist<0) {
+		if (_dist<0 && !skip_high_acc) {
 			if (diagDist <= _width && diagDist>=0 && (int)_width < 10*_minWidth && _verticalDiag) {
 				verticalCap(_rsegSrcId, tgt->type, len1, tgWidth, diagDist, targetMet);
 				verticalOverlap= true;
@@ -3117,14 +3124,22 @@ bool extMeasure::verticalCap(int rsegId1, uint rsegId2, uint len, uint tgtWidth,
 
 void extMeasure::calcDiagRC(int rsegId1, uint rsegId2, uint len, uint dist, uint tgtMet)
 {
+	int DOUBLE_DIAG=2;
 	double capTable[10];
 	uint modelCnt= _metRCTable.getCnt();
 	for (uint ii= 0; ii<modelCnt; ii++) {
 		extMetRCTable* rcModel= _metRCTable.get(ii);
 		
 #ifdef HI_ACC_1
-		if (dist != 1000000)
-			capTable[ii]= len*getDiagUnderCC(rcModel, dist, tgtMet);
+		if (dist != 1000000 ) {
+			double cap= getDiagUnderCC(rcModel, dist, tgtMet);
+			capTable[ii]= DOUBLE_DIAG * len*cap;
+
+			if (IsDebugNet()) {
+				debug("DIAG_EXT", "C", "    calcDiagRC: M%d-%d   L%d D%d  DD%d  %g %g -- %g\n", 
+					_met, tgtMet, len, dist, DOUBLE_DIAG, cap, cap*2, capTable[ii]);
+			}
+		}
 		else
 			capTable[ii]= 2*len*getUnderRC(rcModel)->_fringe;
 #else
@@ -3667,10 +3682,11 @@ void extMeasure::measureRC(int *options)
 	_verticalDiag= _currentModel->getVerticalDiagFlag();
 	
 	//notice (0, "%d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
-			if (IsDebugNet()) {
+	if (IsDebugNet()) {
 			//debug("DistRC", "C", "measureRC: %d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
-			debug("DistRC", "C", "measureRC: %d met= %d  len= %d  dist= %d \n", _totSignalSegCnt, _met, _len, _dist);
-		}
+		debug("DistRC", "C", "measureRC: %d-%d  %d-%d met= %d  len= %d  dist= %d  d%d  %d %d  %d %d\n", 
+			_netSrcId, _rsegSrcId, _netTgtId, _rsegTgtId, _met, _len, _dist, _dir, _ll[0], _ll[1], _ur[0], _ur[1]);
+	}
 // -------------------------------- db units -------------
 bool USE_DB_UNITS=false;
 	if (USE_DB_UNITS) {
