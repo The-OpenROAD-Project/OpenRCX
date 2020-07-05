@@ -564,6 +564,7 @@ public:
 
 	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
 	int writeBenchWires_DB(extMeasure* measure);
+	int writeBenchWires_DB_diag(extMeasure* measure);
 	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
 
 	extDistRC* getMinRC(int met, int width);
@@ -1095,7 +1096,7 @@ public:
 	bool _3dFlag;
 	bool _over;
 	bool _overUnder;
-	bool _diag;
+	int _diag;
 	bool _db_only;
 	bool _gen_def_patterns;
 
@@ -1458,7 +1459,9 @@ public:
 			// TODO: 531 - make a list
 		}
 	}
-	void skip_via_wires(bool v) { _skip_via_wires=v;};
+	void skip_via_wires(bool v) { 
+		_skip_via_wires=v;
+		};
 
     uint getDir(int x1, int y1, int x2, int y2);
 	uint getDir(adsRect &r);
@@ -1477,6 +1480,7 @@ public:
 	void GetDBcoords2(adsRect & r);
 	double GetDBcoords1(int coord);
 	uint addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype);
+	void getViaCapacitance(dbShape svia, dbNet *net);
 	uint addSignalNets(uint dir, int *bb_ll, int *bb_ur, uint wtype, dbCreateNetUtil *netUtil=NULL);
 	uint addInstsGs(Ath__array1D<uint> *instTable, Ath__array1D<uint> *tmpInstIdTable, uint dir);
 	uint mkSignalTables(uint *nm_step, int *bb_ll, int *bb_ur, Ath__array1D<uint> ***sdbSignalTable, Ath__array1D<uint> ***signalGsTable, uint *bucketCnt);
