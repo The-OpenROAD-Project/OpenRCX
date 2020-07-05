@@ -624,7 +624,7 @@ void Ath__track::buildDgContext(Ath__array1D<SEQ *> *dgContext, Ath__wire ** & a
 		seq->_ur[bidx] = nwire->_base + nwire->_width;
 		if (nwire->isPower())
 			seq->type = 0;
-		if (nwire->isVia())
+		else if (nwire->isVia())
 			seq->type = 0;
 		else
 		{
