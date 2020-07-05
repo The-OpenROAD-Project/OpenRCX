@@ -3371,6 +3371,7 @@ bool extMeasure::printTraceNet(const char *msg, bool init, dbCCSeg *cc, uint ove
 
 void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 {
+	bool SUBTRACT_DIAG= false;
 	bool no_ou=true;
 	bool USE_DB_UBITS= false;
 	if (rseg1==NULL && rseg2==NULL)
@@ -3418,8 +3419,10 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 		_diagLen= _extMain->GetDBcoords2(_diagLen);
 	}
 	int lenOverSub= _len - totLenCovered;
-	if (_diagLen>0)
+	
+	if (_diagLen>0 && SUBTRACT_DIAG)
 		lenOverSub -= _diagLen;
+	
 	if (lenOverSub<0)
 		lenOverSub = 0;
 
@@ -3431,7 +3434,6 @@ void extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2)
 	
 	//	int mUnder= _underMet; // will be replaced
 	if (_dist<0) { // dist is infinit
-		totLenCovered -= _diagLen;
 		if (totLenCovered<0)
 			totLenCovered= 0;
 
