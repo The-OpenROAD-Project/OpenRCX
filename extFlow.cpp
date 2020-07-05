@@ -1107,16 +1107,16 @@ uint extMain::addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur
 			else {
 				int dx= r.xMax() - r.xMin();
 				int dy= r.yMax() - r.yMin();
-			
+				int via_ext= 32;
 				//int xmin= r.xMin();
 				uint trackNum=0;
 				// if (net->getId()==2655) {
 				if (trackNum>0) {
 					if (dy>dx) {
-					trackNum= _search->addBox(r.xMin(), r.yMin()-96, r.xMax(), r.yMax()+96, level,
+					trackNum= _search->addBox(r.xMin(), r.yMin()-via_ext, r.xMax(), r.yMax()+via_ext, level,
 						net->getId(), shapeId, wtype);
 					} else {
-					trackNum= _search->addBox(r.xMin()-96, r.yMin(), r.xMax()+96, r.yMax(), level,
+					trackNum= _search->addBox(r.xMin()-via_ext, r.yMin(), r.xMax()+via_ext, r.yMax(), level,
 						net->getId(), shapeId, wtype);
 					}
 				} else {				
@@ -1125,13 +1125,14 @@ uint extMain::addNetShapesOnSearch(dbNet * net, uint dir, int *bb_ll, int *bb_ur
 							GetDBcoords2(r.xMin()), GetDBcoords2(r.yMin()), GetDBcoords2(r.xMax()), GetDBcoords2(r.yMax()),
 							level, net->getId(), shapeId, wtype);
 					} else {
-						trackNum= _search->addBox(r.xMin(), r.yMin(), r.xMax(), r.yMax(), level,
-							net->getId(), shapeId, wtype);
+						
 						if (net->getId()==_debug_net_id) {
 							debug("Search", "W", "onSearch: L%d  DX=%d DY=%d %d %d  %d %d -- %.3f %.3f  %.3f %.3f\n", 
 						level, dx, dy, r.xMin(), r.yMin(), r.xMax(), r.yMax(),
 						GetDBcoords1(r.xMin()), GetDBcoords1(r.yMin()), GetDBcoords1(r.xMax()), GetDBcoords1(r.yMax()));
 						}
+						trackNum= _search->addBox(r.xMin(), r.yMin(), r.xMax(), r.yMax(), level,
+							net->getId(), shapeId, wtype);
 					}
 				}
 				if (_searchFP!=NULL) {
