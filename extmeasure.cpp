@@ -2328,8 +2328,13 @@ int extMeasure::computeDiagOU(SEQ *s, uint trackMin, uint trackMax, uint targetM
 		if (_dgContextArray[planeIndex][trackn]->getCnt()<=1)
 			continue;
 #endif
-		for (uint jj= 0; jj<tmpTable.getCnt(); jj++)
+bool add_all_diag= true;
+        if (!add_all_diag) {
+	    for (uint jj= 0; jj<tmpTable.getCnt(); jj++)
 			len += computeDiag(tmpTable.get(jj), targetMet, _dir, planeIndex, trackn, &residueTable);
+		} else {
+			len += computeDiag(s, targetMet, _dir, planeIndex, trackn, &residueTable);
+		}
 
 		seq_release(&tmpTable);
 		tableCopyP(&residueTable, &tmpTable);
