@@ -3285,8 +3285,8 @@ void extMeasure::printTraceNetInfo(const char* msg, uint netId, int rsegId)
 		rseg->getCoords(x,y);
 		uint w;
 //	uint len= rseg->getLengthWidth(w);
-	debug("Trace", "C", "         %d %d W%d   %d_S%d__%d %s  %g\n",
-		x, y, w, netId, shapeId, rsegId, msg, rseg->getCapacitance(0,1.0));
+	debug("Trace", "C", "         %d %d   %d_S%d__%d %s  %g\n",
+		x, y, netId, shapeId, rsegId, msg, rseg->getCapacitance(0,1.0));
 }
 double GetDBcoords(uint coord)
 {
