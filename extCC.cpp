@@ -470,7 +470,11 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 				coupleAndCompute(coupleOptions, compPtr);
 				wirePool->free(empty);	
 			}
+			if (!nwire)
+				break;
 		}
+		if (!nwire)
+			break;
 	}
 	if (coupleAndCompute==NULL) {
 		for (uint kk= 0; kk<ccTable.getCnt(); kk++)
