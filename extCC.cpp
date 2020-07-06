@@ -355,11 +355,14 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	Ath__wire* nwire= getNextWire(wire);
 	for (wire = nwire; wire; pwire = wire, wire = nwire)
 	{
+		if (wire->getNet()->getId()==2115786)
+			notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
+		
 		nwire = getNextWire(wire);
 		
-		if (wire->_visited)
-			continue;
-		wire->_visited= 1;
+	//	if (wire->_visited)
+	//		continue;
+	//	wire->_visited= 1;
 		
 
 #ifdef TEST_GetDgOverlap
@@ -389,8 +392,11 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 		//	continue;
 		if (!allNet && !TargetHighMarkedNet && !wire->getNet()->isMarked())  // when !TargetHighMarkedNet, need only marked source
 			continue;
+
+		//DF 720
 		if (tohi && _grid->getMinMaxTrackNum(wire->_base+wire->_width) != srcTrack)
 			continue;
+
 		if (!tohi && wire->_srcId > 0)
 			continue;
 		if (useDbSdb && !wire->isPower() && !wire->isVia() && wire->getNet()->getWire() && (!wire->getNet()->getWire()->getProperty((int)wire->_otherId,exid) || exid==0))
@@ -441,7 +447,13 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 			if (wTable -> getCnt() == 0)
 				break;
 		}
+		/*
+		if (wTable -> getCnt() == 0) {
+			Ath__wire *newEmptyWire= wire->makeWire(wirePool, nexy, nelen);
+			wTable->add(newEmptyWire);
+		} */
 		if (coupleAndCompute!=NULL) {
+			bool visited= false;
 			for (uint kk= 0; kk<wTable->getCnt(); kk++) {
 				Ath__wire *empty= wTable->get(kk);
 				
@@ -470,14 +482,15 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 				coupleOptions[10]= dir;
 				
 				coupleOptions[11]= tohi ? 1 : 0;
-				coupleAndCompute(coupleOptions, compPtr);
+
+			    if (wire->_visited==0)
+					coupleAndCompute(coupleOptions, compPtr);
+					
 				wirePool->free(empty);	
+				visited= true;
 			}
-			if (!nwire)
-				break;
+			wire->_visited= visited ? 1 : 0;
 		}
-		if (!nwire)
-			break;
 	}
 	if (coupleAndCompute==NULL) {
 		for (uint kk= 0; kk<ccTable.getCnt(); kk++)
