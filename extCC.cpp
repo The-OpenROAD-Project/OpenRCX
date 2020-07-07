@@ -355,8 +355,8 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	Ath__wire* nwire= getNextWire(wire);
 	for (wire = nwire; wire; pwire = wire, wire = nwire)
 	{
-		if (wire->getNet()->getId()==2115786)
-			notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
+		// if (wire->getNet()->getId()==106)
+		//	notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
 		
 		nwire = getNextWire(wire);
 		
@@ -447,25 +447,27 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 			if (wTable -> getCnt() == 0)
 				break;
 		}
-		/*
+		/* NEW
 		if (wTable -> getCnt() == 0) {
 			Ath__wire *newEmptyWire= wire->makeWire(wirePool, nexy, nelen);
 			wTable->add(newEmptyWire);
 		} */
 		if (coupleAndCompute!=NULL) {
 			bool visited= false;
+			int wBoxId=0;
 			for (uint kk= 0; kk<wTable->getCnt(); kk++) {
 				Ath__wire *empty= wTable->get(kk);
 				
 				coupleOptions[0]= met;
 
-						int wBoxId = (int)wire->_boxId;
+						wBoxId = (int)wire->_boxId;
 
 						/***************************************** NEED_TO_DEBUG 720 DF */
 						if (wire->_otherId && useDbSdb) // useDbSdb should false
 							wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
 						/***************************************************************************/
 				coupleOptions[1]= wBoxId; // dbRSeg id 
+
 				if (wire->_otherId==0)
 					coupleOptions[1]= -wBoxId; // dbRSeg id 
 				
@@ -483,13 +485,20 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 				
 				coupleOptions[11]= tohi ? 1 : 0;
 
-			    if (wire->_visited==0)
+			    if ((wire->_visited==0 && wire->_srcWire == NULL) || (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
+					// notice(0, "coupleAndCompute: net= %d-%d base %d xy %d L%d %s\n", wire->getNet()->getId(), wire->_otherId, wire->_base, wire->_xy, wire->_len, 
+					//	wire->getNet()->getConstName() );
+
 					coupleAndCompute(coupleOptions, compPtr);
+					visited= true;
+				}
 					
 				wirePool->free(empty);	
-				visited= true;
 			}
-			wire->_visited= visited ? 1 : 0;
+			if (visited)
+				wire->_visited= 1;
+		
+		//	notice(0, "coupleAndCompute: net= %d-%d visited= %d\n", wire->getNet()->getId(), wire->_otherId, wire->_visited   );
 		}
 	}
 	if (coupleAndCompute==NULL) {
