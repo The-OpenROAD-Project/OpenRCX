@@ -324,7 +324,7 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	// 	return 0;
 
 	uint dir= _grid->getDir();
-	int coupleOptions[20];
+	int coupleOptions[21];
 
 	Ath__array1D<Ath__wire*> w1Table;
 	Ath__array1D<Ath__wire*> w2Table;
@@ -355,8 +355,8 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	Ath__wire* nwire= getNextWire(wire);
 	for (wire = nwire; wire; pwire = wire, wire = nwire)
 	{
-		// if (wire->getNet()->getId()==106)
-		//	notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
+		 if (wire->getNet()->getId()==189)
+			notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
 		
 		nwire = getNextWire(wire);
 		
@@ -377,7 +377,7 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 			coupleOptions[4] = wire->_base + wire->_width;
 			coupleOptions[5] = 2;
 			coupleOptions[6]= wire->_dir;
-			coupleAndCompute(coupleOptions, compPtr);
+			coupleAndCompute(coupleOptions, compPtr;
 			continue;
 		}
 #endif
@@ -463,8 +463,13 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 						wBoxId = (int)wire->_boxId;
 
 						/***************************************** NEED_TO_DEBUG 720 DF */
+						if (wire->isVia()) {
+							if (wire->_otherId && useDbSdb) // useDbSdb should false
+								wBoxId=wire->getShapeProperty(wire->_otherId);
+						} else {
 						if (wire->_otherId && useDbSdb) // useDbSdb should false
 							wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
+						}
 						/***************************************************************************/
 				coupleOptions[1]= wBoxId; // dbRSeg id 
 

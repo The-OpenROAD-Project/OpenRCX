@@ -67,7 +67,7 @@ uint extMain::print_shape( dbShape & shape, uint j1, uint j2)
         dbTechVia * tech_via = shape.getTechVia();
         dbString vname = tech_via ->getName();
         
-        notice(0, "VIA %s ( %d %d )  jids= ( %d %d )\n",
+        debug("RCSEG", "R", "print_shape: VIA %s ( %d %d )  jids= ( %d %d )\n",
                vname.c_str(),
                shape.xMin() + dx / 2,
                shape.yMin() + dy / 2, j1, j2
@@ -77,7 +77,7 @@ uint extMain::print_shape( dbShape & shape, uint j1, uint j2)
     {
         dbTechLayer * layer = shape.getTechLayer();
         dbString lname = layer->getName();
-        notice(0, "RECT %s ( %d %d ) ( %d %d )  jids= ( %d %d )\n",
+        debug("RCSEG", "R" "print_shape: RECT %s ( %d %d ) ( %d %d )  jids= ( %d %d )\n",
                lname.c_str(),
                shape.xMin(),
                shape.yMin(),
@@ -662,16 +662,14 @@ uint extMain::getCapNodeId(dbNet *net, dbBTerm *bterm, dbITerm *iterm, uint junc
 			if (branch) {
 				cap->setBranchFlag();
 			}
-#ifdef DEBUG_NET_ID			
+			if (cap->getNet()->getId()==_debug_net_id) {
 			if (branch) {
-				if (cap->getNet()->getId()==DEBUG_NET_ID)
-					fprintf(fp, "\tOLD BRANCH %d  capNode %d\n", junction, cap->getId());
+ 					debug("RCSEG", "C", "\tOLD BRANCH %d  capNode %d\n", junction, cap->getId());
 			}
 			else {
-				if (cap->getNet()->getId()==DEBUG_NET_ID)
-					fprintf(fp, "\tOLD INTERNAL %d  capNode %d\n", junction, cap->getId());
+ 					debug("RCSEG", "C", "\tOLD INTERNAL %d  capNode %d\n", junction, cap->getId());
 			}
-#endif			
+			}
 			return capId;
 		}
 		
@@ -689,14 +687,12 @@ uint extMain::getCapNodeId(dbNet *net, dbBTerm *bterm, dbITerm *iterm, uint junc
 			if (branch)
 				cap->setBranchFlag();
 		}
-#ifdef DEBUG_NET_ID					
-		if (cap->getNet()->getId()==DEBUG_NET_ID)
+ 		if (cap->getNet()->getId()==_debug_net_id)
 			if (branch)
-				fprintf(fp, "\tNEW BRANCH %d  capNode %d\n", junction, cap->getId());
+				debug("RCSEG", "C", "\tNEW BRANCH %d  capNode %d\n", junction, cap->getId());
 			else
-				fprintf(fp, "\tNEW INTERNAL %d  capNode %d\n", junction, cap->getId());
-#endif
-		
+				debug("RCSEG", "C", "\tNEW INTERNAL %d  capNode %d\n", junction, cap->getId());
+ 		
 		uint ncapId = cap->getId();
 		int tcapId= capId==0 ? ncapId : -ncapId;
 		_nodeTable->set(junction, tcapId);
@@ -736,13 +732,13 @@ uint extMain::resetMapNodes(dbNet *net)
 	}
 	return cnt;
 }
-void extMain::addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl)
+dbRSeg* extMain::addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl)
 {
 	//if (!path.iterm && !path.bterm &&isTermPathEnded(pshape.bterm, pshape.iterm))
 	if (!path.bterm &&isTermPathEnded(pshape.bterm, pshape.iterm))
 	{
 		rsegJid.clear();
-		return;
+		return NULL;
 	}
 	uint jidl = rsegJid.size();
 	// assert (jidl>0);
@@ -756,10 +752,10 @@ void extMain::addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, ads
 		else if (pshape.iterm)
 			sprintf(&tname[0], ", on iterm %d %s/%s", pshape.iterm->getId(), (char *)pshape.iterm->getInst()->getConstName(), (char *)pshape.iterm->getMTerm()->getConstName());
 		warning(0, "Net %d %s has a loop at x=%d y=%d %s\n", net->getId(), (char *)net->getConstName(), pshape.point.getX(), pshape.point.getY(), &tname[0]);
-		return;
+		return NULL;
 	}
 
-	if (_debug>1)
+	if (net->getId()==_debug_net_id)
 		print_shape(pshape.shape, srcId, dstId );
 
 	uint length;
@@ -786,16 +782,16 @@ void extMain::addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, ads
 	
 	setResAndCap(rc, restbl, captbl);
 
-#ifdef DEBUG_NET_ID
-		if (net->getId()==DEBUG_NET_ID)
-			fprintf(fp, "\t%g shapeId= %d  rseg= %d  (%d %d)\n", 
+		if (net->getId()==_debug_net_id)
+			debug("RCSEG", "R", "\t%g shapeId= %d  rseg= %d  (%d %d)\n", 
 			pshape.junction_id, rsid, srcId, dstId, rc->getCapacitance(0));
-#endif
 
-	if (_debug>1)
-		print_RC(rc);
+	//if (net->getId()==_debug_net_id)
+	//	print_RC(rc);
+
 	srcId = dstId;
 	prevPoint =  pshape.point;
+	return rc;
 }
 bool extMain::getFirstShape(dbNet *net, dbShape & s)
 {
@@ -865,7 +861,7 @@ void extMain::make1stRSeg(dbNet *net, dbWirePath & path, uint cnid, bool skipSta
 
 uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 {
-	//_debug= true;
+	//_debug= true;=
 	net->setRCgraph( true );
 
 	//uint netId= net->getId();
@@ -890,13 +886,16 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 	dbWire *wire= net->getWire();	
 	uint srcId, srcJid;
 
-#ifdef DEBUG_NET_ID
 		uint netId= net->getId();
+#ifdef DEBUG_NET_ID
 		if (netId==DEBUG_NET_ID) {
 			fp= fopen("rsegs", "w");
 			fprintf(fp, "BEGIN NET %d\n", netId, path.junction_id);
 		}
 #endif
+if (netId==_debug_net_id) {
+			debug("RCSEG", "R", "makeNetRCsegs: BEGIN NET %d\n", netId, path.junction_id);
+		}
 	
 	if (_mergeResBound!=0.0 || _mergeViaRes)
 	{
@@ -927,10 +926,9 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 	bool netHeadMarked = false;
 	for(pitr.begin(wire); pitr.getNextPath(path); )
 	{
-#ifdef DEBUG_NET_ID
-		if (netId==DEBUG_NET_ID)
-			fprintf(fp, "%d\n", path.junction_id);
-#endif
+		if (netId==_debug_net_id)
+			debug("RCSEG", "R", "makeNetRCsegs:  path.junction_id %d\n", path.junction_id);
+
 		if (!path.iterm && !path.bterm && !path.is_branch && path.is_short)
 		  srcId= getCapNodeId(net, NULL, NULL, getShortSrcJid(path.junction_id), true);
 		else
@@ -957,7 +955,7 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
                 //    rc->setResistance(0.0001,jj);
                 //    rc->setCapacitance(0.0,jj);
                 //  }
-
+bool ADD_VIA_JUNCTION=false;
 		prevPoint= path.point;
 		sprevPoint= prevPoint;
 		resetSumRCtable();
@@ -965,23 +963,26 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 		{
 			dbShape s= pshape.shape;
 
-#ifdef DEBUG_NET_ID
-			if (netId==DEBUG_NET_ID) {
+ 			if (netId==_debug_net_id) {
 				if (s.isVia()) 
-					fprintf(fp, "%5d VIA\n", pshape.junction_id);
+					debug("RCSEG", "R", "makeNetRCsegs: %5d VIA\n", pshape.junction_id);
 				else
-					fprintf(fp, "%5d WIRE\n", pshape.junction_id);
+					debug("RCSEG", "R","makeNetRCsegs: %5d WIRE\n", pshape.junction_id);
 			}
-#endif
-			getShapeRC(net, s, sprevPoint, pshape);
+ 			getShapeRC(net, s, sprevPoint, pshape);
 			if (_mergeResBound == 0.0)
 			{
 				if (!s.isVia())
 					_rsegJid.push_back(pshape.junction_id);
+				else if (ADD_VIA_JUNCTION)
+					_rsegJid.push_back(pshape.junction_id);
 				addToSumRCtable();
 				if (!_mergeViaRes || !s.isVia() || pshape.bterm ||  pshape.iterm || _nodeTable->geti(pshape.junction_id) < 0)
 				{
-					addRSeg (net, _rsegJid, srcId, prevPoint, path, pshape, path.is_branch, _tmpSumResTable, _tmpSumCapTable);
+					dbRSeg *rc= addRSeg (net, _rsegJid, srcId, prevPoint, path, pshape, path.is_branch, _tmpSumResTable, _tmpSumCapTable);
+					if (s.isVia()) {
+						createShapeProperty( net, pshape.junction_id, rc->getId() );
+					}
 					resetSumRCtable();
 					rcCnt++;
 				}
@@ -1043,6 +1044,22 @@ uint extMain::makeNetRCsegs(dbNet *net, bool skipStartWarning)
 #endif
 
 	return rcCnt;
+}
+void extMain::createShapeProperty(dbNet *net, int id, int id_val)
+{
+	char buff[64];
+	sprintf(buff,"%d",id);
+	char const *pchar = strdup(buff);
+	dbIntProperty::create( net, pchar, id_val);
+}
+int extMain::getShapeProperty(dbNet *net, int id)
+{
+	char buff[64];
+	sprintf(buff,"%d",id);
+	char const *pchar = strdup(buff);
+	dbIntProperty *p= dbIntProperty::find( net, pchar );
+	int rcid=p->getValue();
+	return rcid;
 }
 uint extMain::getExtBbox(int *x1, int *y1, int *x2, int *y2)
 {
@@ -2795,7 +2812,6 @@ uint extMain::makeBlockRCsegs(bool btermThresholdFlag, const char *cmp_file, boo
 					
 					if(m._debugFP!=NULL)
 						fclose(m._debugFP);
-
 				}
 				//#endif
 			}
