@@ -345,6 +345,8 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 		}
 		for (uint ii = 0; ii < sTable->getCnt(); ii++) {
 			double s = spacing * sTable->get(ii);
+			if (sTable->get(ii)==0 && measure->_diag)
+				continue;
 			spaceTable->add(s);
 		}
 		for (uint ii = 0; ii < wTable->getCnt(); ii++) {
@@ -515,7 +517,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	} else {
 	base = measure->_ll[measure->_dir] + WW / 2;
 	X[cnt++] = (SS2 + WW * 0.5) * 0.001;
-	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, 3, WW2, SS2);
+	netIdTable[idCnt] = measure->createNetSingleWire(_wireDirName, 3, w_layout, s_layout);
 	idCnt++;
 	}
 
