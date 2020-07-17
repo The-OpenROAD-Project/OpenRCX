@@ -2099,7 +2099,7 @@ void extDistRC::printDebug(char *from, char *name, uint len, uint dist, extDistR
 }
 void extDistRC::printDebugRC(char *from)
 {
-	debug("DistRC", "C", "%s: tC %g %g %g %g R %g %d\n",
+	debug("DistRC", "C", "%s: tot %g  CC %g  Fr %g  DG %g R %g D%d\n",
 			from, _coupling+_fringe+_diag, _coupling,  _fringe, _diag, _res, _sep);
 }
 extDistRC *extMeasure::addRC(extDistRC *rcUnit, uint len, uint jj)
