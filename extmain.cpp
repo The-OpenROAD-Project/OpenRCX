@@ -1019,7 +1019,7 @@ void extMain::updateTotalRes(dbRSeg *rseg1, dbRSeg *rseg2, extMeasure *m, double
 		extDistRC *rc= m->_rc[modelIndex];
 		
 		double res= rc->_res - delta[modelIndex];
-			debug("updateTotalRes","R","delta %g %g   %g \n", res, rc->_res, delta[modelIndex]);
+			// debug("updateTotalRes","R","delta %g %g   %g \n", res, rc->_res, delta[modelIndex]);
 		if (_resModify)
 			res *= _resFactor;
 		
@@ -1037,7 +1037,7 @@ void extMain::updateTotalRes(dbRSeg *rseg1, dbRSeg *rseg2, extMeasure *m, double
 			}
 			*/
 			
-			debug("updateTotalRes","R","RES %g %g   %d %s\n", res, tot, rseg1->getId(), rseg1->getNet()->getConstName());
+			// debug("updateTotalRes","R","RES %g %g   %d %s\n", res, tot, rseg1->getId(), rseg1->getNet()->getConstName());
 			rseg1->setResistance(tot, modelIndex);
 //			double T= rseg1->getResistance(modelIndex);
 		}
