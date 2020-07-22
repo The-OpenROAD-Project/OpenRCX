@@ -1379,6 +1379,8 @@ void extMeasure::updateForBench(extMainOptions *opt, extMain *extMain)
 }
 uint extMeasure::defineBox(int *options)
 {
+	_no_debug= false;
+
 	_met= options[0];
 
 	_len= options[3];
@@ -2240,6 +2242,9 @@ uint extMeasure::computeDiag(SEQ *s, uint targetMet, uint dir, uint planeIndex, 
 		if (IsDebugNet()) {
 			debug("DIAG_EXT", "C", "computeDiag: M%d to M%d L%d D%d  %d %d  %d %d\n", _met, targetMet, len1, diagDist, 
 			                        tgt->_ll[0], tgt->_ll[1], tgt->_ur[0], tgt->_ur[1]);
+			debug("DIAG_EXT", "C", "computeDiag: M%d to M%d L%.3f D%.3f  %.3f %.3f  %.3f %.3f\n", _met, targetMet, 
+									GetDBcoords(len1), GetDBcoords(diagDist), 
+			                        GetDBcoords(tgt->_ll[0]), GetDBcoords(tgt->_ll[1]), GetDBcoords(tgt->_ur[0]), GetDBcoords(tgt->_ur[1]));
 		}
 		len += len1;
 bool skip_high_acc= true;
@@ -3141,11 +3146,13 @@ void extMeasure::calcDiagRC(int rsegId1, uint rsegId2, uint len, uint dist, uint
 #ifdef HI_ACC_1
 		if (dist != 1000000 ) {
 			double cap= getDiagUnderCC(rcModel, dist, tgtMet);
-			capTable[ii]= DOUBLE_DIAG * len*cap;
+			double diagCap= DOUBLE_DIAG * len*cap;
+			capTable[ii]= diagCap;
+			_rc[ii]->_diag += diagCap;
 
 			if (IsDebugNet()) {
-				debug("DIAG_EXT", "C", "    calcDiagRC: M%d-%d   L%d D%d  DD%d  %g %g -- %g\n", 
-					_met, tgtMet, len, dist, DOUBLE_DIAG, cap, cap*2, capTable[ii]);
+				debug("DIAG_EXT", "C", "    calcDiagRC: M%d-%d   L%d D%d  DD%d  %g d2 %g -- %g\n", 
+					_met, tgtMet, len, dist, DOUBLE_DIAG, cap, cap*2, diagCap);
 			}
 		}
 		else
@@ -3290,15 +3297,23 @@ void extMeasure::printTraceNetInfo(const char* msg, uint netId, int rsegId)
 	debug("Trace", "C", "         %d %d   %d_S%d__%d %s  %g\n",
 		x, y, netId, shapeId, rsegId, msg, rseg->getCapacitance(0,1.0));
 }
-double GetDBcoords(uint coord)
+double extMeasure::GetDBcoords(uint coord)
 {
-	// TODO int db_factor= _block->getDbUnitsPerMicron();
-	int db_factor= 2000;
+	int db_factor= _extMain->_block->getDbUnitsPerMicron();
+	return 1.0*coord/db_factor;
+}
+double extMeasure::GetDBcoords(int coord)
+{
+	int db_factor= _extMain->_block->getDbUnitsPerMicron();
 	return 1.0*coord/db_factor;
 }
 
+
 bool extMeasure::IsDebugNet()
 {
+	if (_no_debug)
+		return false;
+
 	if (_netSrcId==_netId || _netTgtId==_netId)
 		return true;
 	else
@@ -3312,7 +3327,7 @@ void extMeasure::printNetCaps()
 	double gndCap= net->getTotalCapacitance(0, false);
 	double ccCap= net->getTotalCouplingCap(0);
 	double totaCap= gndCap + ccCap;
-	debug("Trace", "C", " netCap  %g CC %g %g %s\n",totaCap, ccCap, gndCap, net->getConstName());
+	debug("Trace", "C", " netCap  %g CC %g %g R %g  %s\n",totaCap, ccCap, gndCap, net->getTotalResistance(), net->getConstName());
 }
 bool extMeasure::printTraceNet(const char *msg, bool init, dbCCSeg *cc, uint overSub, uint covered)
 {
