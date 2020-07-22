@@ -622,7 +622,10 @@ public:
 	extMeasure();
 	~extMeasure();
 
+    bool _no_debug;
 	bool IsDebugNet();
+	double GetDBcoords(uint coord);
+	double GetDBcoords(int coord);
 	void printNetCaps();
 
 	void printTraceNetInfo(const char* msg, uint netId, int rsegId);
@@ -690,7 +693,12 @@ public:
 	int underFlowStep(Ath__array1D<SEQ*> *srcTable, Ath__array1D<SEQ*> *overTable);
 
 	void measureRC(int *options);
-	void computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2);
+	int computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2, int srcCovered);
+	int computeAndStoreRC_720(dbRSeg *rseg1, dbRSeg *rseg2, int srcCovered);
+	void OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered);
+	void OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered);
+
+
 	void copySeqUsingPool(SEQ* t, Ath__array1D<SEQ*> *seqTable);
 	void seq_release(Ath__array1D<SEQ*> *table);
 	void calcOU(uint len);
@@ -1459,6 +1467,9 @@ public:
 			// TODO: 531 - make a list
 		}
 	}
+	static void createShapeProperty(dbNet *net, int id, int id_val);
+	static int getShapeProperty(dbNet *net, int id);
+
 	void skip_via_wires(bool v) { 
 		_skip_via_wires=v;
 		};
@@ -1628,7 +1639,7 @@ public:
 	double getViaResistance_b(dbVia *via, dbNet *net= NULL);
 	void setResAndCap(dbRSeg *rc, double *restbl, double *captbl);
 	void setBranchCapNodeId(dbNet *net, uint junction);
-	void addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl);
+	dbRSeg* addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl);
 	uint print_shape( dbShape & shape, uint j1, uint j2);
 	uint getNodeId(dbWirePath & path, bool branch, uint *nodeType);
 	uint getNodeId(dbWirePathShape & pshape, uint *nodeType);

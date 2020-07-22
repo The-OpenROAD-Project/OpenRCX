@@ -53,6 +53,9 @@ uint extMain::GenExtRules(const char *rulesFileName)
 
 	Ath__parser *p = new Ath__parser();
 	Ath__parser *w = new Ath__parser();
+	
+	int prev_sep= 0;
+	int prev_width= 0;
 	int n = 0;
 	dbSet<dbNet> nets = _block->getNets();
 	dbSet<dbNet>::iterator itr;
@@ -178,10 +181,17 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		// double wLen= (len+w->getDouble(0)) * 1.0;
 		double wLen=GetDBcoords2( len) * 1.0;
 		// double wLen= len * 1.0;
+		
 		double totCC = net->getTotalCouplingCap();
 		double totGnd = net->getTotalCapacitance();
 		double res = net->getTotalResistance();
 
+		double contextCoupling= getTotalCouplingCap(net, "cntxM", 0);
+		if (contextCoupling>0) {
+			notice(0, "contextCoupling %g %s\n", contextCoupling, netName);
+			totGnd += contextCoupling;
+			totCC -= contextCoupling;
+		}
 		double cc= totCC / wLen / 2;
 		double gnd= totGnd / wLen / 2;
 		// double R= res / ( wLen/(1000*w1));
@@ -190,19 +200,49 @@ uint extMain::GenExtRules(const char *rulesFileName)
 		extDistRC *rc= rcPool->alloc();
 		if (diag)
 			rc->set(m._s_nm, 0.0, cc, cc, R);
-		else
+		else {
+			if (m._s_nm==0)
+				m._s_nm= prev_sep + prev_width;
 			rc->set(m._s_nm, cc, gnd, 0.0, R);
+		}
 		m._tmpRC= rc;
 		rcModel->addRCw(&m);
+		prev_sep= m._s_nm;
+	    prev_width= m._w_nm;
 
-		fprintf(logFP, "%s -- Metal %d OVER %d UNDER %d WIDTH %g SPACING %g CC %g GND %g %g LEN %g\n", 
-			netName, met, overMet, underMet, w1, s1, totCC, totGnd, res, wLen);
+		fprintf(logFP, "M%2d OVER %2d UNDER %2d W %.3f S %.3f CC %.6f GND %.6f TC %.6f x %.6f R %g LEN %g  %s\n", 
+			met, overMet, underMet, w1, s1, totCC, totGnd, totCC+totGnd, contextCoupling, res, wLen, netName);
 	}
 	rcModel->mkWidthAndSpaceMappings();
 	model->writeRules((char *)rulesFileName, false);
 
 	fclose(logFP);
 	return n;
+}
+double extMain::getTotalCouplingCap(dbNet *net, char *filterNet, uint corner)
+{
+    double cap= 0.0;
+    dbSet<dbCapNode> capNodes = net->getCapNodes();
+    dbSet<dbCapNode>::iterator citr;
+
+    for( citr = capNodes.begin(); citr != capNodes.end(); ++citr )
+    {
+        dbCapNode * n = *citr;
+        dbSet<dbCCSeg> ccSegs = n->getCCSegs();
+        dbSet<dbCCSeg>::iterator ccitr;
+
+        for( ccitr = ccSegs.begin(); ccitr != ccSegs.end(); ++ccitr )
+        {
+            dbCCSeg * cc = *ccitr;
+			dbNet *srcNet= cc->getSourceCapNode()->getNet();
+			dbNet *tgtNet= cc->getTargetCapNode()->getNet();
+			if ((strstr(srcNet->getConstName(), filterNet) ==NULL) && (strstr(tgtNet->getConstName(), filterNet) ==NULL))
+				continue;
+
+            cap += cc->getCapacitance(corner);
+        }
+    }
+    return cap;
 }
 uint extMain::benchVerilog(FILE* fp)
 {
@@ -417,12 +457,11 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	if (measure->_diag)
 		return writeBenchWires_DB_diag(measure);
 
-
 	bool debug= true;
 	//mkFileNames(measure, "");
 	mkNet_prefix(measure, "");
 	measure->_skip_delims= true;
-	uint grid_gap_cnt = 20;
+	uint grid_gap_cnt = 40;
 
 	int gap = grid_gap_cnt *  (measure->_minWidth + measure->_minSpace);
 	// does NOT work measure->_ll[!measure->_dir] += gap;
@@ -650,6 +689,27 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
 		}
 		return xcnt;
 }
+/*
+uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met)
+{
+	   if (met <= 0)
+               return 0;
+	uint dir= this->_dir;
+
+ 		int ll[2]= {bboxLL[0], bboxLL[1]};
+		int ur[2];
+		ur[dir]= ll[dir];
+		ur[!dir]= bboxUR[!dir];
+
+		//	notice(0, "\nbbox %s %d %d  %d %d\n", _wireDirName, bboxLL[0], bboxLL[1], bboxUR[0], bboxUR[1]);
+		//	notice(0, "ll-ul %s %d %d  %d %d\n", _wireDirName, ll[0], ll[1], ur[0], ur[1]);
+
+		int xcnt=1;
+		while (ur[dir]<=bboxUR[dir]) {
+			this->createNetSingleWire_cntx(met, dirName, xcnt++, dir, ll, ur);
+		}
+		return xcnt;
+} */
 int extRCModel::writeBenchWires_DB_diag(extMeasure* measure)
 {
 	bool lines_3=true;
