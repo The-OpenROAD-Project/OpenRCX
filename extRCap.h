@@ -664,7 +664,7 @@ public:
 	dbRSeg* getFirstDbRseg(uint netId);
 	uint createNetSingleWire(char *dirName, uint idCnt, uint w_layout, uint s_layout, int dir=-1);
 	uint createDiagNetSingleWire(char *dirName, uint idCnt, int base, int w_layout, int s_layout, int dir=-1);
-	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2]);
+	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2], int s_layout=-1);
 	uint createContextNets(char *dirName, int bboxLL[2], int bboxUR[2], int met, double pitchMult);
 
 	
@@ -1446,6 +1446,8 @@ private:
 
 
 public:
+	double getTotalCouplingCap(dbNet *net, char *filterNet, uint corner);
+
 	uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
 	void resetMinMaxRC(uint ii, uint jj);
 	uint getExtStats(dbNet *net, uint corner, int & wlen, double & min_cap, double & max_cap, double & min_res, double &max_res, double &via_res, uint &via_cnt);
