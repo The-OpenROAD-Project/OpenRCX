@@ -519,7 +519,7 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
     {
         extDistRC* before_lastRC= _measureTable->getLast(); // assuming last is 100 equivalent to inf
         uint lastDist= before_lastRC->_sep;
-        if (dist>=lastDist) // send Inf dist
+        if (dist>=lastDist && lastDist>0) // send Inf dist
             return _measureTable->getLast();
     }
 
@@ -2116,6 +2116,7 @@ extDistRC *extMeasure::addRC(extDistRC *rcUnit, uint len, uint jj)
 		if (_dist>0)  // dist based	
 			_rc[jj]->_coupling += rcUnit->_coupling * len;
 	}
+	_rc[jj]->_res += rcUnit->_res * len;
 	if (IsDebugNet()) {
 		_rc[jj]->printDebugRC("addRC: ");
 	}
@@ -2157,7 +2158,8 @@ extDistRC *extMeasure::computeR(uint len, double *valTable)
 		rcUnit= getOverRC(rcModel);
 		if (rcUnit!=NULL) {
 			_rc[ii]->_res += rcUnit->_res * len;
-// TODO debug("EXT_RES", "R", "computeR: getOverRC: %g %g %d\n", rcUnit->_res * len, rcUnit->_res , len);
+			if (IsDebugNet())
+				debug("EXT_RES", "R", "computeR: getOverRC: %g %g %d\n", rcUnit->_res * len, rcUnit->_res , len);
 		}
 		
 		/* DKF TO_EVAL
