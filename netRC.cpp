@@ -384,9 +384,11 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 		else {
 			if (USE_DB_UNITS)
             width = GetDBcoords2(width);
-
+			double SUB_MULT= 1.0;
+			
 			for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
 				double c1= getFringe(level, width, ii, areaCap);
+				c1 *= SUB_MULT;
 #ifdef HI_ACC_10312011
 				if (width<400)
 					_tmpCapTable[ii]= (len+width)*2*getFringe(level, width, ii, areaCap);
@@ -396,12 +398,16 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 				if (USE_DB_UNITS)
 			len = GetDBcoords2(len);
  
-				_tmpCapTable[ii]= len*2*c1;
+			// DF 720	_tmpCapTable[ii]= len*2*c1;
+			_tmpCapTable[ii]= 0;
 #endif
 				// _tmpCapTable[ii] += 2*areaCap * len*width;
 				 double r= getResistance(level, width, len, ii);;
 // INIT VALUE for resistance
-				_tmpResTable[ii]= r;
+
+				// TOD0 DF 720_tmpResTable[ii]= r;
+				_tmpResTable[ii]= 0;
+				
 				_tmpResTable[ii]= 0;
 				if (net->getId()==_debug_net_id) {
 					debug("EXT_RES", "R", "getShapeRC: %d %d   %d %d  M%d  W %d  LEN %d C=%g tC=%g  tR=%g %d n%d\n",
@@ -732,7 +738,7 @@ uint extMain::resetMapNodes(dbNet *net)
 	}
 	return cnt;
 }
-dbRSeg* extMain::addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl)
+dbRSeg* extMain:: addRSeg(dbNet *net,  std::vector<uint> & rsegJid, uint &srcId, adsPoint &prevPoint, dbWirePath &path, dbWirePathShape &pshape, bool isBranch, double *restbl, double *captbl)
 {
 	//if (!path.iterm && !path.bterm &&isTermPathEnded(pshape.bterm, pshape.iterm))
 	if (!path.bterm &&isTermPathEnded(pshape.bterm, pshape.iterm))
@@ -981,6 +987,7 @@ bool ADD_VIA_JUNCTION=false;
 				{
 					dbRSeg *rc= addRSeg (net, _rsegJid, srcId, prevPoint, path, pshape, path.is_branch, _tmpSumResTable, _tmpSumCapTable);
 					if (s.isVia()) {
+						// seg->_flags->_spare_bits_29=1;
 						createShapeProperty( net, pshape.junction_id, rc->getId() );
 					}
 					resetSumRCtable();
