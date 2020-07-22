@@ -948,14 +948,16 @@ uint extMeasure::createNetSingleWire(char *dirName, uint idCnt, uint w_layout, u
 
 	return netId;
 }
-uint extMeasure::createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2])
+uint extMeasure::createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2], int s_layout)
 {
 	
 	dbTechLayer * layer = _create_net_util._routingLayers[met];
 	int	w_layout= layer->getWidth();
-	int	s_layout= layer->getSpacing();
-	if (s_layout==0) {
-		s_layout= layer->getPitch()-w_layout;
+	if (s_layout<0) {
+		s_layout= layer->getSpacing();
+		if (s_layout==0) {
+			s_layout= layer->getPitch()-w_layout;
+		}
 	}
 	// ll[d] = ur[d] + s_layout + w_layout; // w_layout makes it less dense
 	ll[d] = ur[d] + s_layout; // w_layout makes it less dense
