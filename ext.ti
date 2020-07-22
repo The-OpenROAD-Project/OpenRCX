@@ -127,7 +127,7 @@ module Ext
         in string d="0.0" [ usage = "List of wire density coefficients" ; ],
 
         in string w_list="1" [ usage = "List for widths per met in microns" ; ],
-        in string s_list="1 2 2.5 3 3.5 4 4.5 5 6 8 10 20" [ usage = "List for spacings per met in microns" ; ],
+        in string s_list="1 2 2.5 3 3.5 4 4.5 5 6 8 10 0" [ usage = "List for spacings per met in microns" ; ],
         in string th_list="0 1 2 2.5 3 3.5 4 4.5 5 6 8 10 12" [ usage = "List for thickness per met in microns" ; ],
 
         in string grid_list="" [ usage = "Multiplier List for minimum width/spacing and pitch" ; ],
