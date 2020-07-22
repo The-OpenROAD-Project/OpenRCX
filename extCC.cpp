@@ -489,13 +489,20 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 				coupleOptions[10]= dir;
 				
 				coupleOptions[11]= tohi ? 1 : 0;
-
-			    if ((wire->_visited==0 && wire->_srcWire == NULL) || (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
+bool ignore_visited= true;
+			    if ( ignore_visited || (wire->_visited==0 && wire->_srcWire == NULL) || (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
 					// notice(0, "coupleAndCompute: net= %d-%d base %d xy %d L%d %s\n", wire->getNet()->getId(), wire->_otherId, wire->_base, wire->_xy, wire->_len, 
 					//	wire->getNet()->getConstName() );
-
+					if (wire->_srcWire!=NULL)
+						coupleOptions[20]= wire->_srcWire->_ouLen;
+					else
+						coupleOptions[20]= wire->_ouLen;
 					coupleAndCompute(coupleOptions, compPtr);
 					visited= true;
+					if (wire->_srcWire!=NULL)
+						wire->_srcWire->_ouLen= coupleOptions[20];
+					else
+						wire->_ouLen= coupleOptions[20];
 				}
 					
 				wirePool->free(empty);	
