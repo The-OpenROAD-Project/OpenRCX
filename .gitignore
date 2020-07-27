@@ -50,4 +50,7 @@ core
 *.core
 *.dSYM
 *.rej
+*.totCap
 TAGS
+
+results
