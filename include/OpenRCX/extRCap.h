@@ -765,6 +765,7 @@ class extRCModel
   }
 	uint benchDB_WS(extMainOptions* opt, extMeasure* measure);
 	int writeBenchWires_DB(extMeasure* measure);
+	int writeBenchWires_DB_diag(extMeasure* measure);
 	extMetRCTable* initCapTables(uint layerCnt, uint widthCnt);
 
 	extDistRC* getMinRC(int met, int width);
@@ -826,13 +827,16 @@ class extLenOU  // assume cross-section on the z-direction
 class extMeasure
 {
  public:
+  bool _skip_delims;
   extMeasure();
   ~extMeasure();
   
+  bool _no_debug;
   bool IsDebugNet();
+	double GetDBcoords(uint coord);
+	double GetDBcoords(int coord);
   void printNetCaps();
   
-  bool _skip_delims;
   void printTraceNetInfo(const char* msg, uint netId, int rsegId);
   bool printTraceNet(const char*   msg,
                      bool          init,
@@ -956,7 +960,11 @@ class extMeasure
                      Ath__array1D<odb::SEQ*>* overTable);
 
   void measureRC(int* options);
-  void computeAndStoreRC(odb::dbRSeg* rseg1, odb::dbRSeg* rseg2);
+	int computeAndStoreRC(odb::dbRSeg *rseg1, odb::dbRSeg *rseg2, int srcCovered);
+	int computeAndStoreRC_720(odb::dbRSeg *rseg1, odb::dbRSeg *rseg2, int srcCovered);
+	void OverSubRC(odb::dbRSeg *rseg1, odb::dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered);
+	void OverSubRC_dist(odb::dbRSeg *rseg1, odb::dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered);
+
   void copySeqUsingPool(odb::SEQ* t, Ath__array1D<odb::SEQ*>* seqTable);
   void seq_release(Ath__array1D<odb::SEQ*>* table);
   void calcOU(uint len);
@@ -1466,7 +1474,7 @@ class extMainOptions
   bool _3dFlag;
   bool _over;
   bool _overUnder;
-  bool _diag;
+  int _diag;
 	bool _db_only;
   bool _gen_def_patterns;
 
@@ -1791,7 +1799,9 @@ class extMain
 	uint _rcCornerCnt;
 
  public:
-	uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
+	double getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corner);
+	
+  uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
 	void resetMinMaxRC(uint ii, uint jj);
 	uint getExtStats(odb::dbNet *net, uint corner, int & wlen, double & min_cap, double & max_cap, double & min_res, double &max_res, double &via_res, uint &via_cnt);
 	char _tmpLenStats[1024000];
@@ -1813,6 +1823,9 @@ class extMain
   		// TODO: 531 - make a list
   	}
   }
+
+	static void createShapeProperty(odb::dbNet *net, int id, int id_val);
+	static int getShapeProperty(odb::dbNet *net, int id);
 
   void skip_via_wires(bool v) { _skip_via_wires=v; };
 
@@ -1865,6 +1878,7 @@ class extMain
 	void GetDBcoords2(odb::Rect & r);
 	double GetDBcoords1(int coord);
 	uint addViaBoxes(odb::dbShape & sVia, odb::dbNet *net, uint shapeId, uint wtype);
+	void getViaCapacitance(odb::dbShape svia, odb::dbNet *net);
   
   uint addSignalNets(uint                  dir,
                      int*                  bb_ll,
@@ -2169,7 +2183,7 @@ class extMain
                   odb::dbWirePathShape& pshape);
   void setResAndCap(odb::dbRSeg* rc, double* restbl, double* captbl);
   void setBranchCapNodeId(odb::dbNet* net, uint junction);
-  void addRSeg(odb::dbNet*           net,
+  odb::dbRSeg* addRSeg(odb::dbNet*           net,
                std::vector<uint>&    rsegJid,
                uint&                 srcId,
                odb::Point&           prevPoint,

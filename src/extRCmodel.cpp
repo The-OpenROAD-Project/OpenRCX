@@ -562,7 +562,7 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
     extDistRC* before_lastRC
         = _measureTable->getLast();  // assuming last is 100 equivalent to inf
     uint lastDist = before_lastRC->_sep;
-    if (dist >= lastDist)  // send Inf dist
+    if (dist >= lastDist && lastDist>0)  // send Inf dist
       return _measureTable->getLast();
   }
 
@@ -2279,7 +2279,7 @@ void extDistRC::printDebug(char *from, char *name, uint len, uint dist, extDistR
 
 void extDistRC::printDebugRC(const char *from)
 {
-	debug("DistRC", "C", "%s: tC %g %g %g %g R %g %d\n",
+	debug("DistRC", "C", "%s: tot %g  CC %g  Fr %g  DG %g R %g D%d\n",
 			from, _coupling+_fringe+_diag, _coupling,  _fringe, _diag, _res, _sep);
 }
 extDistRC* extMeasure::addRC(extDistRC* rcUnit, uint len, uint jj)
@@ -2296,6 +2296,9 @@ extDistRC* extMeasure::addRC(extDistRC* rcUnit, uint len, uint jj)
       _rc[jj]->_coupling += rcUnit->_coupling * len;
   }
 
+	_rc[jj]->_res += rcUnit->_res * len;
+	if (IsDebugNet()) {
+		_rc[jj]->printDebugRC("addRC: ");
   return rcUnit;
 }
 extDistRC* extMeasure::computeOverUnderRC(uint len)
@@ -2335,6 +2338,8 @@ extDistRC* extMeasure::computeR(uint len, double* valTable)
     if (rcUnit != NULL)
       _rc[ii]->_res += rcUnit->_res * len;
 
+		//	if (IsDebugNet())
+		//		debug("EXT_RES", "R", "computeR: getOverRC: %g %g %d\n", rcUnit->_res * len, rcUnit->_res , len);
     //extDistRC* rcFarRC = rcModel->getOverFringeRC(this);
     //if (rcFarRC != NULL)
     //  valTable[ii] = rcFarRC->getRes() * len;
@@ -3008,9 +3013,12 @@ void extRCModel::mkNet_prefix(extMeasure* m, const char* wiresNameSuffix)
                 else
                         sprintf(overUnder, "M%duM%d", m->_met, m->_overMet);
 
-        else if (m->_underMet >= 0)
-                sprintf(overUnder, "M%doM%d", m->_met, m->_underMet);
-
+        else if (m->_underMet >= 0) {
+			    if (m->_diag)
+            sprintf(overUnder, "M%duuM%d", m->_underMet, m->_met);
+			    else
+            sprintf(overUnder, "M%doM%d", m->_met, m->_underMet);
+		    }
         else
                 sprintf(overUnder, "Unknown");
 

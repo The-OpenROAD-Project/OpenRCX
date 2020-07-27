@@ -264,7 +264,7 @@ double extSpef::printDiff(dbNet*      net,
   if (id > 0)
     fprintf(_diffOutFP, "capId %d ", id);
 
-  net->printNetName(_diffOutFP);
+  net->printNetName(_diffOutFP, true);
 
   return diffCap;
 }

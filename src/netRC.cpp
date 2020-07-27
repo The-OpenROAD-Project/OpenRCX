@@ -201,6 +201,94 @@ double extMain::getViaResistance_b(odb::dbVia *tvia, odb::dbNet *net)
 	}
 	return Res;
 }
+
+void extMain::getViaCapacitance(dbShape svia, dbNet *net)
+{
+	bool USE_DB_UNITS=false;
+
+	uint cnt= 0;
+
+	char *tcut= "tcut";
+	char *bcut= "bcut";
+
+	std::vector<odb::dbShape> shapes;
+	odb::dbShape::getViaBoxes(svia, shapes );
+	
+	int Width[32];
+	int Len[32];
+	int Level[32];
+	for (uint jj= 1; jj<32; jj++) {
+		Level[jj]=0;
+		Width[jj]=0;
+		Len[jj]=0;
+	}
+
+	int maxLenBot=0;
+	int maxWidthBot=0;
+	int maxLenTop=0;
+	int maxWidthTop=0;
+
+	int bot=0;
+	int top=1000;
+
+	std::vector<odb::dbShape>::iterator shape_itr;	
+	for ( shape_itr = shapes.begin(); shape_itr != shapes.end(); ++shape_itr )	{
+		
+		odb::dbShape s = *shape_itr;
+		
+		if (s.getTechLayer()->getType()==dbTechLayerType::CUT)
+			continue;
+		
+		int x1= s.xMin();
+		int y1= s.yMin();
+		int x2= s.xMax();
+		int y2= s.yMax();
+		int dx= x2-x1;
+		int dy= y2-y1;
+		int width= MIN(dx,dy);
+		int len= MAX(dx,dy);
+
+		uint level= s.getTechLayer()->getRoutingLevel();
+		if (Len[level]<len) {
+			Len[level]= len;
+			Width[level]= width;
+			Level[level]= level;
+		}
+		if (USE_DB_UNITS) {
+            width = GetDBcoords2(width);
+			len = GetDBcoords2(len);
+		}
+			
+			if (net->getId()==_debug_net_id) {
+				debug("VIA_CAP", "C", "getViaCapacitance: %d %d   %d %d  M%d  W %d  LEN %d n%d\n",
+					x1, x2, y1, y2, level, width, len,_debug_net_id);
+			}
+	}
+	for (uint jj= 1; jj<32; jj++) {
+		if (Level[jj]==0)
+			continue;
+				
+		int w= Width[jj];
+		int len= Len[jj];
+
+		if (USE_DB_UNITS) {
+            w = GetDBcoords2(w);
+			len = GetDBcoords2(len);
+		}
+		for (uint ii= 0; ii<_metRCTable.getCnt(); ii++) {
+			
+			double areaCap;
+			double c1= getFringe(jj, w, ii, areaCap);
+
+			_tmpCapTable[ii]= len*2*c1;				
+			if (net->getId()==_debug_net_id) {
+				debug("VIA_CAP", "C", "getViaCapacitance: M%d  W %d  LEN %d C=%g tC=%g  %d n%d\n",
+					jj, w, len, c1, _tmpCapTable[ii], ii, _debug_net_id);
+			}
+		}
+	}
+}
+
 void extMain::getShapeRC(odb::dbNet*           net,
                          odb::dbShape&         s,
                          Point&                prevPoint,
@@ -243,9 +331,10 @@ void extMain::getShapeRC(odb::dbNet*           net,
         _tmpCapTable[0] += 2 * areaCap * width * width;
         _tmpResTable[0] = res;
       } else {
+				getViaCapacitance(s, net);
         for (uint ii = 0; ii < _metRCTable.getCnt(); ii++) {
-          _tmpCapTable[ii] = width * 2 * getFringe(level, width, ii, areaCap);
-          _tmpCapTable[ii] += 2 * areaCap * width * width;
+          //_tmpCapTable[ii] = width * 2 * getFringe(level, width, ii, areaCap);
+          //_tmpCapTable[ii] += 2 * areaCap * width * width;
           _tmpResTable[ii] = res;
         }
       }
@@ -276,9 +365,11 @@ void extMain::getShapeRC(odb::dbNet*           net,
     } else {
 			if (USE_DB_UNITS)
         width = GetDBcoords2(width);
+			double SUB_MULT= 1.0;
 
       for (uint ii = 0; ii < _metRCTable.getCnt(); ii++) {
 				double c1= getFringe(level, width, ii, areaCap);
+				c1 *= SUB_MULT;
 #ifdef HI_ACC_10312011
         if (width < 400)
           _tmpCapTable[ii]
@@ -289,7 +380,8 @@ void extMain::getShapeRC(odb::dbNet*           net,
 				if (USE_DB_UNITS)
 				  len = GetDBcoords2(len);
 
-				_tmpCapTable[ii]= len*2*c1;
+			  // DF 720	_tmpCapTable[ii]= len*2*c1;
+				_tmpCapTable[ii]= 0;
 #endif
         // _tmpCapTable[ii] += 2 * areaCap * len * width;
         double r= getResistance(level, width, len, ii);
@@ -550,16 +642,15 @@ uint extMain::getCapNodeId(odb::dbNet*   net,
       if (branch) {
         cap->setBranchFlag();
       }
-#ifdef DEBUG_NET_ID
-      if (branch) {
-        if (cap->getNet()->getId() == DEBUG_NET_ID)
-          fprintf(fp, "\tOLD BRANCH %d  capNode %d\n", junction, cap->getId());
-      } else {
-        if (cap->getNet()->getId() == DEBUG_NET_ID)
-          fprintf(
-              fp, "\tOLD INTERNAL %d  capNode %d\n", junction, cap->getId());
-      }
-#endif
+			if (cap->getNet()->getId()==_debug_net_id) {
+        if (branch) {
+          if (cap->getNet()->getId() == DEBUG_NET_ID)
+ 					  odb::debug("RCSEG", "C", "\tOLD BRANCH %d  capNode %d\n", junction, cap->getId());
+        } else {
+          if (cap->getNet()->getId() == DEBUG_NET_ID)
+ 					  odb::debug("RCSEG", "C", "\tOLD INTERNAL %d  capNode %d\n", junction, cap->getId());
+        }
+			}
       return capId;
     }
 
@@ -576,14 +667,12 @@ uint extMain::getCapNodeId(odb::dbNet*   net,
       if (branch)
         cap->setBranchFlag();
     }
-#ifdef DEBUG_NET_ID
     if (cap->getNet()->getId() == DEBUG_NET_ID) {
       if (branch)
-        fprintf(fp, "\tNEW BRANCH %d  capNode %d\n", junction, cap->getId());
+				odb::debug("RCSEG", "C", "\tNEW BRANCH %d  capNode %d\n", junction, cap->getId());
       else
-        fprintf(fp, "\tNEW INTERNAL %d  capNode %d\n", junction, cap->getId());
+				odb::debug("RCSEG", "C", "\tNEW INTERNAL %d  capNode %d\n", junction, cap->getId());
     }
-#endif
 
     uint ncapId = cap->getId();
     int  tcapId = capId == 0 ? ncapId : -ncapId;
@@ -620,7 +709,7 @@ uint extMain::resetMapNodes(odb::dbNet* net)
   }
   return cnt;
 }
-void extMain::addRSeg(odb::dbNet*           net,
+odb::dbRSeg* extMain::addRSeg(odb::dbNet*           net,
                       std::vector<uint>&    rsegJid,
                       uint&                 srcId,
                       Point&                prevPoint,
@@ -634,7 +723,7 @@ void extMain::addRSeg(odb::dbNet*           net,
   // pshape.iterm))
   if (!path.bterm && isTermPathEnded(pshape.bterm, pshape.iterm)) {
     rsegJid.clear();
-    return;
+    return NULL;
   }
   uint jidl = rsegJid.size();
   // assert (jidl>0);
@@ -661,10 +750,10 @@ void extMain::addRSeg(odb::dbNet*           net,
             pshape.point.getX(),
             pshape.point.getY(),
             &tname[0]);
-    return;
+    return NULL;
   }
 
-  if (_debug > 1)
+  if (net->getId()==_debug_net_id)
     print_shape(pshape.shape, srcId, dstId);
 
   uint length;
@@ -691,21 +780,13 @@ void extMain::addRSeg(odb::dbNet*           net,
 
   setResAndCap(rc, restbl, captbl);
 
-#ifdef DEBUG_NET_ID
-  if (net->getId() == DEBUG_NET_ID)
-    fprintf(fp,
-            "\t%d shapeId= %d  rseg= %d  (%d %e)\n",
-            pshape.junction_id,
-            rsid,
-            srcId,
-            dstId,
-            rc->getCapacitance(0));
-#endif
-
-  if (_debug > 1)
-    print_RC(rc);
+	if (net->getId()==_debug_net_id)
+		odb::debug("RCSEG", "R", "\t%g shapeId= %d  rseg= %d  (%d %d)\n", 
+		pshape.junction_id, rsid, srcId, dstId, rc->getCapacitance(0));
+  
   srcId     = dstId;
   prevPoint = pshape.point;
+	return rc;
 }
 bool extMain::getFirstShape(odb::dbNet* net, odb::dbShape& s)
 {
@@ -801,13 +882,16 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
   odb::dbWire*       wire = net->getWire();
   uint               srcId, srcJid;
 
-#ifdef DEBUG_NET_ID
   uint netId = net->getId();
+#ifdef DEBUG_NET_ID
   if (netId == DEBUG_NET_ID) {
     fp = fopen("rsegs", "w");
     fprintf(fp, "BEGIN NET %d %d\n", netId, path.junction_id);
   }
 #endif
+  if (netId==_debug_net_id) {
+	  odb::debug("RCSEG", "R", "makeNetRCsegs: BEGIN NET %d\n", netId, path.junction_id);
+	}
 
   if (_mergeResBound != 0.0 || _mergeViaRes) {
     for (pitr.begin(wire); pitr.getNextPath(path);) {
@@ -834,10 +918,9 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
   }
   bool netHeadMarked = false;
   for (pitr.begin(wire); pitr.getNextPath(path);) {
-#ifdef DEBUG_NET_ID
-    if (netId == DEBUG_NET_ID)
-      fprintf(fp, "%d\n", path.junction_id);
-#endif
+    if (netId==_debug_net_id)
+			odb::debug("RCSEG", "R", "makeNetRCsegs:  path.junction_id %d\n", path.junction_id);
+
     if (!path.iterm && !path.bterm && !path.is_branch && path.is_short)
       srcId = getCapNodeId(
           net, NULL, NULL, getShortSrcJid(path.junction_id), true);
@@ -870,36 +953,37 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
     //    rc->setCapacitance(0.0,jj);
     //  }
 
+    bool ADD_VIA_JUNCTION=false;
     prevPoint  = path.point;
     sprevPoint = prevPoint;
     resetSumRCtable();
     while (pitr.getNextShape(pshape)) {
       odb::dbShape s = pshape.shape;
 
-#ifdef DEBUG_NET_ID
-      if (netId == DEBUG_NET_ID) {
-        if (s.isVia())
-          fprintf(fp, "%5d VIA\n", pshape.junction_id);
-        else
-          fprintf(fp, "%5d WIRE\n", pshape.junction_id);
-      }
-#endif
+ 			if (netId==_debug_net_id) {
+				if (s.isVia()) 
+					odb::debug("RCSEG", "R", "makeNetRCsegs: %5d VIA\n", pshape.junction_id);
+				else
+					odb::debug("RCSEG", "R","makeNetRCsegs: %5d WIRE\n", pshape.junction_id);
+			}
+      
       getShapeRC(net, s, sprevPoint, pshape);
       if (_mergeResBound == 0.0) {
         if (!s.isVia())
           _rsegJid.push_back(pshape.junction_id);
+				else if (ADD_VIA_JUNCTION)
+					_rsegJid.push_back(pshape.junction_id);
+        
         addToSumRCtable();
+        
         if (!_mergeViaRes || !s.isVia() || pshape.bterm || pshape.iterm
             || _nodeTable->geti(pshape.junction_id) < 0) {
-          addRSeg(net,
-                  _rsegJid,
-                  srcId,
-                  prevPoint,
-                  path,
-                  pshape,
-                  path.is_branch,
-                  _tmpSumResTable,
-                  _tmpSumCapTable);
+          
+          odb::dbRSeg *rc= addRSeg(net, _rsegJid, srcId, prevPoint, path, pshape, path.is_branch, _tmpSumResTable, _tmpSumCapTable);
+					if (s.isVia()) {
+						// seg->_flags->_spare_bits_29=1;
+						createShapeProperty( net, pshape.junction_id, rc->getId() );
+					}
           resetSumRCtable();
           rcCnt++;
         } else
@@ -984,6 +1068,24 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
 
   return rcCnt;
 }
+
+void extMain::createShapeProperty(odb::dbNet *net, int id, int id_val)
+{
+	char buff[64];
+	sprintf(buff,"%d",id);
+	char const *pchar = strdup(buff);
+	odb::dbIntProperty::create( net, pchar, id_val);
+}
+int extMain::getShapeProperty(odb::dbNet *net, int id)
+{
+	char buff[64];
+	sprintf(buff,"%d",id);
+	char const *pchar = strdup(buff);
+	odb::dbIntProperty *p= odb::dbIntProperty::find( net, pchar );
+	int rcid=p->getValue();
+	return rcid;
+}
+
 uint extMain::getExtBbox(int* x1, int* y1, int* x2, int* y2)
 {
   *x1 = _x1;

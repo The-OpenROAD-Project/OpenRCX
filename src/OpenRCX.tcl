@@ -172,7 +172,7 @@ proc bench_wires { args } {
     set cnt $keys(-cnt)
   }
 
-  set len 200
+  set len 100
   if { [info exists keys(-len)] } {
     set len $keys(-len)
   }
@@ -187,7 +187,7 @@ proc bench_wires { args } {
     set w_list $keys(-w_list)
   }
   
-  set s_list "1 2 2.5 3 3.5 4 4.5 5 6 8 10 12"
+  set s_list "0 1 2 2.5 3 3.5 4 4.5 5 6 8 10"
   if { [info exists keys(-s_list)] } {
     set s_list $keys(-s_list)
   }

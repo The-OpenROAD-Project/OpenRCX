@@ -35,8 +35,8 @@
 #include <algorithm>
 
 #include "ZInterface.h"
-#include "logger.h"
-#include "wire.h"
+#include <logger.h>
+#include <wire.h>
 //#define ZDEBUG 1
 uint ttttGetDgOverlap;
 //#define TEST_GetDgOverlap
@@ -356,7 +356,7 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
   // 	return 0;
 
   uint dir = _grid->getDir();
-  int  coupleOptions[20];
+  int  coupleOptions[21];
 
   Ath__array1D<Ath__wire*> w1Table;
   Ath__array1D<Ath__wire*> w2Table;
@@ -411,8 +411,8 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
 
     if (noPowerSource && wire->isPower())
       continue;
-    if (wire->isVia())
-			continue;
+    //if (wire->isVia())
+		//	continue;
 
     if (!allNet && !TargetHighMarkedNet
         && !wire->getNet()->isMarked())  // when !TargetHighMarkedNet, need only
@@ -485,13 +485,23 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
     }
     if (coupleAndCompute != NULL) {
       for (uint kk = 0; kk < wTable->getCnt(); kk++) {
+			  bool visited= false;
+			  int wBoxId=0;
         Ath__wire* empty = wTable->get(kk);
 
         coupleOptions[0] = met;
 
-        int wBoxId = (int) wire->_boxId;
-        if (wire->_otherId && useDbSdb)
-          wire->getNet()->getWire()->getProperty((int) wire->_otherId, wBoxId);
+        wBoxId = (int) wire->_boxId;
+        /***************************************** NEED_TO_DEBUG 720 DF */
+				if (wire->isVia()) {
+					if (wire->_otherId && useDbSdb) // useDbSdb should false
+						wBoxId=wire->getShapeProperty(wire->_otherId);
+				} else {
+				if (wire->_otherId && useDbSdb) // useDbSdb should false
+					wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
+				}
+				/***************************************************************************/
+				
         coupleOptions[1] = wBoxId;  // dbRSeg id
         if (wire->_otherId == 0)
           coupleOptions[1] = -wBoxId;  // dbRSeg id
@@ -510,8 +520,27 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
 
         coupleOptions[11] = tohi ? 1 : 0;
         coupleAndCompute(coupleOptions, compPtr);
+        bool ignore_visited= true;
+			  if ( ignore_visited || 
+            (wire->_visited==0 && wire->_srcWire == NULL) || 
+            (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
+				  // notice(0, "coupleAndCompute: net= %d-%d base %d xy %d L%d %s\n", wire->getNet()->getId(), wire->_otherId, wire->_base, wire->_xy, wire->_len, 
+				  //	wire->getNet()->getConstName() );
+				  if (wire->_srcWire!=NULL)
+				  	coupleOptions[20]= wire->_srcWire->_ouLen;
+				  else
+				  	coupleOptions[20]= wire->_ouLen;
+				  coupleAndCompute(coupleOptions, compPtr);
+				  visited= true;
+				  if (wire->_srcWire!=NULL)
+				  	wire->_srcWire->_ouLen= coupleOptions[20];
+				  else
+				  	wire->_ouLen= coupleOptions[20];
+				}
         wirePool->free(empty);
       }
+			if (visited)
+				wire->_visited= 1;
     }
   }
   if (coupleAndCompute == NULL) {

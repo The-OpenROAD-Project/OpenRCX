@@ -33,7 +33,7 @@
 
 #include "ext.h"
 #include "logger.h"
-#include "StaMain.hh"
+#include "../src/OpenSTA/include/sta/StaMain.hh"
 
 namespace sta {
 // Tcl files encoded into strings.

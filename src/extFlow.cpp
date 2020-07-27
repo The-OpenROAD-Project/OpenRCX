@@ -1140,16 +1140,17 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
       } else {
         int dx= r.xMax() - r.xMin();
 				int dy= r.yMax() - r.yMin();
+				int via_ext= 32;
 			
 				//int xmin= r.xMin();
 				uint trackNum=0;
 				// if (net->getId()==2655) {
 				if (trackNum>0) {
 					if (dy>dx) {
-					trackNum= _search->addBox(r.xMin(), r.yMin()-96, r.xMax(), r.yMax()+96, level,
+					trackNum= _search->addBox(r.xMin(), r.yMin()-via_ext, r.xMax(), r.yMax()+via_ext, level,
 						net->getId(), shapeId, wtype);
 					} else {
-					trackNum= _search->addBox(r.xMin()-96, r.yMin(), r.xMax()+96, r.yMax(), level,
+					trackNum= _search->addBox(r.xMin()-via_ext, r.yMin(), r.xMax()+via_ext, r.yMax(), level,
 						net->getId(), shapeId, wtype);
 					}
 				} else {				
@@ -1161,9 +1162,9 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
 						trackNum= _search->addBox(r.xMin(), r.yMin(), r.xMax(), r.yMax(), level,
 							net->getId(), shapeId, wtype);
 						if (net->getId()==_debug_net_id) {
-							debug("Search", "W", "onSearch: L%d  DX=%d DY=%d %d %d  %d %d -- %.3f %.3f  %.3f %.3f\n", 
-						level, dx, dy, r.xMin(), r.yMin(), r.xMax(), r.yMax(),
-						GetDBcoords1(r.xMin()), GetDBcoords1(r.yMin()), GetDBcoords1(r.xMax()), GetDBcoords1(r.yMax()));
+							debug("Search", "W", "onSearch: tr=%d L%d  DX=%d DY=%d %d %d  %d %d -- %.3f %.3f  %.3f %.3f net %d\n", 
+								trackNum, level, dx, dy, r.xMin(), r.yMin(), r.xMax(), r.yMax(),
+						GetDBcoords1(r.xMin()), GetDBcoords1(r.yMin()), GetDBcoords1(r.xMax()), GetDBcoords1(r.yMax()),net->getId());
 						}
 					}
 				}
@@ -1200,10 +1201,21 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
 
 uint extMain::addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype)
 {
+	int rcid=getShapeProperty(net, shapeId);
 	wtype= 5; // Via Type
 
 	bool USE_DB_UNITS=false;
 	uint cnt= 0;
+  
+  int X1[2]= {0,0};
+	int X2[2]= {0,0};	
+	int Y1[2]= {0,0};
+	int Y2[2]= {0,0};
+	int id[2]= {0,0};
+	int LEN[2]= {0,0};
+
+	int botLevel=0;
+	int topLevel=0;
 
 	const char *tcut= "tcut";
 	const char *bcut= "bcut";
@@ -1228,7 +1240,18 @@ uint extMain::addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype)
 
 		uint track_num;
 		uint level= s.getTechLayer()->getRoutingLevel();
-
+		uint width= s.getTechLayer()->getWidth();
+		
+    int len= dx;
+		if (s.getTechLayer()->getDirection()==dbTechLayerDir::VERTICAL) {
+			len= dy;
+			if (width!=dx)
+				continue;
+		} else {
+			if (width!=dy)
+				continue;
+		}
+		
 		if (USE_DB_UNITS) {
 			track_num= _search->addBox(GetDBcoords2(x1), GetDBcoords2(y1), GetDBcoords2(x2), GetDBcoords2(y2), 
 			level, net->getId(), shapeId, wtype);
