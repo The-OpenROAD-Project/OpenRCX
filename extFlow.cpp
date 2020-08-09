@@ -2191,6 +2191,7 @@ uint extMain::couplingFlow(bool rlog, adsRect & extRect, uint trackStep, uint cc
 	int hi_sdb[2];
 	
 	Ath__overlapAdjust overlapAdj = Z_noAdjust;
+	// Ath__overlapAdjust overlapAdj = Z_merge;
 	_useDbSdb = true;
 	_search->setExtControl (_block, _useDbSdb, (uint)overlapAdj, 
 		_CCnoPowerSource, _CCnoPowerTarget, _ccUp, _allNet, 
