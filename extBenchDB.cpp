@@ -583,28 +583,22 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 		return cnt;
 	}
 	bool grid_context=true;
+	bool grid_context_same_dir=false;
+
+	int cntx_dist=-1; // -1 means min sep
 
 	int extend_blockage = (measure->_minWidth + measure->_minSpace);
 	int bboxUR[2] = { measure->_ur[0]+extend_blockage, measure->_ur[1]+extend_blockage };
 	bboxLL[0] -= extend_blockage;
 	bboxLL[1] -= extend_blockage;
 	if (grid_context && (measure->_underMet>0 || measure->_overMet>0)) {
-		measure->createContextGrid(_wireDirName,   bboxLL,   bboxUR, measure->_underMet);
-		measure->createContextGrid(_wireDirName,   bboxLL,   bboxUR, measure->_overMet);
-		/*
-		int ll[2]= {bboxLL[0], bboxLL[1]};
-		int ur[2];
-		ur[!measure->_dir]= ll[!measure->_dir];
-		ur[measure->_dir]= bboxUR[measure->_dir];
-
-//	notice(0, "\nbbox %s %d %d  %d %d\n", _wireDirName, bboxLL[0], bboxLL[1], bboxUR[0], bboxUR[1]);
-//	notice(0, "ll-ul %s %d %d  %d %d\n", _wireDirName, ll[0], ll[1], ur[0], ur[1]);
-
-		int xcnt=1;
-		while (ur[!measure->_dir]<=bboxUR[!measure->_dir]) {
-			measure->createNetSingleWire_cntx(measure->_underMet, _wireDirName, xcnt++, !measure->_dir, ll, ur);
-		}
-		*/
+		if (!grid_context_same_dir) {
+			measure->createContextGrid(_wireDirName,   bboxLL,   bboxUR, measure->_underMet, cntx_dist);
+			measure->createContextGrid(_wireDirName,   bboxLL,   bboxUR, measure->_overMet, cntx_dist);
+		} else {
+			measure->createContextGrid_dir(_wireDirName,   bboxLL,   bboxUR, measure->_underMet);
+			measure->createContextGrid_dir(_wireDirName,   bboxLL,   bboxUR, measure->_overMet);
+		}	
 	} else {
 		double pitchMult = 1.0;
 
@@ -670,7 +664,7 @@ uint extMeasure::createContextObstruction(char* dirName, int x, int y, int bboxU
      dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
        return 1;
  }
-uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met)
+uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout)
 {
 	   if (met <= 0)
                return 0;
@@ -685,31 +679,30 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
 
 		int xcnt=1;
 		while (ur[!this->_dir]<=bboxUR[!this->_dir]) {
-			this->createNetSingleWire_cntx(met, dirName, xcnt++, !this->_dir, ll, ur);
+			this->createNetSingleWire_cntx(met, dirName, xcnt++, !this->_dir, ll, ur, s_layout);
 		}
 		return xcnt;
 }
-/*
 uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met)
 {
 	   if (met <= 0)
                return 0;
-	uint dir= this->_dir;
+		uint dir= this->_dir;
 
  		int ll[2]= {bboxLL[0], bboxLL[1]};
 		int ur[2];
 		ur[dir]= ll[dir];
 		ur[!dir]= bboxUR[!dir];
 
-		//	notice(0, "\nbbox %s %d %d  %d %d\n", _wireDirName, bboxLL[0], bboxLL[1], bboxUR[0], bboxUR[1]);
-		//	notice(0, "ll-ul %s %d %d  %d %d\n", _wireDirName, ll[0], ll[1], ur[0], ur[1]);
+		// notice(0, "\ndir=%d  bbox %s %d %d  %d %d\n", dir, dirName, bboxLL[0], bboxLL[1], bboxUR[0], bboxUR[1]);
+		// notice(0, "dir=%d ll-ul %s %d %d  %d %d\n",dir, dirName, ll[0], ll[1], ur[0], ur[1]);
 
 		int xcnt=1;
 		while (ur[dir]<=bboxUR[dir]) {
-			this->createNetSingleWire_cntx(met, dirName, xcnt++, dir, ll, ur);
+			this->createNetSingleWire_cntx(met, dirName, xcnt++, dir, ll, ur, 0);
 		}
 		return xcnt;
-} */
+} 
 int extRCModel::writeBenchWires_DB_diag(extMeasure* measure)
 {
 	bool lines_3=true;
