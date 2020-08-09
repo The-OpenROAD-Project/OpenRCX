@@ -669,7 +669,8 @@ public:
 
 	
 	uint createContextObstruction(char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
-	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met);
+	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout=-1);
+	uint createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met);
 
 	double getCCfringe(uint lastNode, uint n, uint start, uint end);
 	double getCCfringe3D(uint lastNode, uint n, uint start, uint end);
@@ -1471,6 +1472,7 @@ public:
 	}
 	static void createShapeProperty(dbNet *net, int id, int id_val);
 	static int getShapeProperty(dbNet *net, int id);
+	static int getShapeProperty_rc(dbNet *net, int id);
 
 	void skip_via_wires(bool v) { 
 		_skip_via_wires=v;
