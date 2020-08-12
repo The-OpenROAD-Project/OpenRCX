@@ -1563,6 +1563,7 @@ public:
 	void printNet(dbNet *net, uint netId);
 	double calcFringe(extDistRC *rc, double deltaFr, bool includeCoupling);
 	double updateTotalCap(dbRSeg *rseg, double cap, uint modelIndex);
+	bool updateCoupCap(dbRSeg *rseg1, dbRSeg *rseg2, int jj, double v);
 	double updateRes(dbRSeg *rseg, double res, uint model);
 
 	//void extCompute(void *a, void *b, int c);
