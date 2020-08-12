@@ -2870,8 +2870,28 @@ double extMain::calcFringe(extDistRC *rc, double deltaFr, bool includeCoupling)
 
 	return cap;
 }
+bool extMain::updateCoupCap(dbRSeg *rseg1, dbRSeg *rseg2, int jj, double v)
+{
+	if (rseg1!=NULL && rseg2!=NULL) {
+		dbCCSeg *ccap= dbCCSeg::create(
+			dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
+			dbCapNode::getCapNode(_block, rseg2->getTargetNode()), 
+			true);
+			ccap->addCapacitance(v, jj);
+			return true;
+	}
+	if (rseg1!=NULL)
+		updateTotalCap(rseg1, v, jj);	
+	if (rseg2!=NULL)
+		updateTotalCap(rseg2, v, jj);
+
+	return false;
+}
 double extMain::updateTotalCap(dbRSeg *rseg, double cap, uint modelIndex)
-{		
+{
+	if (rseg==NULL)	
+		return 0;
+
 	int extDbIndex, sci, scDbIndex;
 	extDbIndex = getProcessCornerDbIndex(modelIndex);
 	double tot= rseg->getCapacitance(extDbIndex);
@@ -2908,6 +2928,9 @@ void extDistRC::addRC(extDistRC *rcUnit, uint len, bool addCC)
 }
 double extMain::updateRes(dbRSeg *rseg, double res, uint model)
 {
+	if (rseg==NULL)
+		return 0;
+
 	if (_eco && !rseg->getNet()->isWireAltered())
 		return 0.0;
 	
@@ -3462,8 +3485,8 @@ void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int
 	if (lenOverSub_bot>0)
 		lenOverSub += lenOverSub_bot;
     */
-   		bool rvia1= extMain::getShapeProperty_rc(rseg1->getNet(), rseg1->getId())>0;
-   		bool rvia2= extMain::getShapeProperty_rc(rseg2->getNet(), rseg2->getId())>0;
+   		bool rvia1= rseg1!=NULL && extMain::getShapeProperty_rc(rseg1->getNet(), rseg1->getId())>0;
+   		bool rvia2= rseg2!=NULL && extMain::getShapeProperty_rc(rseg2->getNet(), rseg2->getId())>0;
 
 	//if (lenOverSub>0) {
 		_underMet= 0;
@@ -3495,19 +3518,24 @@ void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int
 		
 				if (_dist>0) { // dist based	
 					cc= SUB_MULT * rc->getCoupling() * lenOverSub;
+					_extMain->updateCoupCap(rseg1, rseg2, jj, cc);
+					/*
 					dbCCSeg *ccap= dbCCSeg::create(
 						dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
 						dbCapNode::getCapNode(_block, rseg2->getTargetNode()), 
 						true);
 					ccap->addCapacitance(cc, jj);
+					*/
 					tot += cc;
 				}
 			}
 			}
 			if (IsDebugNet()) { 
+				if (rseg1!=NULL) {
 				debug("Trace", "C", "OverSub: SRC M%d  W=%d BOT=%d DIAG=%d  L%d Fr %g CC %g netcap %g -- %g totRes %g \n",
 						_met, _width, srcCovered, diagCovered,lenOverSub, fr, cc, rseg1->getNet()->getTotalCapacitance(jj), res, rseg1->getNet()->getTotalResistance(jj));
 				rc->printDebugRC("                              SUB:");
+				}
 			}
 		}
 	//}
@@ -3620,8 +3648,8 @@ int extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2, int srcCovered)
 		// _no_debug= false;
 	//	_extMain->updateTotalRes(rseg1, rseg2, this, deltaRes, modelCnt);
 
-		bool rvia1= extMain::getShapeProperty_rc(rseg1->getNet(), rseg1->getId())>0;
-		bool rvia2= extMain::getShapeProperty_rc(rseg2->getNet(), rseg2->getId())>0;
+		bool rvia1= rseg1!=NULL && extMain::getShapeProperty_rc(rseg1->getNet(), rseg1->getId())>0;
+		bool rvia2= rseg2!=NULL && extMain::getShapeProperty_rc(rseg2->getNet(), rseg2->getId())>0;
 		/*
 if (IsDebugNet() && rvia1)
 		notice(0, " ---------------------------- RVIa1 \n");
@@ -3644,20 +3672,25 @@ if (IsDebugNet() && rvia2)
 			    tot2= _extMain->updateTotalCap(rseg2, _rc[jj]->_fringe, jj);
 			}
 			if (_rc[jj]->_coupling>0) {
+				_extMain->updateCoupCap(rseg1, rseg2, jj, _rc[jj]->_coupling);
+				/*
 				dbCCSeg *ccap= dbCCSeg::create(
 						dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
 						dbCapNode::getCapNode(_block, rseg2->getTargetNode()), 
 						true);
 				ccap->addCapacitance(_rc[jj]->_coupling, jj);
+				*/
 			}
 			tot1 += _rc[jj]->_coupling;
 			tot2 += _rc[jj]->_coupling;
 			if (IsDebugNet()) { 
+				if (rseg1!=NULL)
 				debug("Trace", "C", "SRC: OU%d  M%d  W%d D%d L%d   Fr %g cc %g dg %d %g netcap %g -- %g netRes %g %d-%d %s\n",
 					totLenCovered, _met, _width, _dist, _len, 
 					_rc[jj]->_fringe,  _rc[jj]->_coupling, _diag, _rc[jj]->_diag, 
 					rseg1->getNet()->getTotalCapacitance(jj, true), _rc[jj]->_res, rseg1->getNet()->getTotalResistance(jj),
 					rseg1->getNet()->getId(), rseg1, rseg1->getNet()->getConstName());
+				if (rseg2!=NULL)
 				debug("Trace", "C", "TGT: OU%d  M%d  W%d D%d L%d   Fr %g cc %g dg %d %g netcap %g -- %g netRes %g %d-%d %s\n",
 					totLenCovered, _met, _width, _dist, _len, 
 					_rc[jj]->_fringe,  _rc[jj]->_coupling, _diag, _rc[jj]->_diag,
