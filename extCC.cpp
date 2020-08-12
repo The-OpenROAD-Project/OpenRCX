@@ -189,15 +189,21 @@ uint Ath__track::findOverlap(Ath__wire *origWire, uint ccThreshold, Ath__array1D
 							coupleOptions[0]= met;
 							
 							int bBoxId = (int)botwire->_boxId;
-							if (botwire->_otherId && useDbSdb && !botwire->isVia())
-								botwire->getNet()->getWire()->getProperty((int)botwire->_otherId, bBoxId);
+							if (useDbSdb)
+								bBoxId= botwire->getRsegId();
+
+							// DF 820 if (botwire->_otherId && useDbSdb && !botwire->isVia())
+							// 	botwire->getNet()->getWire()->getProperty((int)botwire->_otherId, bBoxId);
 							coupleOptions[1]= bBoxId; // dbRSeg id for SRC segment
 							if (botwire->_otherId==0)
 								coupleOptions[1]= -bBoxId; // POwer SBox Id
 						
 							int tBoxId = (int)topwire->_boxId;
-							if (topwire->_otherId && useDbSdb && !topwire->isVia())
-								topwire->getNet()->getWire()->getProperty((int)topwire->_otherId, tBoxId);
+							if (useDbSdb)
+								tBoxId= topwire->getRsegId();
+
+							// DF 820 if (topwire->_otherId && useDbSdb && !topwire->isVia())
+							//	topwire->getNet()->getWire()->getProperty((int)topwire->_otherId, tBoxId);
 							coupleOptions[2]= tBoxId; // dbRSeg id for TARGET segment
 							if (topwire->_otherId==0)
 								coupleOptions[2]= -tBoxId; // POwer SBox Id
@@ -355,8 +361,8 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 	Ath__wire* nwire= getNextWire(wire);
 	for (wire = nwire; wire; pwire = wire, wire = nwire)
 	{
-		 if (wire->getNet()->getId()==189)
-			notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
+		 // if (wire->getNet()->getId()==189)
+		 //	notice(0, "Ath__track::couplingCaps: net= %d base %d xy %d L%d\n", wire->getNet()->getId(),  wire->_base, wire->_xy, wire->_len );
 		
 		nwire = getNextWire(wire);
 		
