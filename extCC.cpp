@@ -466,9 +466,13 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 				
 				coupleOptions[0]= met;
 
+                wBoxId = (int)wire->_boxId;
+				if (useDbSdb)
+                	wBoxId= wire->getRsegId();
+				/* DF 820
 						wBoxId = (int)wire->_boxId;
 
-						/***************************************** NEED_TO_DEBUG 720 DF */
+						//***************************************** NEED_TO_DEBUG 720 DF 
 						if (wire->isVia()) {
 							if (wire->_otherId && useDbSdb) // useDbSdb should false
 								wBoxId=wire->getShapeProperty(wire->_otherId);
@@ -476,7 +480,8 @@ uint Ath__track::couplingCaps(Ath__grid *ccGrid, uint srcTrack, uint trackDist, 
 						if (wire->_otherId && useDbSdb) // useDbSdb should false
 							wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
 						}
-						/***************************************************************************/
+						//***************************************************************************
+				*/
 				coupleOptions[1]= wBoxId; // dbRSeg id 
 
 				if (wire->_otherId==0)
@@ -532,7 +537,36 @@ bool ignore_visited= true;
 	//return ccTable.getCnt();
 	return wireCnt;
 }
+/*
+int Ath__wire::getRsegId()
+{
+	int wBoxId= _boxId;
 
+	if (!(_otherId>0))
+		return wBoxId;
+
+	if (isVia()) { 
+		wBoxId=getShapeProperty(_otherId);
+	} else {
+		getNet()->getWire()->getProperty((int)_otherId, wBoxId);
+	}
+	return wBoxId;
+}
+
+int Ath__wire::getShapeProperty_rc(dbNet *net, int rc_id)
+{
+	dbNet *net= getNet();
+
+	char buff[64];
+	sprintf(buff,"RC_%d",rc_id);
+	char const *pchar = strdup(buff);
+	dbIntProperty *p= dbIntProperty::find( net, pchar );
+	if (p==NULL)
+		return 0;
+	int sid=p->getValue();
+	return sid;
+}
+*/
 
 uint Ath__grid::couplingCaps(Ath__grid *resGrid, uint couplingDist, ZInterface *context, Ath__array1D<uint> *ccTable, 
 							 void (*coupleAndCompute)(int *, void *), void *compPtr)
