@@ -238,6 +238,7 @@ module Ext
 	in bool skip_power_stubs [ usage = "Only connect power pins to power grid" ; ],
         in string power_source_coords [ usage = "File with x,y,met,VDD/GND info" ; ],
         in bool lef_rc [ usage = "Use LEF RC technology values" ; ],
+        in bool lef_res [ usage = "Use LEF Layer Resistance values" ; ],
         in bool rlog [usage = "print resource usage log";]
     );
     export adjust_rc

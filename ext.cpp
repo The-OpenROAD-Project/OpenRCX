@@ -458,6 +458,7 @@ TCL_METHOD ( Ext::extract )
 	bool btermThresholdFlag= in_args->tile();
 		_ext->set_debug_nets(debug_nets);
 		_ext->skip_via_wires(in_args->skip_via_wires());
+	_ext->_lef_res= in_args->lef_res();
 
 	uint tilingDegree= in_args->tiling();
 

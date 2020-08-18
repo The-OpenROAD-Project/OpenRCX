@@ -3463,7 +3463,7 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 			}
 			
 			double res=0;
-			if (!rvia1) {
+			if (!_extMain->_lef_res && !rvia1) {
 				 res= SUB_MULT * rc->getRes() * lenOverSub;
 					_extMain->updateRes(rseg1, res, jj);
 			}
@@ -3498,11 +3498,12 @@ void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int
 				continue;
 
 			double res= SUB_MULT * rc->getRes() * lenOverSub;
+			if (!_extMain->_lef_res ) {
 			if (!rvia1)
 				_extMain->updateRes(rseg1, res, jj);
 			if (!rvia2)
 				_extMain->updateRes(rseg2, res, jj);
-
+			}
 			double tot= 0;
 			double fr= 0;
 			double cc= 0;
@@ -3614,7 +3615,7 @@ int extMeasure::computeAndStoreRC(dbRSeg *rseg1, dbRSeg *rseg2, int srcCovered)
 	//	if (IsDebugNet() && rvia1)
 	//	notice(0, " ---------------------------- RVIa \n");
 		for (uint jj= 0; jj<_metRCTable.getCnt(); jj++) {
-			if (_rc[jj]->_res>0) {
+			if (!_extMain->_lef_res && _rc[jj]->_res>0) {
 				if (!rvia1)
 					_extMain->updateRes(rseg1, _rc[jj]->_res, jj);
 			}
@@ -3659,7 +3660,7 @@ if (IsDebugNet() && rvia2)
         for (uint jj= 0; jj<_metRCTable.getCnt(); jj++) {
 			double totR1=0;
 			double totR2=0;
-			if (_rc[jj]->_res>0) {
+			if (!_extMain->_lef_res  && _rc[jj]->_res>0) {
 				if (!rvia1)
 					totR1= _extMain->updateRes(rseg1, _rc[jj]->_res, jj);
 				if (!rvia2)

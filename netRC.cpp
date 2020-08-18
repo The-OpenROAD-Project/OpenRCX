@@ -381,6 +381,10 @@ void extMain::getShapeRC(dbNet *net, dbShape & s, adsPoint & prevPoint, dbWirePa
 			_tmpCapTable[0] += 2*areaCap * len*width;
 			_tmpResTable[0]= getResistance(level, width, len, 0);;
 		}
+		else if (_lef_res) {
+			double res= getResistance(level, width, len, 0);;
+			_tmpResTable[0]= res;
+		}
 		else {
 			if (USE_DB_UNITS)
             width = GetDBcoords2(width);
