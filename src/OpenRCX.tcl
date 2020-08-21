@@ -37,15 +37,19 @@ sta::define_cmd_args "extract_parasitics" {
     [-max_res ohms]
     [-coupling_threshold fF]
     [-signal_table value]
+    [-lef_res]
+    [-cc_model track]
 }
 
 proc extract_parasitics { args } {
-  sta::parse_key_args "define_process_corner" args keys \
+  sta::parse_key_args "extract_parasitics" args keys \
       { -ext_model_file
         -corner_cnt
         -max_res
         -coupling_threshold
-        -signal_table }
+        -signal_table 
+        -cc_model } \
+      flags { -lef_res }
 
   set ext_model_file ''
   if { [info exists keys(-ext_model_file)] } {
@@ -72,8 +76,16 @@ proc extract_parasitics { args } {
     set signal_table $keys(-signal_table)
   }
 
+  set lef_res [info exists flags(-lef_res)]
+
+  set cc_model 10
+  if { [info exists keys(-cc_model)] } {
+    set cc_model $keys(-cc_model)
+  }
+
   rcx::extract $ext_model_file $corner_cnt $max_res \
-      $coupling_threshold $signal_table
+      $coupling_threshold $signal_table $cc_model \
+      $lef_res
 }
 
 sta::define_cmd_args "write_spef" { filename }
@@ -187,7 +199,7 @@ proc bench_wires { args } {
     set w_list $keys(-w_list)
   }
   
-  set s_list "0 1 2 2.5 3 3.5 4 4.5 5 6 8 10"
+  set s_list "1 2 2.5 3 3.5 4 4.5 5 6 8 10 0"
   if { [info exists keys(-s_list)] } {
     set s_list $keys(-s_list)
   }

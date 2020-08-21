@@ -61,7 +61,9 @@ extract(const char* ext_model_file,
         int corner_cnt,
         double max_res,
         float coupling_threshold,
-        int signal_table)
+        int signal_table,
+        int cc_model,
+        bool lef_res)
 {
   Ext* ext = getOpenRCX();
   Ext::ExtractOptions opts;
@@ -71,6 +73,8 @@ extract(const char* ext_model_file,
   opts.max_res = max_res;
   opts.coupling_threshold = coupling_threshold;
   opts.signal_table = signal_table;
+  opts.cc_model = cc_model;
+  opts.lef_res = lef_res;
 
   ext->extract(opts);
 }
