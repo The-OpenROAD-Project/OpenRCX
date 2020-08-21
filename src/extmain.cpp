@@ -758,14 +758,22 @@ uint extMain::getResCapTable(bool lefRC)
       if (rc != NULL) {
         double r1= rc->getRes();
         _capacitanceTable[jj][n] = rc->getFringe();
+		    odb::debug("EXT_RES", "R", "Layer= %s met= %d    w= %d cc= %g fr=%g res= %g  model_res= %g\n",
+				    layer->getConstName(),n, w, rc->getCoupling(), 
+            rc->getFringe(), res, r1);
       }
 
       extDistRC *rc0= rcModel->getOverFringeRC(&m, 0);
-
-			if (rc0!=NULL) {
-				 double r1= rc->getRes();
-				_resistanceTable[jj][n]= r1;
-      }
+      
+      if (!_lef_res) {
+			  if (rc0!=NULL) {
+			  	 double r1= rc->getRes();
+			  	_resistanceTable[jj][n]= r1;
+        }
+      } else {
+				odb::debug("EXT_RES_LEF", "R", "Layer= %s met= %d  lef_res= %g\n", 
+              layer->getConstName(),n, res);
+			} 
     }
     cnt++;
   }
@@ -810,7 +818,7 @@ double extMain::getLefResistance(uint level, uint width, uint len, uint model)
   double res = _resistanceTable[model][level];
   double n   = 1.0 * len;
   
-  if (_lefRC) 
+  if (_lefRC || _lef_res) 
 		n /= width;
 
 	double r= n*res;
