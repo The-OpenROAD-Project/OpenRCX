@@ -2299,6 +2299,7 @@ extDistRC* extMeasure::addRC(extDistRC* rcUnit, uint len, uint jj)
 	_rc[jj]->_res += rcUnit->_res * len;
 	if (IsDebugNet()) {
 		_rc[jj]->printDebugRC("addRC: ");
+	}
   return rcUnit;
 }
 extDistRC* extMeasure::computeOverUnderRC(uint len)

@@ -214,18 +214,24 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
               coupleOptions[0] = met;
 
               int bBoxId = (int) botwire->_boxId;
-              if (botwire->_otherId && useDbSdb && !botwire->isVia())
-                botwire->getNet()->getWire()->getProperty(
-                    (int) botwire->_otherId, bBoxId);
-              coupleOptions[1] = bBoxId;  // dbRSeg id for SRC segment
+              if (useDbSdb)
+								bBoxId= botwire->getRsegId();
+
+							// DF 820 if (botwire->_otherId && useDbSdb && !botwire->isVia())
+							// 	botwire->getNet()->getWire()->getProperty((int)botwire->_otherId, bBoxId);
+							coupleOptions[1]= bBoxId; // dbRSeg id for SRC segment
+							
               if (botwire->_otherId == 0)
                 coupleOptions[1] = -bBoxId;  // POwer SBox Id
 
               int tBoxId = (int) topwire->_boxId;
-              if (topwire->_otherId && useDbSdb && !topwire->isVia())
-                topwire->getNet()->getWire()->getProperty(
-                    (int) topwire->_otherId, tBoxId);
-              coupleOptions[2] = tBoxId;  // dbRSeg id for TARGET segment
+              
+              if (useDbSdb)
+								tBoxId= topwire->getRsegId();
+
+							// DF 820 if (topwire->_otherId && useDbSdb && !topwire->isVia())
+							//	topwire->getNet()->getWire()->getProperty((int)topwire->_otherId, tBoxId);
+							coupleOptions[2] = tBoxId;  // dbRSeg id for TARGET segment
               if (topwire->_otherId == 0)
                 coupleOptions[2] = -tBoxId;  // POwer SBox Id
 
@@ -484,24 +490,32 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
         break;
     }
     if (coupleAndCompute != NULL) {
+			bool visited= false;
+			int wBoxId=0;
+      
       for (uint kk = 0; kk < wTable->getCnt(); kk++) {
-			  bool visited= false;
-			  int wBoxId=0;
         Ath__wire* empty = wTable->get(kk);
 
         coupleOptions[0] = met;
 
         wBoxId = (int) wire->_boxId;
-        /***************************************** NEED_TO_DEBUG 720 DF */
-				if (wire->isVia()) {
-					if (wire->_otherId && useDbSdb) // useDbSdb should false
-						wBoxId=wire->getShapeProperty(wire->_otherId);
-				} else {
-				if (wire->_otherId && useDbSdb) // useDbSdb should false
-					wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
-				}
-				/***************************************************************************/
-				
+        if (useDbSdb)
+          wBoxId= wire->getRsegId();
+
+        /* DF 820
+						wBoxId = (int)wire->_boxId;
+
+						//***************************************** NEED_TO_DEBUG 720 DF 
+						if (wire->isVia()) {
+							if (wire->_otherId && useDbSdb) // useDbSdb should false
+								wBoxId=wire->getShapeProperty(wire->_otherId);
+						} else {
+						if (wire->_otherId && useDbSdb) // useDbSdb should false
+							wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
+						}
+						//***************************************************************************
+				*/
+
         coupleOptions[1] = wBoxId;  // dbRSeg id
         if (wire->_otherId == 0)
           coupleOptions[1] = -wBoxId;  // dbRSeg id
@@ -526,10 +540,10 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
             (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
 				  // notice(0, "coupleAndCompute: net= %d-%d base %d xy %d L%d %s\n", wire->getNet()->getId(), wire->_otherId, wire->_base, wire->_xy, wire->_len, 
 				  //	wire->getNet()->getConstName() );
-				  if (wire->_srcWire!=NULL)
-				  	coupleOptions[20]= wire->_srcWire->_ouLen;
-				  else
-				  	coupleOptions[20]= wire->_ouLen;
+				  if (wire->_srcWire!=NULL) {
+				  	coupleOptions[20]= wire->_srcWire->_ouLen;}
+				  else{
+				  	coupleOptions[20]= wire->_ouLen;}
 				  coupleAndCompute(coupleOptions, compPtr);
 				  visited= true;
 				  if (wire->_srcWire!=NULL)

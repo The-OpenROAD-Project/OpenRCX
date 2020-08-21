@@ -915,14 +915,16 @@ class extMeasure
                                        int   w_layout,
                                        int   s_layout,
                                        int   dir = -1);
-	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2]);
+	uint createNetSingleWire_cntx(int met, char *dirName, uint idCnt, int d, int ll[2], int ur[2], int s_layout=-1);
   uint         createContextNets(char*  dirName,
                                  int    bboxLL[2],
                                  int    bboxUR[2],
                                  int    met,
                                  double pitchMult);
 	uint createContextObstruction(const char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
-	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met);
+	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout=-1);
+	uint createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met);
+  
   double       getCCfringe(uint lastNode, uint n, uint start, uint end);
   double       getCCfringe3D(uint lastNode, uint n, uint start, uint end);
 
@@ -1799,7 +1801,9 @@ class extMain
 	uint _rcCornerCnt;
 
  public:
-	double getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corner);
+  bool _lef_res;
+	
+  double getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corner);
 	
   uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
 	void resetMinMaxRC(uint ii, uint jj);
@@ -1826,6 +1830,7 @@ class extMain
 
 	static void createShapeProperty(odb::dbNet *net, int id, int id_val);
 	static int getShapeProperty(odb::dbNet *net, int id);
+	static int getShapeProperty_rc(odb::dbNet *net, int rc_id);
 
   void skip_via_wires(bool v) { _skip_via_wires=v; };
 
@@ -2070,6 +2075,7 @@ class extMain
   void   printNet(odb::dbNet* net, uint netId);
   double calcFringe(extDistRC* rc, double deltaFr, bool includeCoupling);
   double updateTotalCap(odb::dbRSeg* rseg, double cap, uint modelIndex);
+	bool updateCoupCap(odb::dbRSeg *rseg1, odb::dbRSeg *rseg2, int jj, double v);
   double updateRes(odb::dbRSeg* rseg, double res, uint model);
 
   // void extCompute(void *a, void *b, int c);

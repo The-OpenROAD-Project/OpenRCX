@@ -362,7 +362,10 @@ void extMain::getShapeRC(odb::dbNet*           net,
 			_tmpCapTable[0] += 2*areaCap * len*width;
 			_tmpResTable[0]= res;
       
-    } else {
+    } else if (_lef_res) {
+			double res= getResistance(level, width, len, 0);;
+			_tmpResTable[0]= res;
+		} else {
 			if (USE_DB_UNITS)
         width = GetDBcoords2(width);
 			double SUB_MULT= 1.0;
@@ -1069,21 +1072,37 @@ uint extMain::makeNetRCsegs(odb::dbNet* net, bool skipStartWarning)
   return rcCnt;
 }
 
-void extMain::createShapeProperty(odb::dbNet *net, int id, int id_val)
+void extMain::createShapeProperty(dbNet *net, int id, int id_val)
 {
 	char buff[64];
 	sprintf(buff,"%d",id);
 	char const *pchar = strdup(buff);
-	odb::dbIntProperty::create( net, pchar, id_val);
+	dbIntProperty::create( net, pchar, id_val);
+	sprintf(buff,"RC_%d", id_val);
+	pchar = strdup(buff);
+	dbIntProperty::create( net, pchar, id);
 }
-int extMain::getShapeProperty(odb::dbNet *net, int id)
+int extMain::getShapeProperty(dbNet *net, int id)
 {
 	char buff[64];
 	sprintf(buff,"%d",id);
 	char const *pchar = strdup(buff);
-	odb::dbIntProperty *p= odb::dbIntProperty::find( net, pchar );
+	dbIntProperty *p= dbIntProperty::find( net, pchar );
+	if (p==NULL)
+		return 0;
 	int rcid=p->getValue();
 	return rcid;
+}
+int extMain::getShapeProperty_rc(dbNet *net, int rc_id)
+{
+	char buff[64];
+	sprintf(buff,"RC_%d",rc_id);
+	char const *pchar = strdup(buff);
+	dbIntProperty *p= dbIntProperty::find( net, pchar );
+	if (p==NULL)
+		return 0;
+	int sid=p->getValue();
+	return sid;
 }
 
 uint extMain::getExtBbox(int* x1, int* y1, int* x2, int* y2)
