@@ -49,6 +49,29 @@
 
 namespace OpenRCX {
 
+using odb::dbNet;
+using odb::dbShape;
+using odb::dbWirePath;
+using odb::dbWirePathShape;
+using odb::dbWirePathItr;
+using odb::dbWire;
+using odb::dbRSeg;
+using odb::dbCapNode;
+using odb::debug;
+using odb::dbCCSeg;
+using odb::notice;
+using odb::dbTechLayer;
+using odb::dbTechLayerDir;
+using odb::dbTechLayerType;
+using odb::dbBlock;
+using odb::dbSigType;
+using odb::dbSet;
+using odb::warning;
+using odb::dbBTerm;
+using odb::Rect;
+using odb::gs;
+using odb::dbBox;
+
 uint extMain::getBucketNum(int base, int max, uint step, int xy)
 {
   if (xy >= max)
@@ -104,7 +127,7 @@ uint extMain::getNetBbox(dbNet* net, Rect& maxRect)
   maxRect.reset(MAX_INT, MAX_INT, MIN_INT, MIN_INT);
   uint           cnt = 0;
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -127,7 +150,7 @@ uint extMain::getNetBbox(dbNet* net, Rect* maxRect[2])
   maxRect[1]->reset(MAX_INT, MAX_INT, MIN_INT, MIN_INT);
   uint           cnt = 0;
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -151,7 +174,7 @@ void extMain::getNetShapes(dbNet*    net,
     return;
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -391,7 +414,7 @@ extWireBin*** extMain::mkSignalBins(uint              binSize,
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -1031,7 +1054,7 @@ uint extMain::signalWireCounter(uint& maxWidth)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -1112,7 +1135,7 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
   //	uint wireId= wire->getId();
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     //		uint level= 0;
 
@@ -1707,7 +1730,7 @@ uint extMain::addNetShapesGs(dbNet*           net,
     plane = true;
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -2449,7 +2472,7 @@ uint extMain::couplingFlow(bool        rlog,
   uint totWireCnt      = signalWireCounter(maxWidth);
   totWireCnt += totPowerWireCnt;
 
-  odb::notice(0, "%d wires to be extracted\n", totWireCnt);
+  notice(0, "%d wires to be extracted\n", totWireCnt);
 
   if (single_gs) {
     initPlanes(layerCnt);
@@ -2484,7 +2507,7 @@ uint extMain::couplingFlow(bool        rlog,
   if ((_use_signal_tables == 1) || (_use_signal_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -2534,7 +2557,7 @@ uint extMain::couplingFlow(bool        rlog,
       enableRotatedFlag();
 
     // if (getRotatedFlag())
-    //   odb::notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
+    //   notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
 
     lo_gs[!dir]  = ll[!dir];
     hi_gs[!dir]  = ur[!dir];
@@ -2648,7 +2671,7 @@ uint extMain::couplingFlow(bool        rlog,
                 dir,
                 minExtracted);
 #ifdef _WIN32
-        odb::notice(0, "%s\n", buff);
+        notice(0, "%s\n", buff);
 #endif
         AthResourceLog(buff, 0);
       }
@@ -2676,7 +2699,7 @@ uint extMain::couplingFlow(bool        rlog,
 
       if ((totWireCnt > 0) && (totalWiresExtracted > 0) 
            && (percent_extracted-_previous_percent_extracted >= 5.0)) {
-        odb::notice(
+        notice(
             0,
             "%c%d completion -- %d wires have been extracted\n",
             '%',
@@ -2809,7 +2832,7 @@ extWindow* extMain::initWindowSearch(Rect&    extRect,
 
   W->initWindowStep(extRect, trackStep, layerCnt, modelLevelCnt);
 
-  // odb::notice(0, "%d wires to be extracted\n", W->_totWireCnt);
+  // notice(0, "%d wires to be extracted\n", W->_totWireCnt);
 
   return W;
 }
@@ -2862,18 +2885,18 @@ void extWindow::updateExtLimits(int** limitArray)
 }
 void extMain::printLimitArray(int** limitArray, uint layerCnt)
 {
-  odb::notice(0, " ------------------------ Context Lower Limits\n");
+  notice(0, " ------------------------ Context Lower Limits\n");
   uint ii;
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][0], limitArray[ii][1]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][0], limitArray[ii][1]);
 
-  odb::notice(0, "\n--------------------------- EXT Lower Limits\n");
+  notice(0, "\n--------------------------- EXT Lower Limits\n");
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][2], limitArray[ii][3]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][2], limitArray[ii][3]);
 
-  odb::notice(0, "\n ------------------------ EXT Upper Limits\n");
+  notice(0, "\n ------------------------ EXT Upper Limits\n");
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][4], limitArray[ii][5]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][4], limitArray[ii][5]);
 }
 int extWindow::getIntProperty(dbBlock* block, const char* name)
 {
@@ -3065,15 +3088,15 @@ void extWindow::printBoundaries(FILE* fp, bool flag)
     return;
 
   if (fp == NULL) {
-    odb::notice(0, "\n%15s= %d\n", "_currentDir", _currentDir);
-    odb::notice(0, "%15s= %d\n", "_hiXY", _hiXY);
-    odb::notice(0, "%15s= %d\n", "_lo_gs", _lo_gs[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_hi_gs", _hi_gs[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_lo_sdb", _lo_sdb[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_hi_sdb", _hi_sdb[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_gs_limit", _gs_limit);
-    odb::notice(0, "%15s= %d\n", "_minExtracted", _minExtracted);
-    odb::notice(0, "%15s= %d\n\n", "_deallocLimit", _deallocLimit);
+    notice(0, "\n%15s= %d\n", "_currentDir", _currentDir);
+    notice(0, "%15s= %d\n", "_hiXY", _hiXY);
+    notice(0, "%15s= %d\n", "_lo_gs", _lo_gs[_currentDir]);
+    notice(0, "%15s= %d\n", "_hi_gs", _hi_gs[_currentDir]);
+    notice(0, "%15s= %d\n", "_lo_sdb", _lo_sdb[_currentDir]);
+    notice(0, "%15s= %d\n", "_hi_sdb", _hi_sdb[_currentDir]);
+    notice(0, "%15s= %d\n", "_gs_limit", _gs_limit);
+    notice(0, "%15s= %d\n", "_minExtracted", _minExtracted);
+    notice(0, "%15s= %d\n\n", "_deallocLimit", _deallocLimit);
   } else {
     fprintf(fp, "\n%15s= %d\n", "_currentDir", _currentDir);
     fprintf(fp, "%15s= %d\n", "_hiXY", _hiXY);
@@ -3109,7 +3132,7 @@ int extWindow::setExtBoundaries(uint dir)
     _gsRotatedFlag = true;
 
   if (_gsRotatedFlag)
-    odb::notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
+    notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
 
   return _hiXY;
 }
@@ -3239,7 +3262,7 @@ void extWindow::reportProcessedWires(bool rlog)
             _currentDir,
             _minExtracted);
 #ifdef _WIN32
-    odb::notice(0, "%s\n", buff);
+    notice(0, "%s\n", buff);
 #endif
     AthResourceLog(buff, 0);
   }
@@ -3262,7 +3285,7 @@ void extWindow::updateLoBounds(bool reportFlag)
                 100.0*(1.0*_totalWiresExtracted/_totWireCnt));
   
   if ((_totWireCnt > 0) && (_totalWiresExtracted > 0)) {
-    odb::notice(
+    notice(
         0,
         "%c%d completion -- %d wires have been extracted\n",
         '%',
@@ -3287,7 +3310,7 @@ uint extMain::mkNetPropertiesForRsegs(dbBlock* blk, uint dir)
 
     dbWire*        wire = net->getWire();
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -3345,7 +3368,7 @@ uint extMain::invalidateNonDirShapes(dbBlock* blk, uint dir, bool setMainNet)
 
     dbWire*        wire = net->getWire();
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -3411,7 +3434,7 @@ uint extMain::invalidateNonDirShapes(dbBlock* blk, uint dir, bool setMainNet)
     }
     rsegTable.resetCnt();
   }
-  odb::notice(0,
+  notice(0,
               "DEleted %d Rsegs/CapNodes from total %d with %d remaing\n",
               dCnt,
               tot,
@@ -3537,7 +3560,7 @@ uint extMain::couplingWindowFlow(bool        rlog,
   if ((_use_signal_tables == 1) || (_use_signal_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -3712,7 +3735,7 @@ uint extMain::couplingWindowFlow(bool        rlog,
                                              &m->_create_net_util);
 
       uint signalWireCnt = createNetShapePropertires(extBlock);
-      odb::notice(0,
+      notice(0,
                   "Block %s has %d signal wires\n",
                   extBlock->getConstName(),
                   processWireCnt);
@@ -4005,9 +4028,9 @@ uint extMain::assemblyExt(dbBlock* mainBlock, dbBlock* blk)
       node->addToNet();
       gndCnt++;
     }
-    odb::notice(0, "%d nodes on block %s\n", gndCnt, blk->getConstName());
+    notice(0, "%d nodes on block %s\n", gndCnt, blk->getConstName());
     if (csize != gndCnt)
-      odb::notice(0, "\tdifferent from %d cap nodes read\n", csize);
+      notice(0, "\tdifferent from %d cap nodes read\n", csize);
 
     dbSet<dbRSeg> rsegs = blk->getRSegs();
     uint          rsize = rsegs.size();
@@ -4033,9 +4056,9 @@ uint extMain::assemblyExt(dbBlock* mainBlock, dbBlock* blk)
       dbSet<dbRSeg> rSet = net->getRSegs();
       rSet.reverse();
     }
-    odb::notice(0, "%d rsegs on block %s\n", rCnt, blk->getConstName());
+    notice(0, "%d rsegs on block %s\n", rCnt, blk->getConstName());
     if (rsize != rCnt)
-      odb::notice(0, "\tdifferent from %d rsegs read\n", rsize);
+      notice(0, "\tdifferent from %d rsegs read\n", rsize);
     return rCnt;
   }
 }
@@ -4168,7 +4191,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
     int numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg;
     mainBlock->getExtCount(numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg);
 
-    odb::notice(0,
+    notice(0,
                 "Updated %d rsegs and added %d ccsegs of %s from %s\n",
                 rcCnt,
                 ccCnt,
@@ -4206,7 +4229,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -4325,7 +4348,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
   int numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg;
   mainBlock->getExtCount(numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg);
 
-  odb::notice(
+  notice(
       0,
       "Updated %d nets, %d rsegs, and added %d (%d) ccsegs of %s from %s\n",
       cnt,
@@ -4438,7 +4461,7 @@ uint extMain::mkTileNets(uint             dir,
 
   if (powerNets) {
     uint pCnt = mkTilePowerNets(dir, lo_sdb, hi_sdb, createDbNet);
-    odb::notice(0,
+    notice(0,
                 "created %d power wires for block %s\n",
                 pCnt,
                 _block->getConstName());
@@ -4526,7 +4549,7 @@ uint extMain::mkTileNets(uint             dir,
       */
     }
   }
-  odb::notice(
+  notice(
       0, "%d local out of %d tile wires out of %d total\n", local, cnt1, tot);
 
   resetNetSpefFlag(_tiles->_tmpIdTable);
@@ -4647,7 +4670,7 @@ uint extMain::createWindowsDB(bool     rlog,
   if ((use_bin_tables == 1) || (use_bin_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -4680,7 +4703,7 @@ uint extMain::createWindowsDB(bool     rlog,
 
     uint stepNum = 0;
     int  hiXY    = W->setExtBoundaries(dir);
-    // odb::notice(0, "Dir=%d hiXY= %d\n", dir, hiXY);
+    // notice(0, "Dir=%d hiXY= %d\n", dir, hiXY);
     for (; hiXY <= W->_ur[dir]; hiXY += W->_step_nm[dir]) {
       hiXY = W->adjust_hiXY(hiXY);
 
@@ -4713,7 +4736,7 @@ uint extMain::createWindowsDB(bool     rlog,
 
       // dbBlock* extBlock= W->createExtBlock(m, _block, extRect);
       dbBlock* extBlock = W1->createExtBlock(NULL, _block, extRect);
-      // odb::notice(0, "Created dbBlock %s \n", extBlock->getConstName());
+      // notice(0, "Created dbBlock %s \n", extBlock->getConstName());
     }
   }
   return 1;
@@ -4729,7 +4752,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
   }
   bool rcgenFlag = use_signal_tables > 1 ? true : false;
 
-  // odb::notice(0, "D%d", p->getValue());
+  // notice(0, "D%d", p->getValue());
 
   extWindow* W = new extWindow(20);
   W->getExtProperties(_block);
@@ -4790,7 +4813,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
                             powerNets,
                             &createNetUtil,
                             rcCnt);
-    odb::notice(0,
+    notice(0,
                 "BBlock %s has %d signal wires and %d rcSegs were generated\n",
                 extBlock->getConstName(),
                 extWireCnt,
@@ -4825,7 +4848,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
                             _cntxInstTable,
                             &createNetUtil);
     uint signalWireCnt = createNetShapePropertires(extBlock);
-    odb::notice(0,
+    notice(0,
                 "Block %s has %d signal wires\n",
                 extBlock->getConstName(),
                 signalWireCnt);
@@ -4833,7 +4856,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
 
   if (rcgenFlag) {
     uint rcCnt = rcGenTile(extBlock);
-    odb::notice(0, "%d rsegs for %s\n", rcCnt, extBlock->getConstName());
+    notice(0, "%d rsegs for %s\n", rcCnt, extBlock->getConstName());
   }
   return extWireCnt;
 }
@@ -4866,7 +4889,7 @@ uint extMain::rcGen(const char* netNames,
                     ZInterface* Interface)
 {
   if (debug != 77)
-    odb::notice(
+    notice(
         0, "RC segment generation %s ...\n", getBlock()->getName().c_str());
 
   if (!_lefRC && (getRCmodel(0) == NULL)) {
@@ -4897,7 +4920,7 @@ uint extMain::rcGen(const char* netNames,
   getResCapTable(true);
 
   if (debug == 77) {
-    odb::notice(0, "Setup for RCgen done!\n");
+    notice(0, "Setup for RCgen done!\n");
     return 0;
   }
   dbSet<dbNet>           bnets = _block->getNets();
@@ -4907,7 +4930,7 @@ uint extMain::rcGen(const char* netNames,
 
     cnt += rcNetGen(net);
   }
-  odb::notice(0, "Final %d rc segments\n", cnt);
+  notice(0, "Final %d rc segments\n", cnt);
   return cnt;
 }
 uint extMain::rcGenBlock(dbBlock* block)
@@ -4924,7 +4947,7 @@ uint extMain::rcGenBlock(dbBlock* block)
 
     cnt += rcNetGen(net);
   }
-  odb::notice(0, "Final %d rc segments\n", cnt);
+  notice(0, "Final %d rc segments\n", cnt);
   return cnt;
 }
 void extMain::writeMapping(dbBlock* block)
@@ -4951,7 +4974,7 @@ void extMain::writeMapping(dbBlock* block)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;

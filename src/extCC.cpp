@@ -533,7 +533,7 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
         coupleOptions[10] = dir;
 
         coupleOptions[11] = tohi ? 1 : 0;
-        coupleAndCompute(coupleOptions, compPtr);
+        
         bool ignore_visited= true;
 			  if ( ignore_visited || 
             (wire->_visited==0 && wire->_srcWire == NULL) || 

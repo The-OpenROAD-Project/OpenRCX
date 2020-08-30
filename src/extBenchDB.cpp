@@ -16,6 +16,30 @@
 
 namespace OpenRCX {
 
+using odb::dbNet;
+using odb::dbShape;
+using odb::dbWire;
+using odb::dbWirePath;
+using odb::dbWirePathItr;
+using odb::dbRSeg;
+using odb::dbCapNode;
+using odb::dbCCSeg;
+using odb::debug;
+using odb::notice;
+using odb::dbTechLayer;
+using odb::dbTechLayerRule;
+using odb::dbTechNonDefaultRule;
+using odb::dbBlock;
+using odb::dbChip;
+using odb::dbSet;
+using odb::Rect;
+using odb::ISdb;
+using odb::ZPtr;
+using odb::dbBox;
+using odb::dbBTerm;
+using odb::dbIoType;
+using odb::dbObstruction;
+
 extMetRCTable* extRCModel::initCapTables(uint layerCnt, uint widthCnt)
 {
 	createModelTable(1, layerCnt);
@@ -56,11 +80,11 @@ uint extMain::GenExtRules(const char *rulesFileName)
   int prev_sep= 0;
 	int prev_width= 0;
 	int n = 0;
-	odb::dbSet<odb::dbNet> nets = _block->getNets();
-	odb::dbSet<odb::dbNet>::iterator itr;
+	dbSet<dbNet> nets = _block->getNets();
+	dbSet<dbNet>::iterator itr;
 	for (itr = nets.begin(); itr != nets.end(); ++itr)
 	{
-		odb::dbNet* net = *itr; 
+		dbNet* net = *itr; 
 		uint wireCnt= 0;
 		uint viaCnt= 0; 
 		uint len= 0; 
@@ -185,7 +209,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 
 		double contextCoupling= getTotalCouplingCap(net, "cntxM", 0);
 		if (contextCoupling>0) {
-			odb::notice(0, "contextCoupling %g %s\n", contextCoupling, netName);
+			notice(0, "contextCoupling %g %s\n", contextCoupling, netName);
 			totGnd += contextCoupling;
 			totCC -= contextCoupling;
 		}
@@ -219,23 +243,23 @@ uint extMain::GenExtRules(const char *rulesFileName)
 	return n;
 }
 
-double extMain::getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corner)
+double extMain::getTotalCouplingCap(dbNet *net, char *filterNet, uint corner)
 {
     double cap= 0.0;
-    odb::dbSet<odb::dbCapNode> capNodes = net->getCapNodes();
-    odb::dbSet<odb::dbCapNode>::iterator citr;
+    dbSet<dbCapNode> capNodes = net->getCapNodes();
+    dbSet<dbCapNode>::iterator citr;
 
     for( citr = capNodes.begin(); citr != capNodes.end(); ++citr )
     {
-        odb::dbCapNode * n = *citr;
-        odb::dbSet<odb::dbCCSeg> ccSegs = n->getCCSegs();
-        odb::dbSet<odb::dbCCSeg>::iterator ccitr;
+        dbCapNode * n = *citr;
+        dbSet<dbCCSeg> ccSegs = n->getCCSegs();
+        dbSet<dbCCSeg>::iterator ccitr;
 
         for( ccitr = ccSegs.begin(); ccitr != ccSegs.end(); ++ccitr )
         {
-            odb::dbCCSeg * cc = *ccitr;
-			odb::dbNet *srcNet= cc->getSourceCapNode()->getNet();
-			odb::dbNet *tgtNet= cc->getTargetCapNode()->getNet();
+            dbCCSeg * cc = *ccitr;
+			dbNet *srcNet= cc->getSourceCapNode()->getNet();
+			dbNet *tgtNet= cc->getTargetCapNode()->getNet();
 			if ((strstr(srcNet->getConstName(), filterNet) ==NULL) && (strstr(tgtNet->getConstName(), filterNet) ==NULL))
 				continue;
 
@@ -248,17 +272,17 @@ double extMain::getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corne
 uint extMain::benchVerilog(FILE* fp)
 {
 	fprintf(fp, "module %s (\n", _block->getConstName());
-	int outCnt = benchVerilog_bterms(fp, odb::dbIoType::OUTPUT, "  ", ",");
-	int inCnt = benchVerilog_bterms(fp, odb::dbIoType::INPUT, "  ", ",", true);
+	int outCnt = benchVerilog_bterms(fp, dbIoType::OUTPUT, "  ", ",");
+	int inCnt = benchVerilog_bterms(fp, dbIoType::INPUT, "  ", ",", true);
 	fprintf(fp, ");\n\n");
-	benchVerilog_bterms(fp, odb::dbIoType::OUTPUT, "  output ", " ;");
+	benchVerilog_bterms(fp, dbIoType::OUTPUT, "  output ", " ;");
 	fprintf(fp, "\n");
-	benchVerilog_bterms(fp, odb::dbIoType::INPUT, "  input ", " ;");
+	benchVerilog_bterms(fp, dbIoType::INPUT, "  input ", " ;");
 	fprintf(fp, "\n");
 
-	benchVerilog_bterms(fp, odb::dbIoType::OUTPUT, "  wire ", " ;");
+	benchVerilog_bterms(fp, dbIoType::OUTPUT, "  wire ", " ;");
 	fprintf(fp, "\n");
-	benchVerilog_bterms(fp, odb::dbIoType::INPUT, "  wire ", " ;");
+	benchVerilog_bterms(fp, dbIoType::INPUT, "  wire ", " ;");
 	fprintf(fp, "\n");
 
 	benchVerilog_assign(fp);
@@ -266,21 +290,21 @@ uint extMain::benchVerilog(FILE* fp)
 	fclose(fp);
 	return 0;
 }
-uint extMain::benchVerilog_bterms(FILE* fp, odb::dbIoType iotype, const char* prefix, const char* postfix, bool skip_postfix_last)
+uint extMain::benchVerilog_bterms(FILE* fp, dbIoType iotype, const char* prefix, const char* postfix, bool skip_postfix_last)
 {
 	int n = 0;
-	odb::dbSet<odb::dbNet> nets = _block->getNets();
-	odb::dbSet<odb::dbNet>::iterator itr;
+	dbSet<dbNet> nets = _block->getNets();
+	dbSet<dbNet>::iterator itr;
 	for (itr = nets.begin(); itr != nets.end(); ++itr)
 	{
-		odb::dbNet* net = *itr;
+		dbNet* net = *itr;
 		const char* netName = net->getConstName();
 
-		odb::dbSet<odb::dbBTerm> bterms = net->getBTerms();
-		odb::dbSet<odb::dbBTerm>::iterator itr;
+		dbSet<dbBTerm> bterms = net->getBTerms();
+		dbSet<dbBTerm>::iterator itr;
 		for (itr = bterms.begin(); itr != bterms.end(); ++itr)
 		{
-			odb::dbBTerm* bterm = *itr;
+			dbBTerm* bterm = *itr;
 			const char* btermName = bterm->getConstName();
 
 			if (iotype != bterm->getIoType())
@@ -297,33 +321,33 @@ uint extMain::benchVerilog_bterms(FILE* fp, odb::dbIoType iotype, const char* pr
 uint extMain::benchVerilog_assign(FILE* fp)
 {
 	int n = 0;
-	odb::dbSet<odb::dbNet> nets = _block->getNets();
-	odb::dbSet<odb::dbNet>::iterator itr;
+	dbSet<dbNet> nets = _block->getNets();
+	dbSet<dbNet>::iterator itr;
 	for (itr = nets.begin(); itr != nets.end(); ++itr)
 	{
-		odb::dbNet* net = *itr;
+		dbNet* net = *itr;
 		const char* netName = net->getConstName();
 
 		const char* bterm1 = NULL;
 		const char* bterm2 = NULL;
-		odb::dbSet<odb::dbBTerm> bterms = net->getBTerms();
-		odb::dbSet<odb::dbBTerm>::iterator itr;
+		dbSet<dbBTerm> bterms = net->getBTerms();
+		dbSet<dbBTerm>::iterator itr;
 		for (itr = bterms.begin(); itr != bterms.end(); ++itr)
 		{
-			odb::dbBTerm* bterm = *itr;
+			dbBTerm* bterm = *itr;
 			const char* btermName = bterm->getConstName();
 
-			if (bterm->getIoType() == odb::dbIoType::OUTPUT) {
+			if (bterm->getIoType() == dbIoType::OUTPUT) {
 				bterm1= bterm->getConstName();
 				break;
 			}	
 		}
 		for (itr = bterms.begin(); itr != bterms.end(); ++itr)
 		{
-			odb::dbBTerm* bterm = *itr;
+			dbBTerm* bterm = *itr;
 			const char* btermName = bterm->getConstName();
 
-			if (bterm->getIoType() == odb::dbIoType::INPUT) {
+			if (bterm->getIoType() == dbIoType::INPUT) {
 				bterm2 = bterm->getConstName();
 				break;
 			}
@@ -342,7 +366,7 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 
 	uint cnt = 0;
 	int met = measure->_met;
-	odb::dbTechLayer* layer = opt->_tech->findRoutingLayer(met);
+	dbTechLayer* layer = opt->_tech->findRoutingLayer(met);
 
 	double minWidth = 0.001 * layer->getWidth();
 	double spacing = 0.001 * layer->getSpacing();
@@ -364,10 +388,10 @@ uint extRCModel::benchDB_WS(extMainOptions* opt, extMeasure* measure)
 		return 0;
 		wTable->resetCnt();
 		sTable->resetCnt();
-		odb::dbSet<odb::dbTechNonDefaultRule> nd_rules = opt->_tech->getNonDefaultRules();
-		odb::dbSet<odb::dbTechNonDefaultRule>::iterator nditr;
-		odb::dbTechLayerRule* tst_rule;
-		//		odb::dbTechNonDefaultRule  *wdth_rule = NULL;
+		dbSet<dbTechNonDefaultRule> nd_rules = opt->_tech->getNonDefaultRules();
+		dbSet<dbTechNonDefaultRule>::iterator nditr;
+		dbTechLayerRule* tst_rule;
+		//		dbTechNonDefaultRule  *wdth_rule = NULL;
 
 		for (nditr = nd_rules.begin(); nditr != nd_rules.end(); ++nditr) {
 			tst_rule = (*nditr)->getLayerRule(layer);
@@ -487,7 +511,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int x1= bboxLL[0];
 	int y1= bboxLL[1];
 
-	//odb::notice(0, "\n                                     %12d %12d", x1, y1);
+	//notice(0, "\n                                     %12d %12d", x1, y1);
 	measure->clean2dBoxTable(measure->_met, false);
 
 	double x_tmp[50];
@@ -665,8 +689,8 @@ uint extMeasure::createContextObstruction(const char* dirName, int x, int y, int
                return 0;
 
  //fprintf(stdout, "\nOBS %d %d %d %d %d\n", met, x, y, bboxUR[0], bboxUR[1]);
-     odb::dbTechLayer* layer = _tech->findRoutingLayer(met);
-     odb::dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
+     dbTechLayer* layer = _tech->findRoutingLayer(met);
+     dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
        return 1;
 }
 
@@ -709,7 +733,7 @@ int extRCModel::writeBenchWires_DB_diag(extMeasure* measure)
 	bool lines_2=true;
 	int diag_width= 0;
 	int diag_space= 0;
-	odb::dbTechLayer * layer = measure->_create_net_util.getRoutingLayer()[measure->_overMet];
+	dbTechLayer * layer = measure->_create_net_util.getRoutingLayer()[measure->_overMet];
 	diag_width= layer->getWidth();
 	diag_space= layer->getSpacing();
 	if (diag_space==0)

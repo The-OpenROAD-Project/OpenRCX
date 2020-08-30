@@ -45,6 +45,24 @@
 
 namespace OpenRCX {
 
+using odb::dbNet;
+using odb::dbShape;
+using odb::dbWire;
+using odb::dbWireShapeItr;
+using odb::dbRSeg;
+using odb::debug;
+using odb::notice;
+using odb::dbTechLayer;
+using odb::dbTechLayerRule;
+using odb::dbTechNonDefaultRule;
+using odb::dbBlock;
+using odb::dbChip;
+using odb::dbSet;
+using odb::Rect;
+using odb::ISdb;
+using odb::ZPtr;
+using odb::dbBox;
+
 extMainOptions::extMainOptions()
 {
   _met      = -1;
@@ -146,7 +164,7 @@ uint extRCModel::benchWithVar_lists(extMainOptions* opt, extMeasure* measure)
   double        h    = cond->_height;
   double        ro   = cond->_p;
 
-  odb::dbTechLayer* layer = opt->_tech->findRoutingLayer(met);
+  dbTechLayer* layer = opt->_tech->findRoutingLayer(met);
 
   double minWidth = 0.001 * layer->getWidth();
   ;
@@ -166,11 +184,11 @@ uint extRCModel::benchWithVar_lists(extMainOptions* opt, extMeasure* measure)
   } else if (opt->_nondefault_lef_rules) {
     wTable->resetCnt();
     sTable->resetCnt();
-    odb::dbSet<odb::dbTechNonDefaultRule> nd_rules
+    dbSet<dbTechNonDefaultRule> nd_rules
         = opt->_tech->getNonDefaultRules();
-    odb::dbSet<odb::dbTechNonDefaultRule>::iterator nditr;
-    odb::dbTechLayerRule*                           tst_rule;
-    //		odb::dbTechNonDefaultRule  *wdth_rule = NULL;
+    dbSet<dbTechNonDefaultRule>::iterator nditr;
+    dbTechLayerRule*                           tst_rule;
+    //		dbTechNonDefaultRule  *wdth_rule = NULL;
 
     for (nditr = nd_rules.begin(); nditr != nd_rules.end(); ++nditr) {
       tst_rule = (*nditr)->getLayerRule(layer);
@@ -267,7 +285,7 @@ uint extRCModel::linesOverBench(extMainOptions* opt)
       //          fprintf(stdout, "\nFinished %d measurements for bench pattern
       //          M%d_over_M%d\n\n",
       //              cnt1, met, underMet);
-      //odb::notice(
+      //notice(
       //    0,
       //    "Finished %d measurements for bench pattern M%d_over_M%d\n",
       //    cnt1,
@@ -284,7 +302,7 @@ uint extRCModel::linesOverBench(extMainOptions* opt)
   }
   //  fprintf(stdout, "\nFinished %d bench measurements for pattern
   //  MET_OVER_MET\n", cnt);
-  odb::notice(
+  notice(
       0, "Finished %d bench measurements for pattern MET_OVER_MET\n", cnt);
 
   //closeCapLogFile();
@@ -335,7 +353,7 @@ uint extRCModel::linesUnderBench(extMainOptions* opt)
 
       //			fprintf(stdout, "\nFinished %d bench
       //measurements for pattern M%d_under_M%d\n\n", 				cnt1, met, overMet);
-      //odb::notice(
+      //notice(
       //    0,
       //    "Finished %d bench measurements for pattern M%d_under_M%d\n",
       //    cnt1,
@@ -350,7 +368,7 @@ uint extRCModel::linesUnderBench(extMainOptions* opt)
   }
   //	fprintf(stdout, "\nFinished %d bench measurements for pattern
   //MET_UNDER_MET\n", cnt);
-  odb::notice(
+  notice(
       0, "Finished %d bench measurements for pattern MET_UNDER_MET\n", cnt);
 
   //closeCapLogFile();
@@ -399,7 +417,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions* opt)
 
       uint cnt1 = benchWithVar_density(opt, &measure);
 
-      //odb::notice(
+      //notice(
       //    0,
       //    "Finished %d bench measurements for pattern M%d_diagunder_M%d\n",
       //    cnt1,
@@ -414,7 +432,7 @@ uint extRCModel::linesDiagUnderBench(extMainOptions* opt)
   }
   //      fprintf(stdout, "\nFinished %d bench measurements for pattern
   //      MET_UNDER_MET\n", cnt);
-  odb::notice(
+  notice(
       0,
       "Finished %d bench measurements for pattern MET_DIAGUNDER_MET\n",
       cnt);
@@ -473,7 +491,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions* opt)
            measurements for pattern M%d_over_M%d_under_M%d\n\n", cnt1, met,
            underMet, overMet);
         */
-        //odb::notice(0,
+        //notice(0,
         //            "Finished %d bench measurements for pattern "
         //            "M%d_over_M%d_under_M%d\n",
         //            cnt1,
@@ -490,7 +508,7 @@ uint extRCModel::linesOverUnderBench(extMainOptions* opt)
   }
   //	fprintf(stdout, "\nFinished %d measurements for pattern
   //MET_UNDER_MET\n", cnt);
-  odb::notice(0, "Finished %d measurements for pattern MET_UNDER_MET\n", cnt);
+  notice(0, "Finished %d measurements for pattern MET_UNDER_MET\n", cnt);
 
   //closeCapLogFile();
   return cnt;
@@ -516,9 +534,9 @@ uint extMain::benchWires(extMainOptions* opt)
   opt->_tech = _tech;
 
   if (_block == NULL) {
-    odb::dbChip* chip = odb::dbChip::create(_db);
+    dbChip* chip = dbChip::create(_db);
     assert(chip);
-    _block = odb::dbBlock::create(chip, opt->_name, '/');
+    _block = dbBlock::create(chip, opt->_name, '/');
     assert(_block);
     _prevControl = _block->getExtControl();
     _block->setBusDelimeters('[', ']');
@@ -536,7 +554,7 @@ uint extMain::benchWires(extMainOptions* opt)
     opt->_ur[1] = 0;
     m->setLayerCnt(_tech->getRoutingLayerCount());
   } else {
-    odb::dbBox* bb = _block->getBBox();
+    dbBox* bb = _block->getBBox();
 
     opt->_ll[0] = bb->xMax();
     opt->_ll[1] = 0;
@@ -579,8 +597,8 @@ uint extMain::benchWires(extMainOptions* opt)
     m->linesOverUnderBench(opt);
   */
 
-  odb::dbBox*  bb = _block->getBBox();
-  odb::Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
+  dbBox*  bb = _block->getBBox();
+  Rect r(bb->xMin(), bb->yMin(), bb->xMax(), bb->yMax());
   _block->setDieArea(r);
   _extracted = true;
   updatePrevControl();
@@ -598,7 +616,7 @@ uint extMain::runSolver(extMainOptions* opt, uint netId, int shapeId)
 uint extMain::benchNets(extMainOptions*      opt,
                         uint                 netId,
                         uint                 trackCnt,
-                        odb::ZPtr<odb::ISdb> netSdb)
+                        ZPtr<ISdb> netSdb)
 {
   if (_block == NULL) {
     return 0;
@@ -620,7 +638,7 @@ uint extMain::benchNets(extMainOptions*      opt,
 
   uint boxCnt = m->netWiresBench(opt, this, netId, netSdb);
 
-  //_spef->writeNet(odb::dbNet::getNet(_block, netId), 0.0, 0);
+  //_spef->writeNet(dbNet::getNet(_block, netId), 0.0, 0);
 
   return boxCnt;
 }
@@ -765,9 +783,9 @@ bool extRCModel::makePatternNet3D(extMeasure*              measure,
 
   return true;
 }
-uint extMeasure::getRSeg(odb::dbNet* net, uint shapeId)
+uint extMeasure::getRSeg(dbNet* net, uint shapeId)
 {
-  odb::dbWire* w = net->getWire();
+  dbWire* w = net->getWire();
 
   int rsegId = 0;
   if (w->getProperty(shapeId, rsegId) && rsegId != 0)
@@ -799,7 +817,7 @@ uint extRCModel::runWiresSolver(uint netId, int shapeId)
 uint extRCModel::netWiresBench(extMainOptions*      opt,
                                extMain*             xMain,
                                uint                 netId,
-                               odb::ZPtr<odb::ISdb> netSearch)
+                               ZPtr<ISdb> netSearch)
 {
   Ath__array1D<ext2dBox*> boxTable;
 
@@ -816,8 +834,8 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
   FILE* shapefp = openFile(filedir, "shapeId", NULL, "w");
   //	uint cnt= 0;
 
-  odb::dbNet*  net  = odb::dbNet::getNet(opt->_block, netId);
-  odb::dbWire* wire = net->getWire();
+  dbNet*  net  = dbNet::getNet(opt->_block, netId);
+  dbWire* wire = net->getWire();
   if (wire == NULL)
     return 0;
 
@@ -826,8 +844,8 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
   measure._mapTable[0] = 0;
   uint trackNum        = 5;
 
-  odb::dbWireShapeItr shapes;
-  odb::dbShape        s;
+  dbWireShapeItr shapes;
+  dbShape        s;
   for (shapes.begin(wire); shapes.next(s);) {
     boxTable.resetCnt();
     uint boxCnt = 1;
@@ -835,7 +853,7 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
     if (s.isVia())
       continue;
 
-    odb::dbTechLayer* layer = s.getTechLayer();
+    dbTechLayer* layer = s.getTechLayer();
     uint              level = layer->getRoutingLevel();
 
     uint minWidth = layer->getWidth();
@@ -928,7 +946,7 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
 
       uint rsegId1 = 0;
       if (sId > 0) {
-        odb::dbNet* cntxNet = odb::dbNet::getNet(opt->_block, cntxNetId);
+        dbNet* cntxNet = dbNet::getNet(opt->_block, cntxNetId);
         rsegId1             = measure.getRSeg(cntxNet, sId);
       }
       measure._mapTable[boxCnt] = rsegId1;
@@ -950,7 +968,7 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
     }
     fclose(fp);
 
-    odb::notice(
+    notice(
         0,
         "\nFinished %d boxes for net (%d,%d) at coords (%d,%d) (%d,%d)\n",
         boxCnt - 1,
@@ -968,7 +986,7 @@ uint extRCModel::netWiresBench(extMainOptions*      opt,
     if (!measureNetPattern(&measure, shapeId, &boxTable))
       return 0;
   }
-  //	odb::notice(0, "\nFinished pattern for net id %d at coors (%d,%d)
+  //	notice(0, "\nFinished pattern for net id %d at coors (%d,%d)
   //(%d,%d), %d boxes\n", 		cnt, s.xMin(), s.yMin(), s.xMax(), s.yMax(), boxCnt);
 
   //closeCapLogFile();
@@ -980,7 +998,7 @@ uint extRCModel::getNetCapMatrixValues3D(uint        nodeCnt,
                                          uint        shapeId,
                                          extMeasure* m)
 {
-  odb::dbRSeg* rseg1 = odb::dbRSeg::getRSeg(m->_block, m->_mapTable[1]);
+  dbRSeg* rseg1 = dbRSeg::getRSeg(m->_block, m->_mapTable[1]);
   uint         Id    = rseg1->getNet()->getId();
 
   //	double gndCap= m->_capMatrix[1][0];
@@ -1007,9 +1025,9 @@ uint extRCModel::getNetCapMatrixValues3D(uint        nodeCnt,
     uint capId  = m->_idTable[n];
     uint rsegId = m->_mapTable[capId];
     if (rsegId > 0) {
-      //			odb::dbRSeg* rsegN=
-      //odb::dbRSeg::getRSeg(m->_block, m->_mapTable[n]);
-      odb::dbRSeg* rsegN = odb::dbRSeg::getRSeg(m->_block, rsegId);
+      //			dbRSeg* rsegN=
+      //dbRSeg::getRSeg(m->_block, m->_mapTable[n]);
+      dbRSeg* rsegN = dbRSeg::getRSeg(m->_block, rsegId);
 
       if (Id == rsegN->getNet()->getId()) {
         sameNetC += cc1;
@@ -1017,7 +1035,7 @@ uint extRCModel::getNetCapMatrixValues3D(uint        nodeCnt,
         m->_extMain->updateCCCap(rseg1, rsegN, cc1);
         CC += cc1;
       }
-      // odb::notice(0, "\tccCap for netIds %d(%d), %d(%d) %e\n",
+      // notice(0, "\tccCap for netIds %d(%d), %d(%d) %e\n",
       //	m->_idTable[n], n, m->_idTable[n+1], n+1, cc1);
     } else {
     }
@@ -1033,7 +1051,7 @@ uint extRCModel::getNetCapMatrixValues3D(uint        nodeCnt,
           CC,
           frCap);
 
-  // odb::notice(0, "\tfrCap from CC for netId %d(%d) %e\n", m->_idTable[n], n,
+  // notice(0, "\tfrCap from CC for netId %d(%d) %e\n", m->_idTable[n], n,
   // ccFr); m->printStats(_capLogFP);
   fprintf(_capLogFP, "\n\nEND\n\n");
 
