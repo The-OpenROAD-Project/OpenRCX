@@ -57,6 +57,7 @@ using odb::SEQ;
 using odb::dbRSeg;
 using odb::dbCapNode;
 using odb::dbCCSeg;
+using odb::debug;
 using odb::notice;
 using odb::dbTechLayer;
 using odb::dbTechLayerDir;
