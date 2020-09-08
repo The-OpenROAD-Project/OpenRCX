@@ -3896,7 +3896,7 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1,
 					debug("Trace", "C", "OU%d M%d  W%d L%d D%d dg %d %g   Fr %g netcap %g -- %g netRes %g  %d-%d %s\n",
 						totLenCovered, _met, _width, _len, _dist, _diag, _rc[jj]->_diag, _rc[jj]->_fringe, 
 						rseg1->getNet()->getTotalCapacitance(jj, true),_rc[jj]->_res, rseg1->getNet()->getTotalResistance(jj),
-						rseg1->getNet()->getId(), rseg1, rseg1->getNet()->getConstName());
+						rseg1->getNet()->getId(), rseg1->getId(), rseg1->getNet()->getConstName());
 				}
 			}
 		}
@@ -3956,13 +3956,13 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1,
 			  		totLenCovered, _met, _width, _dist, _len, 
 			  		_rc[jj]->_fringe,  _rc[jj]->_coupling, _diag, _rc[jj]->_diag, 
 			  		rseg1->getNet()->getTotalCapacitance(jj, true), _rc[jj]->_res, rseg1->getNet()->getTotalResistance(jj),
-			  		rseg1->getNet()->getId(), rseg1, rseg1->getNet()->getConstName());
+			  		rseg1->getNet()->getId(), rseg1->getId(), rseg1->getNet()->getConstName());
 			  if (rseg2!=NULL)
           debug("Trace", "C", "TGT: OU%d  M%d  W%d D%d L%d   Fr %g cc %g dg %d %g netcap %g -- %g netRes %g %d-%d %s\n",
 			  		totLenCovered, _met, _width, _dist, _len, 
 			  		_rc[jj]->_fringe,  _rc[jj]->_coupling, _diag, _rc[jj]->_diag,
 			  		rseg2->getNet()->getTotalCapacitance(jj, true), _rc[jj]->_res, rseg2->getNet()->getTotalResistance(jj),
-			  		rseg2->getNet()->getId(), rseg2, rseg2->getNet()->getConstName());
+			  		rseg2->getNet()->getId(), rseg2->getId(), rseg2->getNet()->getConstName());
 			}
 		}
 		if (COMPUTE_OVER_SUB) {
@@ -4079,7 +4079,8 @@ void extMeasure::measureRC(int* options)
 //	uint modelCnt= _metRCTable.getCnt();
 	_verticalDiag= _currentModel->getVerticalDiagFlag();
 	int prevCovered= options[20];
-	
+	prevCovered= 0;
+
   //notice (0, "%d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
 	if (IsDebugNet()) {
 			//debug("DistRC", "C", "measureRC: %d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);

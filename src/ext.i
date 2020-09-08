@@ -63,6 +63,7 @@ extract(const char* ext_model_file,
         float coupling_threshold,
         int signal_table,
         int cc_model,
+        const char* debug_net_id,
         bool lef_res)
 {
   Ext* ext = getOpenRCX();
@@ -75,6 +76,7 @@ extract(const char* ext_model_file,
   opts.signal_table = signal_table;
   opts.cc_model = cc_model;
   opts.lef_res = lef_res;
+  opts.debug_net = debug_net_id;
 
   ext->extract(opts);
 }

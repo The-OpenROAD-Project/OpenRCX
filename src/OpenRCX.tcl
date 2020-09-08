@@ -37,6 +37,7 @@ sta::define_cmd_args "extract_parasitics" {
     [-max_res ohms]
     [-coupling_threshold fF]
     [-signal_table value]
+    [-debug_net_id id]
     [-lef_res]
     [-cc_model track]
 }
@@ -47,7 +48,8 @@ proc extract_parasitics { args } {
         -corner_cnt
         -max_res
         -coupling_threshold
-        -signal_table 
+        -signal_table
+        -debug_net_id
         -cc_model } \
       flags { -lef_res }
 
@@ -83,9 +85,14 @@ proc extract_parasitics { args } {
     set cc_model $keys(-cc_model)
   }
 
+  set debug_net_id "" 
+  if { [info exists keys(-debug_net_id)] } {
+    set debug_net_id $keys(-debug_net_id)
+  }
+
   rcx::extract $ext_model_file $corner_cnt $max_res \
       $coupling_threshold $signal_table $cc_model \
-      $lef_res
+      $debug_net_id $lef_res
 }
 
 sta::define_cmd_args "write_spef" { filename }
