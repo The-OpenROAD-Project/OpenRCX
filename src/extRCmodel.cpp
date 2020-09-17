@@ -529,7 +529,6 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
                                - 1;  // assuming last is 100 equivalent to inf
     uint lastDist = before_lastRC->_sep;
 
-    // DIMITRIS ARM crash on 6/26 late afternoon
     if (lastDist == 99000)
       before_lastRC = before_lastRC - 1;
 

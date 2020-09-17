@@ -140,8 +140,6 @@ extSpef::extSpef(odb::dbTech*  tech,
   _partial = false;
 
   _noBackSlash       = false;
-  _primeTime         = false;
-  _psta              = false;
   _useIds            = false;
   _preserveCapValues = false;
   _symmetricCCcaps   = true;
@@ -1574,7 +1572,7 @@ uint extSpef::getNetMapId(uint netId)
 }
 char* extSpef::tinkerSpefName(char* iname)
 {
-  if (!_noBackSlash && !_primeTime && !_psta)
+  if (!_noBackSlash)
     return iname;
   uint ii = 0;
   uint jj = 0;
@@ -1584,20 +1582,6 @@ char* extSpef::tinkerSpefName(char* iname)
       ii++;
       continue;
     }
-    if (_primeTime && iname[ii] == '\\')
-      sprintf(&_mMapName[jj++], "\\");
-    if (_psta
-        && (iname[ii] == '!' || iname[ii] == '#' || iname[ii] == '$'
-            || iname[ii] == '\%' || iname[ii] == '&' || iname[ii] == '\''
-            || iname[ii] == '\(' || iname[ii] == ')' || iname[ii] == '*'
-            || iname[ii] == '+' || iname[ii] == ',' || iname[ii] == '-'
-            || iname[ii] == '.' || iname[ii] == '/' || iname[ii] == ':'
-            || iname[ii] == ';' || iname[ii] == '<' || iname[ii] == '='
-            || iname[ii] == '>' || iname[ii] == '\?' || iname[ii] == '@'
-            || iname[ii] == '\[' || iname[ii] == '\\' || iname[ii] == ']'
-            || iname[ii] == '^' || iname[ii] == '\{' || iname[ii] == '}'
-            || iname[ii] == '|' || iname[ii] == '~'))
-      sprintf(&_mMapName[jj++], "\\");
     _mMapName[jj] = iname[ii];
     ii++;
     jj++;
@@ -1746,8 +1730,6 @@ uint extSpef::writeBlock(char*                     nodeCoord,
                          bool                      noCnum,
                          bool                      stopBeforeDnets,
                          bool                      noBackSlash,
-                         bool                      primeTime,
-                         bool                      psta,
                          bool                      flatten,
                          bool                      parallel)
 {
@@ -1765,8 +1747,6 @@ uint extSpef::writeBlock(char*                     nodeCoord,
                         noCnum,
                         stopBeforeDnets,
                         noBackSlash,
-                        primeTime,
-                        psta,
                         flatten,
                         parallel);
   return rtc;
@@ -1786,8 +1766,6 @@ uint extSpef::writeBlock(char*                    nodeCoord,
                          bool                     noCnum,
                          bool                     stopBeforeDnets,
                          bool                     noBackSlash,
-                         bool                     primeTime,
-                         bool                     psta,
                          bool                     flatten,
                          bool                     parallel)
 {
@@ -1799,8 +1777,6 @@ uint extSpef::writeBlock(char*                    nodeCoord,
   _wRes        = wRes;
   _noCnum      = noCnum;
   _noBackSlash = noBackSlash;
-  _primeTime   = primeTime;
-  _psta        = psta;
   _foreign     = _block->getExtControl()->_foreign;
 
   _writingNodeCoords = C_NONE;

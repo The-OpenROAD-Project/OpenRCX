@@ -42,7 +42,7 @@ OpenRCX::Ext* makeOpenRCX()
   return new OpenRCX::Ext();
 }
 
-void deleteTapcell(OpenRCX::Ext* extractor)
+void deleteOpenRCX(OpenRCX::Ext* extractor)
 {
   delete extractor;
 }

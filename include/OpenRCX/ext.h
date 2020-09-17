@@ -195,7 +195,6 @@ class Ext
 
   bool init_incremental_spef(const std::string& origp,
                              const std::string& newp,
-                             const std::string& reader,
                              bool               no_backslash,
                              const std::string& exclude_cells);
   struct SpefOptions
@@ -223,8 +222,6 @@ class Ext
     bool        w_cc_cap         = false;
     bool        w_res            = false;
     bool        no_c_num         = false;
-    bool        prime_time       = false;
-    bool        psta             = false;
     bool        no_backslash     = false;
     const char* exclude_cells    = nullptr;
     const char* cap_units        = "PF";

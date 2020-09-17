@@ -33,7 +33,7 @@
 
 #include "ext.h"
 #include "logger.h"
-#include "../src/OpenSTA/include/sta/StaMain.hh"
+#include "sta/StaMain.hh"
 
 namespace sta {
 // Tcl files encoded into strings.
@@ -732,14 +732,12 @@ bool Ext::adjust_rc(float res_factor, float cc_factor, float gndc_factor)
 
 bool Ext::init_incremental_spef(const std::string& origp,
                                 const std::string& newp,
-                                const std::string& reader,
                                 bool               no_backslash,
                                 const std::string& exclude_cells)
 {
   dbUpdate();
   _ext->initIncrementalSpef(origp.c_str(),
                             newp.c_str(),
-                            reader.c_str(),
                             exclude_cells.c_str(),
                             no_backslash);
   return 0;
@@ -806,8 +804,6 @@ bool Ext::write_spef(const SpefOptions& opts)
                   initOnly,
                   opts.single_pi,
                   opts.no_backslash,
-                  opts.prime_time,
-                  opts.psta,
                   opts.corner,
                   name,
                   opts.flatten,
