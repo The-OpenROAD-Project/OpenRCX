@@ -1,3 +1,6 @@
 record_tests {
-  gcd_test
+  generate_pattern
+  generate_rules
+  ext_pattern
+  gcd 
 }
