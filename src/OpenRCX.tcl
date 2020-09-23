@@ -40,6 +40,7 @@ sta::define_cmd_args "extract_parasitics" {
     [-debug_net_id id]
     [-lef_res]
     [-cc_model track]
+    [-context_depth depth]
 }
 
 proc extract_parasitics { args } {
@@ -50,6 +51,7 @@ proc extract_parasitics { args } {
         -coupling_threshold
         -signal_table
         -debug_net_id
+        -context_depth
         -cc_model } \
       flags { -lef_res }
 
@@ -84,6 +86,11 @@ proc extract_parasitics { args } {
   if { [info exists keys(-cc_model)] } {
     set cc_model $keys(-cc_model)
   }
+  
+  set depth 5
+  if { [info exists keys(-context_depth)] } {
+    set depth $keys(-context_depth)
+  }
 
   set debug_net_id "" 
   if { [info exists keys(-debug_net_id)] } {
@@ -92,14 +99,32 @@ proc extract_parasitics { args } {
 
   rcx::extract $ext_model_file $corner_cnt $max_res \
       $coupling_threshold $signal_table $cc_model \
-      $debug_net_id $lef_res
+      $depth $debug_net_id $lef_res
 }
 
-sta::define_cmd_args "write_spef" { filename }
+sta::define_cmd_args "write_spef" { 
+  [-net_id net_id]
+  [-nets nets] filename }
 
 proc write_spef { args } {
+  sta::parse_key_args "write_spef" args keys \
+      { -net_id 
+        -nets }
   sta::check_argc_eq1 "write_spef" $args
-  rcx::write_spef $args
+
+  set spef_file $args
+
+  set nets "" 
+  if { [info exists keys(-nets)] } {
+    set nets $keys(-nets)
+  }
+
+  set net_id 0
+  if { [info exists keys(-net_id)] } {
+    set net_id $keys(-net_id)
+  }
+
+  rcx::write_spef $spef_file $nets $net_id
 }
 
 sta::define_cmd_args "adjust_rc" {

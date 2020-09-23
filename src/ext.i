@@ -63,6 +63,7 @@ extract(const char* ext_model_file,
         float coupling_threshold,
         int signal_table,
         int cc_model,
+        int context_depth,
         const char* debug_net_id,
         bool lef_res)
 {
@@ -75,6 +76,7 @@ extract(const char* ext_model_file,
   opts.coupling_threshold = coupling_threshold;
   opts.signal_table = signal_table;
   opts.cc_model = cc_model;
+  opts.context_depth = context_depth;
   opts.lef_res = lef_res;
   opts.debug_net = debug_net_id;
 
@@ -82,11 +84,15 @@ extract(const char* ext_model_file,
 }
 
 void
-write_spef(const char* file)
+write_spef(const char* file,
+           const char* nets,
+           int net_id)
 {
   Ext* ext = getOpenRCX();
   Ext::SpefOptions opts;
   opts.file = file;
+  opts.nets = nets;
+  opts.net_id = net_id;
   ext->write_spef(opts);
 }
 
