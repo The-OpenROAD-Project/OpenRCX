@@ -1,0 +1,37 @@
+Extraction Rules Generation Flow for OpenRCX
+
+This flow generates the RC tech file for OpenRCX.
+The flow involves:
+  A. Running OpenRCX to generate patterns layout.
+    - Input: tech LEF
+    - Output: patterns.def, patterns.v
+    - Script: generate_patterns.tcl
+
+  B. Running commercial extractor to extract parasitics of the patterns layout.
+    - Input: patterns.def, patterns.v (if required), and additional files
+             required by the commercial extractor.
+    - Output: patterns.spef
+    - Script: Not provided
+
+  C. Running OpenRCX to convert patterns.spef to RC tch file.
+    - Input: patterns.spef
+    - Output: RC tech file
+    - Script: generate_rules.tcl
+
+  D. Benchmarking - test the accuracy of OpenRCX on the patterns layout.
+    - Input: patterns.def and RC tech file
+    - Output: rcx.spef, diff_spef.out
+    - Script: ext_patterns.tcl
+
+How to run:
+  1. Go to OpenRCX home directory (./OpenROAD/src/OpenRCX).
+  2. cd calibration.
+  3. Modify the user_env.tcl scipt in the script directory.
+    - TECH_LEF: points to the directory of the tech LEF
+    - PROCESS_NODE: the technology node
+    - extRules: the name and the location of the OpenRCX tech file
+  4. Run the executable script run.sh --> run step A through D.
+    - source run.sh or
+    - ./run.sh
+  5. The OpenRCX RC tech file can be found in the directory set
+     in the extRules variable.
