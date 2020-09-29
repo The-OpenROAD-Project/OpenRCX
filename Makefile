@@ -24,6 +24,7 @@ SRCS=  \
 	ZguiExt.cpp \
 	extRCmodel.cpp \
 	extprocess.cpp \
+	extstats.cpp \
 	exttree.cpp \
 	extmeasure.cpp \
 	extBench.cpp \

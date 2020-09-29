@@ -49,6 +49,29 @@
 
 namespace OpenRCX {
 
+using odb::dbNet;
+using odb::dbShape;
+using odb::dbWirePath;
+using odb::dbWirePathShape;
+using odb::dbWirePathItr;
+using odb::dbWire;
+using odb::dbRSeg;
+using odb::dbCapNode;
+using odb::debug;
+using odb::dbCCSeg;
+using odb::notice;
+using odb::dbTechLayer;
+using odb::dbTechLayerDir;
+using odb::dbTechLayerType;
+using odb::dbBlock;
+using odb::dbSigType;
+using odb::dbSet;
+using odb::warning;
+using odb::dbBTerm;
+using odb::Rect;
+using odb::gs;
+using odb::dbBox;
+
 uint extMain::getBucketNum(int base, int max, uint step, int xy)
 {
   if (xy >= max)
@@ -104,7 +127,7 @@ uint extMain::getNetBbox(dbNet* net, Rect& maxRect)
   maxRect.reset(MAX_INT, MAX_INT, MIN_INT, MIN_INT);
   uint           cnt = 0;
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -127,7 +150,7 @@ uint extMain::getNetBbox(dbNet* net, Rect* maxRect[2])
   maxRect[1]->reset(MAX_INT, MAX_INT, MIN_INT, MIN_INT);
   uint           cnt = 0;
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -151,7 +174,7 @@ void extMain::getNetShapes(dbNet*    net,
     return;
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -391,7 +414,7 @@ extWireBin*** extMain::mkSignalBins(uint              binSize,
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -647,7 +670,21 @@ bool extMain::isIncluded(Rect& r, uint dir, int* ll, int* ur)
 
   return true;
 }
-
+void extMain::GetDBcoords2(Rect & r)
+{
+	int x1= r.xMin();
+	int x2= r.xMax();
+	int y1= r.yMin();
+	int y2= r.yMax();
+	x1= GetDBcoords2(x1);
+	x2= GetDBcoords2(x2);
+    y1= GetDBcoords2(y1);
+	y2= GetDBcoords2(y2);
+    r.set_xlo(x1);
+    r.set_ylo(y1); 
+	r.set_xhi(x2);
+    r.set_yhi(y2);
+}
 uint extMain::initSearchForNets(int*     X1,
                                 int*     Y1,
                                 uint*    pitchTable,
@@ -656,10 +693,9 @@ uint extMain::initSearchForNets(int*     X1,
                                 Rect& extRect,
                                 bool     skipBaseCalc)
 {
-  uint W[16];
-  uint S[16];
-  // int X1[16];
-  // int Y1[16];
+	bool USE_DB_UNITS= false;
+  uint W[32];
+  uint S[32];
 
   dbSet<dbTechLayer>           layers = _tech->getLayers();
   dbSet<dbTechLayer>::iterator itr;
@@ -673,7 +709,12 @@ uint extMain::initSearchForNets(int*     X1,
     if (!((maxRect.dx() > 0) && (maxRect.dy() > 0)))
       error(1, "Die Area for the block has 0 size, or is undefined!\n\n");
   }
-
+  
+  if (USE_DB_UNITS) {
+	GetDBcoords2(maxRect);
+	GetDBcoords2(extRect);
+	}
+  
   // notice(0, "Block= %s\n", _block->getConstName());
   // maxRect.print("---------------- Search Grid BBox ---- ");
   std::vector<int> trackXY(32000);
@@ -686,10 +727,24 @@ uint extMain::initSearchForNets(int*     X1,
       continue;
 
     n             = layer->getRoutingLevel();
+    int w= GetDBcoords2(layer->getWidth());
     widthTable[n] = layer->getWidth();
+    
+    if (USE_DB_UNITS)
+		  widthTable[n]= w;
+    
     W[n]          = 1;
+    int s= GetDBcoords2(layer->getSpacing());
     S[n]          = layer->getSpacing();
+    
+    if (USE_DB_UNITS)
+		  S[n]= s;
+
+    int p= GetDBcoords2(layer->getPitch());
     pitchTable[n] = layer->getPitch();
+
+		if (USE_DB_UNITS)
+	    pitchTable[n]= p;
     if (pitchTable[n] <= 0)
       error(0,
             "Layer %s, routing level %d, has pitch %d !!\n",
@@ -999,7 +1054,7 @@ uint extMain::signalWireCounter(uint& maxWidth)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -1043,6 +1098,21 @@ uint extMain::addPowerNets(uint             dir,
   }
   return cnt;
 }
+
+double extMain::GetDBcoords1(int coord)
+{
+	int db_factor= _block->getDbUnitsPerMicron();
+  return 1.0*coord/db_factor;
+}
+
+int extMain:: GetDBcoords2(int coord)
+{
+  int db_factor= _block->getDbUnitsPerMicron();
+	double d= (1.0*coord)/db_factor;
+	int n= (int) ceil(1000* d);
+	return n;
+}
+
 uint extMain::addNetShapesOnSearch(dbNet*           net,
                                    uint             dir,
                                    int*             bb_ll,
@@ -1051,6 +1121,8 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
                                    FILE*            fp,
                                    dbCreateNetUtil* netUtil)
 {
+	bool USE_DB_UNITS= false;
+
   dbWire* wire = net->getWire();
 
   if (wire == NULL)
@@ -1063,14 +1135,18 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
   //	uint wireId= wire->getId();
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     //		uint level= 0;
 
     int shapeId = shapes.getShapeId();
 
-    if (s.isVia())
+    if (s.isVia()) {
+      if (!_skip_via_wires)
+				addViaBoxes(s, net, shapeId, wtype);
+      
       continue;
+    }
 
     Rect r;
     s.getBox(r);
@@ -1085,15 +1161,36 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
       if (netUtil != NULL) {
         netUtil->createNetSingleWire(r, level, net->getId(), shapeId);
       } else {
-        // int xmin= r.xMin();
-        uint trackNum = _search->addBox(r.xMin(),
-                                        r.yMin(),
-                                        r.xMax(),
-                                        r.yMax(),
-                                        level,
-                                        net->getId(),
-                                        shapeId,
-                                        wtype);
+        int dx= r.xMax() - r.xMin();
+				int dy= r.yMax() - r.yMin();
+				int via_ext= 32;
+			
+				//int xmin= r.xMin();
+				uint trackNum=0;
+				// if (net->getId()==2655) {
+				if (trackNum>0) {
+					if (dy>dx) {
+					trackNum= _search->addBox(r.xMin(), r.yMin()-via_ext, r.xMax(), r.yMax()+via_ext, level,
+						net->getId(), shapeId, wtype);
+					} else {
+					trackNum= _search->addBox(r.xMin()-via_ext, r.yMin(), r.xMax()+via_ext, r.yMax(), level,
+						net->getId(), shapeId, wtype);
+					}
+				} else {				
+					if (USE_DB_UNITS) {
+						trackNum= _search->addBox(
+							GetDBcoords2(r.xMin()), GetDBcoords2(r.yMin()), GetDBcoords2(r.xMax()), GetDBcoords2(r.yMax()),
+							level, net->getId(), shapeId, wtype);
+					} else {
+						trackNum= _search->addBox(r.xMin(), r.yMin(), r.xMax(), r.yMax(), level,
+							net->getId(), shapeId, wtype);
+						if (net->getId()==_debug_net_id) {
+							debug("Search", "W", "onSearch: tr=%d L%d  DX=%d DY=%d %d %d  %d %d -- %.3f %.3f  %.3f %.3f net %d\n", 
+								trackNum, level, dx, dy, r.xMin(), r.yMin(), r.xMax(), r.yMax(),
+						GetDBcoords1(r.xMin()), GetDBcoords1(r.yMin()), GetDBcoords1(r.xMax()), GetDBcoords1(r.yMax()),net->getId());
+						}
+					}
+				}
 
         if (_searchFP != NULL) {
           fprintf(_searchFP,
@@ -1124,6 +1221,75 @@ uint extMain::addNetShapesOnSearch(dbNet*           net,
   }
   return cnt;
 }
+
+uint extMain::addViaBoxes(dbShape & sVia, dbNet *net, uint shapeId, uint wtype)
+{
+	int rcid=getShapeProperty(net, shapeId);
+	wtype= 5; // Via Type
+
+	bool USE_DB_UNITS=false;
+	uint cnt= 0;
+  
+  int X1[2]= {0,0};
+	int X2[2]= {0,0};	
+	int Y1[2]= {0,0};
+	int Y2[2]= {0,0};
+	int id[2]= {0,0};
+	int LEN[2]= {0,0};
+
+	int botLevel=0;
+	int topLevel=0;
+
+	const char *tcut= "tcut";
+	const char *bcut= "bcut";
+
+	std::vector<dbShape> shapes;
+	dbShape::getViaBoxes(sVia, shapes );
+	
+	std::vector<dbShape>::iterator shape_itr;	
+	for ( shape_itr = shapes.begin(); shape_itr != shapes.end(); ++shape_itr )	{
+		
+		dbShape s = *shape_itr;
+		
+		if (s.getTechLayer()->getType()==dbTechLayerType::CUT)
+			continue;
+		
+		int x1= s.xMin();
+		int y1= s.yMin();
+		int x2= s.xMax();
+		int y2= s.yMax();
+		int dx= x2-x1;
+		int dy= y2-y1;
+
+		uint track_num;
+		uint level= s.getTechLayer()->getRoutingLevel();
+		uint width= s.getTechLayer()->getWidth();
+		
+    int len= dx;
+		if (s.getTechLayer()->getDirection()==dbTechLayerDir::VERTICAL) {
+			len= dy;
+			if (width!=dx)
+				continue;
+		} else {
+			if (width!=dy)
+				continue;
+		}
+		
+		if (USE_DB_UNITS) {
+			track_num= _search->addBox(GetDBcoords2(x1), GetDBcoords2(y1), GetDBcoords2(x2), GetDBcoords2(y2), 
+			level, net->getId(), shapeId, wtype);
+		} else {
+			track_num= _search->addBox(x1, y1, x2, y2, level, net->getId(), shapeId, wtype);
+		}
+		//if (net->getId()==_debug_net_id) {
+		//	debug("Search", "W", "addViaBoxes: L%d  DX=%3d DY=%d %d %d  %d %d -- %.3f %.3f  %.3f %.3f dx=%g dy=%g\n", 
+		//		level, dx, dy, x1, y1, x2, y2, GetDBcoords1(x1), GetDBcoords1(y1), GetDBcoords1(x2), GetDBcoords1(y2),
+		//		GetDBcoords1(dx), GetDBcoords1(dy));
+		//}		
+	}
+	return cnt;
+}
+
 uint extMain::addSignalNets(uint             dir,
                             int*             bb_ll,
                             int*             bb_ur,
@@ -1553,6 +1719,7 @@ uint extMain::addNetShapesGs(dbNet*           net,
                              int              dir,
                              dbCreateNetUtil* createDbNet)
 {
+	bool USE_DB_UNITS= false;
   uint    cnt  = 0;
   dbWire* wire = net->getWire();
   if (wire == NULL)
@@ -1563,7 +1730,7 @@ uint extMain::addNetShapesGs(dbNet*           net,
     plane = true;
 
   dbWireShapeItr shapes;
-  odb::dbShape   s;
+  dbShape   s;
   for (shapes.begin(wire); shapes.next(s);) {
     if (s.isVia())
       continue;
@@ -1573,6 +1740,9 @@ uint extMain::addNetShapesGs(dbNet*           net,
     Rect r;
     s.getBox(r);
 
+    if (USE_DB_UNITS) 
+			this->GetDBcoords2(r);
+    
     cnt += addShapeOnGS(net,
                         shapeId,
                         r,
@@ -2238,15 +2408,15 @@ uint extMain::couplingFlow(bool        rlog,
   uint sigtype = 9;
   uint pwrtype = 11;
 
-  uint pitchTable[16];
-  uint widthTable[16];
-  for (uint ii = 0; ii < 16; ii++) {
+  uint pitchTable[32];
+  uint widthTable[32];
+  for (uint ii = 0; ii < 32; ii++) {
     pitchTable[ii] = 0;
     widthTable[ii] = 0;
   }
   uint dirTable[16];
-  int  baseX[16];
-  int  baseY[16];
+  int  baseX[32];
+  int  baseY[32];
   uint layerCnt = initSearchForNets(
       baseX, baseY, pitchTable, widthTable, dirTable, extRect, false);
   for (uint i = 0; i < layerCnt + 1; i++)
@@ -2302,7 +2472,7 @@ uint extMain::couplingFlow(bool        rlog,
   uint totWireCnt      = signalWireCounter(maxWidth);
   totWireCnt += totPowerWireCnt;
 
-  odb::notice(0, "%d wires to be extracted\n", totWireCnt);
+  notice(0, "%d wires to be extracted\n", totWireCnt);
 
   if (single_gs) {
     initPlanes(layerCnt);
@@ -2337,7 +2507,7 @@ uint extMain::couplingFlow(bool        rlog,
   if ((_use_signal_tables == 1) || (_use_signal_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -2386,8 +2556,8 @@ uint extMain::couplingFlow(bool        rlog,
     if (dir == 0)
       enableRotatedFlag();
 
-    if (getRotatedFlag())
-      odb::notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
+    // if (getRotatedFlag())
+    //   notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
 
     lo_gs[!dir]  = ll[!dir];
     hi_gs[!dir]  = ur[!dir];
@@ -2501,7 +2671,7 @@ uint extMain::couplingFlow(bool        rlog,
                 dir,
                 minExtracted);
 #ifdef _WIN32
-        odb::notice(0, "%s\n", buff);
+        notice(0, "%s\n", buff);
 #endif
         AthResourceLog(buff, 0);
       }
@@ -2524,13 +2694,19 @@ uint extMain::couplingFlow(bool        rlog,
       stepNum++;
       // totalWiresExtracted += extractedWireCnt;
       totalWiresExtracted += processWireCnt;
-      if ((totWireCnt > 0) && (totalWiresExtracted > 0)) {
-        odb::notice(
+      float percent_extracted = 
+            Ath__double2int(100.0*(1.0*totalWiresExtracted/totWireCnt));
+
+      if ((totWireCnt > 0) && (totalWiresExtracted > 0) 
+           && (percent_extracted-_previous_percent_extracted >= 5.0)) {
+        notice(
             0,
             "%c%d completion -- %d wires have been extracted\n",
             '%',
-            Ath__double2int(100.0 * (1.0 * totalWiresExtracted / totWireCnt)),
+            (int) (100.0 * (1.0 * totalWiresExtracted / totWireCnt)),
             totalWiresExtracted);
+
+        _previous_percent_extracted= percent_extracted;
       }
       // break;
     }
@@ -2656,7 +2832,7 @@ extWindow* extMain::initWindowSearch(Rect&    extRect,
 
   W->initWindowStep(extRect, trackStep, layerCnt, modelLevelCnt);
 
-  // odb::notice(0, "%d wires to be extracted\n", W->_totWireCnt);
+  // notice(0, "%d wires to be extracted\n", W->_totWireCnt);
 
   return W;
 }
@@ -2690,6 +2866,7 @@ void extWindow::init(uint maxLayerCnt)
   _gsRotatedFlag       = false;
   _totalWiresExtracted = 0;
   _totWireCnt          = 0;
+  _prev_percent_extracted = 0;
 }
 void extWindow::updateExtLimits(int** limitArray)
 {
@@ -2708,18 +2885,18 @@ void extWindow::updateExtLimits(int** limitArray)
 }
 void extMain::printLimitArray(int** limitArray, uint layerCnt)
 {
-  odb::notice(0, " ------------------------ Context Lower Limits\n");
+  notice(0, " ------------------------ Context Lower Limits\n");
   uint ii;
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][0], limitArray[ii][1]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][0], limitArray[ii][1]);
 
-  odb::notice(0, "\n--------------------------- EXT Lower Limits\n");
+  notice(0, "\n--------------------------- EXT Lower Limits\n");
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][2], limitArray[ii][3]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][2], limitArray[ii][3]);
 
-  odb::notice(0, "\n ------------------------ EXT Upper Limits\n");
+  notice(0, "\n ------------------------ EXT Upper Limits\n");
   for (ii = 1; ii < layerCnt; ii++)
-    odb::notice(0, "L=%d %d    %d\n", ii, limitArray[ii][4], limitArray[ii][5]);
+    notice(0, "L=%d %d    %d\n", ii, limitArray[ii][4], limitArray[ii][5]);
 }
 int extWindow::getIntProperty(dbBlock* block, const char* name)
 {
@@ -2911,15 +3088,15 @@ void extWindow::printBoundaries(FILE* fp, bool flag)
     return;
 
   if (fp == NULL) {
-    odb::notice(0, "\n%15s= %d\n", "_currentDir", _currentDir);
-    odb::notice(0, "%15s= %d\n", "_hiXY", _hiXY);
-    odb::notice(0, "%15s= %d\n", "_lo_gs", _lo_gs[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_hi_gs", _hi_gs[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_lo_sdb", _lo_sdb[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_hi_sdb", _hi_sdb[_currentDir]);
-    odb::notice(0, "%15s= %d\n", "_gs_limit", _gs_limit);
-    odb::notice(0, "%15s= %d\n", "_minExtracted", _minExtracted);
-    odb::notice(0, "%15s= %d\n\n", "_deallocLimit", _deallocLimit);
+    notice(0, "\n%15s= %d\n", "_currentDir", _currentDir);
+    notice(0, "%15s= %d\n", "_hiXY", _hiXY);
+    notice(0, "%15s= %d\n", "_lo_gs", _lo_gs[_currentDir]);
+    notice(0, "%15s= %d\n", "_hi_gs", _hi_gs[_currentDir]);
+    notice(0, "%15s= %d\n", "_lo_sdb", _lo_sdb[_currentDir]);
+    notice(0, "%15s= %d\n", "_hi_sdb", _hi_sdb[_currentDir]);
+    notice(0, "%15s= %d\n", "_gs_limit", _gs_limit);
+    notice(0, "%15s= %d\n", "_minExtracted", _minExtracted);
+    notice(0, "%15s= %d\n\n", "_deallocLimit", _deallocLimit);
   } else {
     fprintf(fp, "\n%15s= %d\n", "_currentDir", _currentDir);
     fprintf(fp, "%15s= %d\n", "_hiXY", _hiXY);
@@ -2955,7 +3132,7 @@ int extWindow::setExtBoundaries(uint dir)
     _gsRotatedFlag = true;
 
   if (_gsRotatedFlag)
-    odb::notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
+    notice(0, "\n======> Fast Mode enabled for d= %d <======\n\n", dir);
 
   return _hiXY;
 }
@@ -3085,7 +3262,7 @@ void extWindow::reportProcessedWires(bool rlog)
             _currentDir,
             _minExtracted);
 #ifdef _WIN32
-    odb::notice(0, "%s\n", buff);
+    notice(0, "%s\n", buff);
 #endif
     AthResourceLog(buff, 0);
   }
@@ -3104,13 +3281,18 @@ void extWindow::updateLoBounds(bool reportFlag)
   if (!reportFlag)
     return;
 
+  double percent_extracted= (int) (
+                100.0*(1.0*_totalWiresExtracted/_totWireCnt));
+  
   if ((_totWireCnt > 0) && (_totalWiresExtracted > 0)) {
-    odb::notice(
+    notice(
         0,
         "%c%d completion -- %d wires have been extracted\n",
         '%',
-        Ath__double2int(100.0 * (1.0 * _totalWiresExtracted / _totWireCnt)),
+        (int) (100.0 * (1.0 * _totalWiresExtracted / _totWireCnt)),
         _totalWiresExtracted);
+
+    _prev_percent_extracted = percent_extracted;
   }
 }
 uint extMain::mkNetPropertiesForRsegs(dbBlock* blk, uint dir)
@@ -3128,7 +3310,7 @@ uint extMain::mkNetPropertiesForRsegs(dbBlock* blk, uint dir)
 
     dbWire*        wire = net->getWire();
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -3186,7 +3368,7 @@ uint extMain::invalidateNonDirShapes(dbBlock* blk, uint dir, bool setMainNet)
 
     dbWire*        wire = net->getWire();
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -3252,7 +3434,7 @@ uint extMain::invalidateNonDirShapes(dbBlock* blk, uint dir, bool setMainNet)
     }
     rsegTable.resetCnt();
   }
-  odb::notice(0,
+  notice(0,
               "DEleted %d Rsegs/CapNodes from total %d with %d remaing\n",
               dCnt,
               tot,
@@ -3378,7 +3560,7 @@ uint extMain::couplingWindowFlow(bool        rlog,
   if ((_use_signal_tables == 1) || (_use_signal_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -3553,7 +3735,7 @@ uint extMain::couplingWindowFlow(bool        rlog,
                                              &m->_create_net_util);
 
       uint signalWireCnt = createNetShapePropertires(extBlock);
-      odb::notice(0,
+      notice(0,
                   "Block %s has %d signal wires\n",
                   extBlock->getConstName(),
                   processWireCnt);
@@ -3846,9 +4028,9 @@ uint extMain::assemblyExt(dbBlock* mainBlock, dbBlock* blk)
       node->addToNet();
       gndCnt++;
     }
-    odb::notice(0, "%d nodes on block %s\n", gndCnt, blk->getConstName());
+    notice(0, "%d nodes on block %s\n", gndCnt, blk->getConstName());
     if (csize != gndCnt)
-      odb::notice(0, "\tdifferent from %d cap nodes read\n", csize);
+      notice(0, "\tdifferent from %d cap nodes read\n", csize);
 
     dbSet<dbRSeg> rsegs = blk->getRSegs();
     uint          rsize = rsegs.size();
@@ -3874,9 +4056,9 @@ uint extMain::assemblyExt(dbBlock* mainBlock, dbBlock* blk)
       dbSet<dbRSeg> rSet = net->getRSegs();
       rSet.reverse();
     }
-    odb::notice(0, "%d rsegs on block %s\n", rCnt, blk->getConstName());
+    notice(0, "%d rsegs on block %s\n", rCnt, blk->getConstName());
     if (rsize != rCnt)
-      odb::notice(0, "\tdifferent from %d rsegs read\n", rsize);
+      notice(0, "\tdifferent from %d rsegs read\n", rsize);
     return rCnt;
   }
 }
@@ -4009,7 +4191,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
     int numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg;
     mainBlock->getExtCount(numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg);
 
-    odb::notice(0,
+    notice(0,
                 "Updated %d rsegs and added %d ccsegs of %s from %s\n",
                 rcCnt,
                 ccCnt,
@@ -4047,7 +4229,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;
@@ -4166,7 +4348,7 @@ uint extMain::assemblyExt__2(dbBlock* mainBlock, dbBlock* blk)
   int numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg;
   mainBlock->getExtCount(numOfNet, numOfRSeg, numOfCapNode, numOfCCSeg);
 
-  odb::notice(
+  notice(
       0,
       "Updated %d nets, %d rsegs, and added %d (%d) ccsegs of %s from %s\n",
       cnt,
@@ -4279,7 +4461,7 @@ uint extMain::mkTileNets(uint             dir,
 
   if (powerNets) {
     uint pCnt = mkTilePowerNets(dir, lo_sdb, hi_sdb, createDbNet);
-    odb::notice(0,
+    notice(0,
                 "created %d power wires for block %s\n",
                 pCnt,
                 _block->getConstName());
@@ -4367,7 +4549,7 @@ uint extMain::mkTileNets(uint             dir,
       */
     }
   }
-  odb::notice(
+  notice(
       0, "%d local out of %d tile wires out of %d total\n", local, cnt1, tot);
 
   resetNetSpefFlag(_tiles->_tmpIdTable);
@@ -4488,7 +4670,7 @@ uint extMain::createWindowsDB(bool     rlog,
   if ((use_bin_tables == 1) || (use_bin_tables == 2)) {
     use_signal_tables = true;
 
-    odb::notice(0,
+    notice(0,
                 "\nSignal_table= %d ----------------------------- \n\n",
                 _use_signal_tables);
 
@@ -4521,7 +4703,7 @@ uint extMain::createWindowsDB(bool     rlog,
 
     uint stepNum = 0;
     int  hiXY    = W->setExtBoundaries(dir);
-    // odb::notice(0, "Dir=%d hiXY= %d\n", dir, hiXY);
+    // notice(0, "Dir=%d hiXY= %d\n", dir, hiXY);
     for (; hiXY <= W->_ur[dir]; hiXY += W->_step_nm[dir]) {
       hiXY = W->adjust_hiXY(hiXY);
 
@@ -4554,7 +4736,7 @@ uint extMain::createWindowsDB(bool     rlog,
 
       // dbBlock* extBlock= W->createExtBlock(m, _block, extRect);
       dbBlock* extBlock = W1->createExtBlock(NULL, _block, extRect);
-      // odb::notice(0, "Created dbBlock %s \n", extBlock->getConstName());
+      // notice(0, "Created dbBlock %s \n", extBlock->getConstName());
     }
   }
   return 1;
@@ -4570,7 +4752,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
   }
   bool rcgenFlag = use_signal_tables > 1 ? true : false;
 
-  // odb::notice(0, "D%d", p->getValue());
+  // notice(0, "D%d", p->getValue());
 
   extWindow* W = new extWindow(20);
   W->getExtProperties(_block);
@@ -4631,7 +4813,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
                             powerNets,
                             &createNetUtil,
                             rcCnt);
-    odb::notice(0,
+    notice(0,
                 "BBlock %s has %d signal wires and %d rcSegs were generated\n",
                 extBlock->getConstName(),
                 extWireCnt,
@@ -4666,7 +4848,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
                             _cntxInstTable,
                             &createNetUtil);
     uint signalWireCnt = createNetShapePropertires(extBlock);
-    odb::notice(0,
+    notice(0,
                 "Block %s has %d signal wires\n",
                 extBlock->getConstName(),
                 signalWireCnt);
@@ -4674,7 +4856,7 @@ uint extMain::fillWindowsDB(bool rlog, Rect& extRect, uint use_signal_tables)
 
   if (rcgenFlag) {
     uint rcCnt = rcGenTile(extBlock);
-    odb::notice(0, "%d rsegs for %s\n", rcCnt, extBlock->getConstName());
+    notice(0, "%d rsegs for %s\n", rcCnt, extBlock->getConstName());
   }
   return extWireCnt;
 }
@@ -4707,7 +4889,7 @@ uint extMain::rcGen(const char* netNames,
                     ZInterface* Interface)
 {
   if (debug != 77)
-    odb::notice(
+    notice(
         0, "RC segment generation %s ...\n", getBlock()->getName().c_str());
 
   if (!_lefRC && (getRCmodel(0) == NULL)) {
@@ -4738,7 +4920,7 @@ uint extMain::rcGen(const char* netNames,
   getResCapTable(true);
 
   if (debug == 77) {
-    odb::notice(0, "Setup for RCgen done!\n");
+    notice(0, "Setup for RCgen done!\n");
     return 0;
   }
   dbSet<dbNet>           bnets = _block->getNets();
@@ -4748,7 +4930,7 @@ uint extMain::rcGen(const char* netNames,
 
     cnt += rcNetGen(net);
   }
-  odb::notice(0, "Final %d rc segments\n", cnt);
+  notice(0, "Final %d rc segments\n", cnt);
   return cnt;
 }
 uint extMain::rcGenBlock(dbBlock* block)
@@ -4765,7 +4947,7 @@ uint extMain::rcGenBlock(dbBlock* block)
 
     cnt += rcNetGen(net);
   }
-  odb::notice(0, "Final %d rc segments\n", cnt);
+  notice(0, "Final %d rc segments\n", cnt);
   return cnt;
 }
 void extMain::writeMapping(dbBlock* block)
@@ -4792,7 +4974,7 @@ void extMain::writeMapping(dbBlock* block)
       continue;
 
     dbWireShapeItr shapes;
-    odb::dbShape   s;
+    dbShape   s;
     for (shapes.begin(wire); shapes.next(s);) {
       if (s.isVia())
         continue;

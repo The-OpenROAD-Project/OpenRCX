@@ -37,15 +37,23 @@ sta::define_cmd_args "extract_parasitics" {
     [-max_res ohms]
     [-coupling_threshold fF]
     [-signal_table value]
+    [-debug_net_id id]
+    [-lef_res]
+    [-cc_model track]
+    [-context_depth depth]
 }
 
 proc extract_parasitics { args } {
-  sta::parse_key_args "define_process_corner" args keys \
+  sta::parse_key_args "extract_parasitics" args keys \
       { -ext_model_file
         -corner_cnt
         -max_res
         -coupling_threshold
-        -signal_table }
+        -signal_table
+        -debug_net_id
+        -context_depth
+        -cc_model } \
+      flags { -lef_res }
 
   set ext_model_file ''
   if { [info exists keys(-ext_model_file)] } {
@@ -72,15 +80,51 @@ proc extract_parasitics { args } {
     set signal_table $keys(-signal_table)
   }
 
+  set lef_res [info exists flags(-lef_res)]
+
+  set cc_model 10
+  if { [info exists keys(-cc_model)] } {
+    set cc_model $keys(-cc_model)
+  }
+  
+  set depth 5
+  if { [info exists keys(-context_depth)] } {
+    set depth $keys(-context_depth)
+  }
+
+  set debug_net_id "" 
+  if { [info exists keys(-debug_net_id)] } {
+    set debug_net_id $keys(-debug_net_id)
+  }
+
   rcx::extract $ext_model_file $corner_cnt $max_res \
-      $coupling_threshold $signal_table
+      $coupling_threshold $signal_table $cc_model \
+      $depth $debug_net_id $lef_res
 }
 
-sta::define_cmd_args "write_spef" { filename }
+sta::define_cmd_args "write_spef" { 
+  [-net_id net_id]
+  [-nets nets] filename }
 
 proc write_spef { args } {
+  sta::parse_key_args "write_spef" args keys \
+      { -net_id 
+        -nets }
   sta::check_argc_eq1 "write_spef" $args
-  rcx::write_spef $args
+
+  set spef_file $args
+
+  set nets "" 
+  if { [info exists keys(-nets)] } {
+    set nets $keys(-nets)
+  }
+
+  set net_id 0
+  if { [info exists keys(-net_id)] } {
+    set net_id $keys(-net_id)
+  }
+
+  rcx::write_spef $spef_file $nets $net_id
 }
 
 sta::define_cmd_args "adjust_rc" {
@@ -112,3 +156,139 @@ proc adjust_rc { args } {
 
    rcx::adjust_rc $res_factor $cc_factor $gndc_factor
 }
+
+sta::define_cmd_args "diff_spef" {
+    [-file filename]
+    [-r_res]
+    [-r_cap]
+    [-r_cc_cap]
+    [-r_conn]
+}
+
+proc diff_spef { args } {
+  sta::parse_key_args "diff_spef" args keys \
+      { -file } \
+      flags { -r_res -r_cap -r_cc_cap -r_conn }
+  
+  set filename "" 
+  if { [info exists keys(-file)] } {
+    set filename $keys(-file)
+  }
+  set res [info exists flags(-over)]
+  set cap [info exists flags(-over)]
+  set cc_cap [info exists flags(-over)]
+  set conn [info exists flags(-over)]
+
+  rcx::diff_spef $filename $conn $res $cap $cc_cap
+}
+
+sta::define_cmd_args "bench_wires" {
+    [-met_cnt mcnt]
+    [-cnt count]
+    [-len wire_len]
+    [-over]
+    [-diag]
+    [-all]
+    [-db_only]
+    [-under_met layer]
+    [-w_list width]
+    [-s_list space]
+}
+
+proc bench_wires { args } {
+  sta::parse_key_args "bench_wires" args keys \
+      { -met_cnt -cnt -len -under_met
+        -w_list -s_list } \
+      flags { -diag -over -all -db_only }
+
+  set over [info exists flags(-over)]
+  set all [info exists flags(-all)]
+  set diag [info exists flags(-diag)]
+  set db_only [info exists flags(-db_only)]
+
+  set met_cnt 1000 
+  if { [info exists keys(-met_cnt)] } {
+    set met_cnt $keys(-met_cnt)
+  }
+
+  set cnt 5
+  if { [info exists keys(-cnt)] } {
+    set cnt $keys(-cnt)
+  }
+
+  set len 100
+  if { [info exists keys(-len)] } {
+    set len $keys(-len)
+  }
+
+  set under_met -1
+  if { [info exists keys(-under_met)] } {
+    set under_met $keys(-under_met)
+  }
+
+  set w_list "1"
+  if { [info exists keys(-w_list)] } {
+    set w_list $keys(-w_list)
+  }
+  
+  set s_list "1 2 2.5 3 3.5 4 4.5 5 6 8 10 0"
+  if { [info exists keys(-s_list)] } {
+    set s_list $keys(-s_list)
+  }
+  
+  rcx::bench_wires $db_only $over $diag $all $met_cnt $cnt $len $under_met $w_list $s_list 
+}
+
+sta::define_cmd_args "bench_verilog" { filename }
+
+proc bench_verilog { args } {
+  sta::check_argc_eq1 "bench_verilog" $args
+  rcx::bench_verilog $args
+}
+
+sta::define_cmd_args "bench_read_spef" { filename }
+
+proc bench_read_spef { args } {
+  sta::check_argc_eq1 "bench_read_spef" $args
+  rcx::read_spef $args
+}
+
+sta::define_cmd_args "write_rules" {
+    [-file filename]
+    [-dir dir]
+    [-name name]
+    [-pattern pattern]
+    [-read_from_solver]
+    [-db]
+}
+
+proc write_rules { args } {
+  sta::parse_key_args "write_rules" args keys \
+      { -file -dir -name -pattern } \
+      flags { -read_from_solver -db }
+  
+  set filename "extRules" 
+  if { [info exists keys(-file)] } {
+    set filename $keys(-file)
+  }
+
+  set dir "./" 
+  if { [info exists keys(-dir)] } {
+    set dir $keys(-dir)
+  }
+  
+  set name "TYP" 
+  if { [info exists keys(-name)] } {
+    set name $keys(-name)
+  }
+
+  set pattern 0
+  if { [info exists keys(-pattern)] } {
+    set name $keys(-pattern)
+  }
+  set solver [info exists flags(-read_from_solver)]
+  set db [info exists flags(-db)]
+
+ rcx::write_rules $filename $dir $name $pattern $solver $db
+}
+

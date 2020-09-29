@@ -61,7 +61,11 @@ extract(const char* ext_model_file,
         int corner_cnt,
         double max_res,
         float coupling_threshold,
-        int signal_table)
+        int signal_table,
+        int cc_model,
+        int context_depth,
+        const char* debug_net_id,
+        bool lef_res)
 {
   Ext* ext = getOpenRCX();
   Ext::ExtractOptions opts;
@@ -71,16 +75,24 @@ extract(const char* ext_model_file,
   opts.max_res = max_res;
   opts.coupling_threshold = coupling_threshold;
   opts.signal_table = signal_table;
+  opts.cc_model = cc_model;
+  opts.context_depth = context_depth;
+  opts.lef_res = lef_res;
+  opts.debug_net = debug_net_id;
 
   ext->extract(opts);
 }
 
 void
-write_spef(const char* file)
+write_spef(const char* file,
+           const char* nets,
+           int net_id)
 {
   Ext* ext = getOpenRCX();
   Ext::SpefOptions opts;
   opts.file = file;
+  opts.nets = nets;
+  opts.net_id = net_id;
   ext->write_spef(opts);
 }
 
@@ -92,6 +104,85 @@ adjust_rc(double res_factor,
   Ext* ext = getOpenRCX();
   ext->adjust_rc(res_factor, cc_factor, gndc_factor);
 }
+
+void
+diff_spef(const char* file,
+          bool r_conn,
+          bool r_res,
+          bool r_cap,
+          bool r_cc_cap)
+{
+  Ext* ext = getOpenRCX();
+  Ext::DiffOptions opts;
+  opts.file = file;
+  opts.r_res = r_res;
+  opts.r_cap = r_cap;
+  opts.r_cc_cap = r_cc_cap;
+  opts.r_conn = r_conn;
+  ext->diff_spef(opts);
+}
+
+void
+bench_wires(bool db_only,
+          bool over,
+          bool diag,
+          bool all,
+          int met_cnt,
+          int cnt,
+          int len,
+          int under_met,
+          const char* w_list,
+          const char* s_list)
+{
+  Ext* ext = getOpenRCX();
+  Ext::BenchWiresOptions opts;
+  
+  opts.w_list = w_list;
+  opts.s_list = s_list;
+  opts.Over = over;
+  opts.diag = diag;
+  opts.gen_def_patterns = all;
+  opts.cnt = cnt;
+  opts.len = len;
+  opts.under_met = under_met;
+  opts.met_cnt = met_cnt;
+  opts.db_only = db_only;
+
+  ext->bench_wires(opts);
+}
+
+void
+bench_verilog(const char* file)
+{
+  Ext* ext = getOpenRCX();
+  ext->bench_verilog(file);
+}
+
+void
+write_rules(const char* file,
+            const char* dir,
+            const char* name,
+            int pattern,
+            bool read_from_db,
+            bool read_from_solver)
+{
+  Ext* ext = getOpenRCX();
+  Ext::BenchWiresOptions opts;
+  
+  ext->write_rules(name, dir, file, pattern, read_from_solver,
+                   read_from_db);
+}
+
+void 
+read_spef(const char* file)
+{
+  Ext* ext = getOpenRCX();
+  Ext::ReadSpefOpts opts;
+
+  opts.file = file;
+  ext->read_spef(opts);
+}
+
 
 %} // inline
 

@@ -212,6 +212,8 @@ double extSpef::printDiff(dbNet*      net,
                           int         ii,
                           int         id)
 {
+	bool ext_stats= true;
+
   if (_calib)
     return 0.0;
 
@@ -230,20 +232,65 @@ double extSpef::printDiff(dbNet*      net,
   if ((diffCap <= _upperThres) && (diffCap >= _lowerThres))
     return diffCap;
 
-  fprintf(_diffOutFP,
-          "%4.1f - %s %g ref %g corner %d ",
-          diffCap,
-          ctype,
-          dbCap,
-          refCap,
-          ii);
+  if (ext_stats) {
+		uint corner= ii;
+		int wlen;
+		uint via_cnt;
+		double min_cap, max_cap, min_res, max_res, via_res;
+
+		uint wireCnt = _ext->getExtStats(net,  corner,  wlen,  min_cap, max_cap, min_res, max_res, via_res, via_cnt); 
+
+		double boundsPercent;
+		double boundsPercentRef;
+		if (ctype=="netRes") {
+			const char * comp_db = comp_bounds(dbCap, min_res+via_res, max_res+via_res, boundsPercent);
+			const char * comp_ref = comp_bounds(refCap, min_res+via_res, max_res+via_res, boundsPercentRef);
+
+			fprintf(_diffOutFP, "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f %10.4f VR %g  V %d  L %d  WC %d  %s corner %d %s ", 
+				diffCap, dbCap, comp_db, boundsPercent, refCap, comp_ref, boundsPercentRef, min_res, max_res, via_res, via_cnt, wlen, wireCnt, ctype, ii, _ext->_tmpLenStats);
+		} else {
+				const char * comp_db =   comp_bounds(dbCap, min_cap, max_cap, boundsPercent);
+				const char * comp_ref = comp_bounds(refCap, min_cap, max_cap, boundsPercentRef);
+
+				fprintf(_diffOutFP, "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f %10.4f  L %8d  WC %3d  V %3d %s corner %d %s ", 
+					diffCap, dbCap, comp_db, boundsPercent, refCap, comp_ref, boundsPercentRef, min_cap, max_cap, wlen, wireCnt, via_cnt, ctype, ii, _ext->_tmpLenStats);	
+		}
+
+	} else {
+		fprintf(_diffOutFP, "%4.2f - %s %g ref %g corner %d ", 
+			diffCap, ctype, dbCap, refCap, ii);
+	}
 
   if (id > 0)
     fprintf(_diffOutFP, "capId %d ", id);
 
-  net->printNetName(_diffOutFP);
+  net->printNetName(_diffOutFP, true);
 
   return diffCap;
+}
+double extSpef::percentDiff(double dbCap, double refCap)
+{
+	double percent = 100.0;
+	if (refCap>0.0)
+		percent *= ((dbCap-refCap)/refCap);
+	return percent;
+}
+const char * extSpef::comp_bounds(double val, double min, double max, double & percent)
+{
+	percent = percentDiff(val, max);
+	double percent_low = percentDiff(val, min);
+	const char * comp_db = "OK";
+	if (val<min && percent_low<-0.1) {
+		comp_db = "LO";
+		percent = percent_low;
+	}
+	else if (val>max && percent>0.1) {
+		comp_db = "HI";
+		percent = percentDiff(val, max);
+	} else { 
+		// percent = 0;
+	}
+	return comp_db;
 }
 double extSpef::printDiffCC(dbNet*      net1,
                             dbNet*      net2,
@@ -1493,12 +1540,7 @@ uint extSpef::sortRSegs()
         break;
       }
     }
-  }
-  if (drvCapNode == NULL) {
-    notice(0,
-           "Warning: Can't find driver capnode for net %d %s\n",
-           _d_net->getId(),
-           _d_net->getConstName());
+    // TODO: add flag notice (0, "Warning: Can't find driver capnode for net %d %s\n", _d_net->getId(), _d_net->getConstName());
     _d_corner_net->setRCDisconnected(true);
     return 0;
   }
@@ -1911,7 +1953,7 @@ uint extSpef::readDNet(uint debug)
       while (_parser->parseNextLine() > 0) {
         //_parser->printWords(stdout);
 
-        if (_readingNodeCoords == C_STARRC) {
+        if (_readingNodeCoords == C_STARRC && !_diff) {
           cpos = 0;
           if (strcmp("*N", _parser->get(0)) == 0)
             cpos = 2;
@@ -1981,14 +2023,14 @@ uint extSpef::readDNet(uint debug)
           netId      = 1;
           uint srcId = getCapNodeId(_parser->get(1), NULL, &netId);
           if (!srcId)
-            return 0;
+            continue;
           if (!_testParsing)
             srcNet = dbNet::getNet(_block, netId);
 
           netId      = 2;
           uint dstId = getCapNodeId(_parser->get(2), NULL, &netId);
           if (!dstId)
-            return 0;
+            continue;
 
           if (_testParsing)
             continue;
@@ -2383,8 +2425,8 @@ uint extSpef::readBlock(uint                debug,
     return 0;
   }
   _readingNodeCoordsInput = _readingNodeCoords;
-  if (_readingNodeCoords == C_NONE)
-    _readingNodeCoords = C_STARRC;
+  // 0620 if (_readingNodeCoords == C_NONE)
+  // 0620	  _readingNodeCoords = C_STARRC;
   if (_readingNodeCoords != C_NONE && _nodeCoordParser == NULL)
     _nodeCoordParser = new Ath__parser();
   if (capStatsFile != NULL) {

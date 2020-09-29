@@ -38,7 +38,37 @@
 
 namespace OpenRCX {
 
-void extMain::destroyExtSdb(std::vector<odb::dbNet*>& nets, void* _ext)
+using odb::dbNet;
+using odb::dbShape;
+using odb::dbWirePath;
+using odb::dbWirePathShape;
+using odb::dbWirePathItr;
+using odb::dbWire;
+using odb::SEQ;
+using odb::dbRSeg;
+using odb::dbCapNode;
+using odb::debug;
+using odb::dbCCSeg;
+using odb::notice;
+using odb::dbTechLayer;
+using odb::dbTechLayerDir;
+using odb::dbTechLayerType;
+using odb::dbBlock;
+using odb::dbChip;
+using odb::dbSigType;
+using odb::dbSet;
+using odb::dbTech;
+using odb::warning;
+using odb::dbDatabase;
+using odb::dbBTerm;
+using odb::Rect;
+using odb::gs;
+using odb::ISdb;
+using odb::ZPtr;
+using odb::error;
+using odb::dbBox;
+
+void extMain::destroyExtSdb(std::vector<dbNet*>& nets, void* _ext)
 {
   if (_ext == NULL)
     return;
@@ -46,22 +76,22 @@ void extMain::destroyExtSdb(std::vector<odb::dbNet*>& nets, void* _ext)
   ext->removeSdb(nets);
 }
 
-void extMain::addDummyCorners(odb::dbBlock* block, uint cnt)
+void extMain::addDummyCorners(dbBlock* block, uint cnt)
 {
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
-    odb::error(0, "ext opbject on dbBlock is NULL!\n");
+    error(0, "ext opbject on dbBlock is NULL!\n");
     return;
   }
   tmiExt->addDummyCorners(cnt);
 }
 
-void extMain::initExtractedCorners(odb::dbBlock* block)
+void extMain::initExtractedCorners(dbBlock* block)
 {
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
     tmiExt = new extMain(0);
-    tmiExt->setDB((odb::dbDatabase*) block->getDataBase());
+    tmiExt->setDB((dbDatabase*) block->getDataBase());
   }
   if (tmiExt->_processCornerTable)
     return;
@@ -69,30 +99,30 @@ void extMain::initExtractedCorners(odb::dbBlock* block)
   tmiExt->getExtractedCorners();
 }
 
-int extMain::getExtCornerIndex(odb::dbBlock* block, const char* cornerName)
+int extMain::getExtCornerIndex(dbBlock* block, const char* cornerName)
 {
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
     tmiExt = new extMain(0);
-    tmiExt->setDB((odb::dbDatabase*) block->getDataBase());
+    tmiExt->setDB((dbDatabase*) block->getDataBase());
   }
   int idx = tmiExt->getDbCornerIndex(cornerName);
   return idx;
 }
 
 // wis 1
-void extMain::writeIncrementalSpef(Darr<odb::dbNet*>& buf_nets,
-                                   odb::dbBlock*      block,
+void extMain::writeIncrementalSpef(Darr<dbNet*>& buf_nets,
+                                   dbBlock*      block,
                                    INCR_SPEF_TYPE     isftype,
                                    bool               coupled_rc,
                                    bool               dual_incr_spef)
 {
-  std::vector<odb::dbNet*> bnets;
+  std::vector<dbNet*> bnets;
   int                      nn;
   for (nn = 0; nn < buf_nets.n(); nn++)
     bnets.push_back(buf_nets.get(nn));
   if (isftype == ISPEF_ORIGINAL_PLUS_HALO || isftype == ISPEF_NEW_PLUS_HALO) {
-    std::vector<odb::dbNet*> ccHaloNets;
+    std::vector<dbNet*> ccHaloNets;
     block->getCcHaloNets(bnets, ccHaloNets);
     INCR_SPEF_TYPE type
         = isftype == ISPEF_ORIGINAL_PLUS_HALO ? ISPEF_ORIGINAL : ISPEF_NEW;
@@ -104,14 +134,14 @@ void extMain::writeIncrementalSpef(Darr<odb::dbNet*>& buf_nets,
 }
 
 // wis 2
-void extMain::writeIncrementalSpef(Darr<odb::dbNet*>&        buf_nets,
-                                   std::vector<odb::dbNet*>& ccHaloNets,
-                                   odb::dbBlock*             block,
+void extMain::writeIncrementalSpef(Darr<dbNet*>&        buf_nets,
+                                   std::vector<dbNet*>& ccHaloNets,
+                                   dbBlock*             block,
                                    INCR_SPEF_TYPE            isftype,
                                    bool                      coupled_rc,
                                    bool                      dual_incr_spef)
 {
-  std::vector<odb::dbNet*> bnets;
+  std::vector<dbNet*> bnets;
   int                      nn;
   for (nn = 0; nn < buf_nets.n(); nn++)
     bnets.push_back(buf_nets.get(nn));
@@ -123,14 +153,14 @@ void extMain::writeIncrementalSpef(Darr<odb::dbNet*>&        buf_nets,
 }
 
 // wis 3
-void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& buf_nets,
-                                   std::vector<odb::dbNet*>& ccHaloNets,
-                                   odb::dbBlock*             block,
+void extMain::writeIncrementalSpef(std::vector<dbNet*>& buf_nets,
+                                   std::vector<dbNet*>& ccHaloNets,
+                                   dbBlock*             block,
                                    INCR_SPEF_TYPE            isftype,
                                    bool                      coupled_rc,
                                    bool                      dual_incr_spef)
 {
-  std::vector<odb::dbNet*> bnets;
+  std::vector<dbNet*> bnets;
   uint                     jj;
   for (jj = 0; jj < buf_nets.size(); jj++)
     bnets.push_back(buf_nets[jj]);
@@ -141,8 +171,8 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& buf_nets,
 }
 
 // wis 4
-void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& buf_nets,
-                                   odb::dbBlock*             block,
+void extMain::writeIncrementalSpef(std::vector<dbNet*>& buf_nets,
+                                   dbBlock*             block,
                                    INCR_SPEF_TYPE            isftype,
                                    bool                      coupled_rc,
                                    bool                      dual_incr_spef)
@@ -150,7 +180,7 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& buf_nets,
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
     tmiExt = new extMain(0);
-    tmiExt->setDB((odb::dbDatabase*) block->getDataBase());
+    tmiExt->setDB((dbDatabase*) block->getDataBase());
     // tmiExt -> setDesign((char *)block->getConstName());
   }
   tmiExt->writeIncrementalSpef(
@@ -158,7 +188,7 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& buf_nets,
 }
 
 // wis 5
-void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& bnets,
+void extMain::writeIncrementalSpef(std::vector<dbNet*>& bnets,
                                    INCR_SPEF_TYPE            isftype,
                                    bool                      coupled_rc,
                                    bool                      dual_incr_spef)
@@ -167,14 +197,14 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& bnets,
     return;
   if (isftype == ISPEF_NEW && !_newSpefFilePrefix)
     return;
-  std::vector<odb::dbNet*> dumnet;
+  std::vector<dbNet*> dumnet;
   bool                     fullIncrSpef
       = coupled_rc && !dual_incr_spef && !_noFullIncrSpef ? true : false;
-  std::vector<odb::dbNet*>* pbnets = fullIncrSpef ? &dumnet : &bnets;
+  std::vector<dbNet*>* pbnets = fullIncrSpef ? &dumnet : &bnets;
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
     // copy block name for incremental spef - needed for magma
     // Mattias - Nov 19/07
     _spef->setDesign((char*) _block->getName().c_str());
@@ -216,17 +246,17 @@ void extMain::writeIncrementalSpef(std::vector<odb::dbNet*>& bnets,
 
 // wis 6
 void extMain::writeIncrementalSpef(char*                     filename,
-                                   std::vector<odb::dbNet*>& bnets,
+                                   std::vector<dbNet*>& bnets,
                                    uint                      nn,
                                    bool                      dual_incr_spef)
 {
   uint cnt;
   char fname[1200];
   if (!dual_incr_spef) {
-    odb::debug("EXT_SPEF", "I", "Writing Spef to File %s\n", filename);
+    debug("EXT_SPEF", "I", "Writing Spef to File %s\n", filename);
     sprintf(&fname[0], "%s.%d.spef", filename, nn);
     if (openSpefFile(fname, 1) > 0)
-      odb::notice(0, "Can not open file \"%s\" to write spef.\n", filename);
+      notice(0, "Can not open file \"%s\" to write spef.\n", filename);
     else
       cnt = _spef->writeBlock(NULL /*nodeCoord*/,
                               _excludeCells,
@@ -251,7 +281,7 @@ void extMain::writeIncrementalSpef(char*                     filename,
   _block->replaceOldParasitics(bnets, oldNetCap, oldNetRseg);
   sprintf(&fname[0], "%s.1.%d.spef", filename, nn);
   if (openSpefFile(fname, 1) > 0)
-    odb::notice(0, "Can not open file \"%s\" to write spef.\n", fname);
+    notice(0, "Can not open file \"%s\" to write spef.\n", fname);
   else
     cnt = _spef->writeBlock(NULL /*nodeCoord*/,
                             _excludeCells,
@@ -272,7 +302,7 @@ void extMain::writeIncrementalSpef(char*                     filename,
   _block->restoreOldParasitics(bnets, oldNetCap, oldNetRseg);
   sprintf(&fname[0], "%s.2.%d.spef", filename, nn);
   if (openSpefFile(fname, 1) > 0)
-    odb::notice(0, "Can not open file \"%s\" to write spef.\n", fname);
+    notice(0, "Can not open file \"%s\" to write spef.\n", fname);
   else
     cnt = _spef->writeBlock(NULL /*nodeCoord*/,
                             _excludeCells,
@@ -292,7 +322,7 @@ void extMain::writeIncrementalSpef(char*                     filename,
                             false /*parallel*/);
 }
 
-void writeSpef(odb::dbBlock* block,
+void writeSpef(dbBlock* block,
                char*         filename,
                char*         nets,
                int           corner,
@@ -301,22 +331,22 @@ void writeSpef(odb::dbBlock* block,
   extMain* tmiExt = (extMain*) block->getExtmi();
   if (tmiExt == NULL) {
     tmiExt = new extMain(0);
-    tmiExt->setDB((odb::dbDatabase*) block->getDataBase());
+    tmiExt->setDB((dbDatabase*) block->getDataBase());
   }
-  std::vector<odb::dbNet*> tnets;
+  std::vector<dbNet*> tnets;
   block->findSomeNet(nets, tnets);
   tmiExt->writeSpef(filename, tnets, corner, coord);
 }
 
 void extMain::writeSpef(char*                     filename,
-                        std::vector<odb::dbNet*>& tnets,
+                        std::vector<dbNet*>& tnets,
                         int                       corner,
                         char*                     coord)
 {
   if (!_spef || _spef->getBlock() != _block) {
     if (_spef)
       delete _spef;
-    _spef = new extSpef(_tech, _block);
+    _spef = new extSpef(_tech, _block, this);
   }
   _spef->setDesign((char*) _block->getConstName());
   uint cCnt = _block->getCornerCount();
@@ -330,7 +360,7 @@ void extMain::writeSpef(char*                     filename,
   }
   uint cnt;
   if (openSpefFile(filename, 1) > 0) {
-    odb::notice(0, "Can not open file \"%s\" to write spef.\n", filename);
+    notice(0, "Can not open file \"%s\" to write spef.\n", filename);
     return;
   } else
     cnt = _spef->writeBlock(coord /*nodeCoord*/,
@@ -446,6 +476,7 @@ extMain::extMain(uint menuId)
       _subCktNodeFP{{nullptr, nullptr}, {nullptr, nullptr}},
       _junct2iterm(nullptr)
 {
+  _previous_percent_extracted=0;
   _power_extract_only      = false;
   _skip_power_stubs        = false;
   _power_exclude_cell_list = NULL;
@@ -549,7 +580,7 @@ void extMain::initDgContextArray()
 {
   _dgContextDepth     = 3;
   _dgContextPlanes    = _dgContextDepth * 2 + 1;
-  _dgContextArray     = new Ath__array1D<odb::SEQ*>**[_dgContextPlanes];
+  _dgContextArray     = new Ath__array1D<SEQ*>**[_dgContextPlanes];
   _dgContextBaseTrack = new uint[_dgContextPlanes];
   _dgContextLowTrack  = new int[_dgContextPlanes];
   _dgContextHiTrack   = new int[_dgContextPlanes];
@@ -561,9 +592,9 @@ void extMain::initDgContextArray()
     _dgContextTracks = _couplingFlag * 2 + 1;
   for (uint jj = 0; jj < _dgContextPlanes; jj++) {
     _dgContextTrackBase[jj] = new int[1024];
-    _dgContextArray[jj]     = new Ath__array1D<odb::SEQ*>*[_dgContextTracks];
+    _dgContextArray[jj]     = new Ath__array1D<SEQ*>*[_dgContextTracks];
     for (uint tt = 0; tt < _dgContextTracks; tt++) {
-      _dgContextArray[jj][tt] = new Ath__array1D<odb::SEQ*>(1024);
+      _dgContextArray[jj][tt] = new Ath__array1D<SEQ*>(1024);
     }
   }
 }
@@ -605,24 +636,24 @@ void extMain::initContextArray()
   _tContextArray = new Ath__array1D<int>(1024);
 }
 
-uint extMain::getExtLayerCnt(odb::dbTech* tech)
+uint extMain::getExtLayerCnt(dbTech* tech)
 {
-  odb::dbSet<odb::dbTechLayer>           layers = tech->getLayers();
-  odb::dbSet<odb::dbTechLayer>::iterator itr;
+  dbSet<dbTechLayer>           layers = tech->getLayers();
+  dbSet<dbTechLayer>::iterator itr;
 
   uint n = 0;
   for (itr = layers.begin(); itr != layers.end(); ++itr) {
-    odb::dbTechLayer*    layer = *itr;
-    odb::dbTechLayerType type  = layer->getType();
+    dbTechLayer*    layer = *itr;
+    dbTechLayerType type  = layer->getType();
 
-    if (type.getValue() != odb::dbTechLayerType::ROUTING)
+    if (type.getValue() != dbTechLayerType::ROUTING)
       continue;
 
     n++;
   }
   return n;
 }
-uint extMain::addExtModel(odb::dbTech* tech)
+uint extMain::addExtModel(dbTech* tech)
 {
   _lefRC = true;
 
@@ -648,27 +679,33 @@ uint extMain::addExtModel(odb::dbTech* tech)
   if (dbunit > 1000)
     dbFactor = dbunit * 0.001;
 
-  odb::dbSet<odb::dbTechLayer>           layers = tech->getLayers();
-  odb::dbSet<odb::dbTechLayer>::iterator itr;
+  dbSet<dbTechLayer>           layers = tech->getLayers();
+  dbSet<dbTechLayer>::iterator itr;
 
   uint n = 0;
   for (itr = layers.begin(); itr != layers.end(); ++itr) {
-    odb::dbTechLayer*    layer = *itr;
-    odb::dbTechLayerType type  = layer->getType();
+    dbTechLayer*    layer = *itr;
+    dbTechLayerType type  = layer->getType();
 
-    if (type.getValue() != odb::dbTechLayerType::ROUTING)
+    if (type.getValue() != dbTechLayerType::ROUTING)
       continue;
 
     n = layer->getRoutingLevel();
+    
+    uint w= layer->getWidth(); // nm
 
-    double cap
-        = layer->getCapacitance()
-          / (dbFactor * dbFactor);  // PF per square micron : totCap= cap * LW
+    
+    double areacap= layer->getCapacitance()/(dbFactor*dbFactor);  
+    double cap= layer->getCapacitance();
+
+    //double cap
+    //    = layer->getCapacitance()
+    //      / (dbFactor * dbFactor);  // PF per square micron : totCap= cap * LW
     double res = layer->getResistance();  // OHMS per square
-    uint   w   = layer->getWidth();       // nm
+    //uint   w   = layer->getWidth();       // nm
                                           //		res /= w; // OHMS per nm
     //		cap *= 0.001 * w; // FF per nm : 0.00
-    cap *= 0.001;
+    cap *= 0.001 * 2;
 
     m->addLefTotRC(n, 0, cap, res);
 
@@ -691,10 +728,11 @@ extRCModel* extMain::getRCmodel(uint n)
 }
 uint extMain::getResCapTable(bool lefRC)
 {
+  calcMinMaxRC();
   _currentModel = getRCmodel(0);
 
-  odb::dbSet<odb::dbTechLayer>           layers = _tech->getLayers();
-  odb::dbSet<odb::dbTechLayer>::iterator itr;
+  dbSet<dbTechLayer>           layers = _tech->getLayers();
+  dbSet<dbTechLayer>::iterator itr;
 
   extMeasure m;
   m._underMet = 0;
@@ -704,10 +742,10 @@ uint extMain::getResCapTable(bool lefRC)
   uint n        = 0;
   bool allRzero = true;
   for (itr = layers.begin(); itr != layers.end(); ++itr) {
-    odb::dbTechLayer*    layer = *itr;
-    odb::dbTechLayerType type  = layer->getType();
+    dbTechLayer*    layer = *itr;
+    dbTechLayerType type  = layer->getType();
 
-    if (type.getValue() != odb::dbTechLayerType::ROUTING)
+    if (type.getValue() != dbTechLayerType::ROUTING)
       continue;
 
     n = layer->getRoutingLevel();
@@ -732,44 +770,59 @@ uint extMain::getResCapTable(bool lefRC)
       extDistRC* rc = rcModel->getOverFringeRC(&m);
 
       if (rc != NULL) {
+        double r1= rc->getRes();
         _capacitanceTable[jj][n] = rc->getFringe();
-        //_resistanceTable[jj][n]= rc->getRes();
+		    debug("EXT_RES", "R", "Layer= %s met= %d    w= %d cc= %g fr=%g res= %g  model_res= %g\n",
+				    layer->getConstName(),n, w, rc->getCoupling(), 
+            rc->getFringe(), res, r1);
       }
+
+      extDistRC *rc0= rcModel->getOverFringeRC(&m, 0);
+      
+      if (!_lef_res) {
+			  if (rc0!=NULL) {
+			  	 double r1= rc->getRes();
+			  	_resistanceTable[jj][n]= r1;
+        }
+      } else {
+				debug("EXT_RES_LEF", "R", "Layer= %s met= %d  lef_res= %g\n", 
+              layer->getConstName(),n, res);
+			} 
     }
     cnt++;
   }
   //	if (allRzero)
   //	{
-  //		odb::notice(0, "\nWarning: No RESISTANCE from all layers in the
+  //		notice(0, "\nWarning: No RESISTANCE from all layers in the
   //lef files. Can't do extraction.\n\n"); 		return 0;
   //	}
   return cnt;
 }
 bool extMain::checkLayerResistance()
 {
-  odb::dbSet<odb::dbTechLayer>           layers = _tech->getLayers();
-  odb::dbSet<odb::dbTechLayer>::iterator itr;
+  dbSet<dbTechLayer>           layers = _tech->getLayers();
+  dbSet<dbTechLayer>::iterator itr;
 
   uint cnt = 0;
   for (itr = layers.begin(); itr != layers.end(); ++itr) {
-    odb::dbTechLayer*    layer = *itr;
-    odb::dbTechLayerType type  = layer->getType();
+    dbTechLayer*    layer = *itr;
+    dbTechLayerType type  = layer->getType();
 
-    if (type.getValue() != odb::dbTechLayerType::ROUTING)
+    if (type.getValue() != dbTechLayerType::ROUTING)
       continue;
 
     double res = layer->getResistance();  // OHMS per square
 
     if (res <= 0.0) {
-      odb::warning(
+      warning(
           0, "Missing Resistance value for layer %s\n", layer->getConstName());
       cnt++;
     }
   }
   if (cnt > 0) {
-    odb::warning(
+    warning(
         0, "%d layers are missing resistance value; Check LEF file\n", cnt);
-    odb::warning(0, "Extraction cannot proceed! Exiting\n");
+    warning(0, "Extraction cannot proceed! Exiting\n");
     return false;
   }
   return true;
@@ -777,10 +830,14 @@ bool extMain::checkLayerResistance()
 double extMain::getLefResistance(uint level, uint width, uint len, uint model)
 {
   double res = _resistanceTable[model][level];
-  double n   = 1.0 * len / width;
+  double n   = 1.0 * len;
+  
+  if (_lefRC || _lef_res) 
+		n /= width;
 
-  res *= n;
-  return res;
+	double r= n*res;
+  
+  return r;
 }
 double extMain::getResistance(uint level, uint width, uint len, uint model)
 {
@@ -819,7 +876,7 @@ double extMain::getResistance(uint level, uint width, uint len, uint model)
           }
   */
 }
-void extMain::setDB(odb::dbDatabase* db)
+void extMain::setDB(dbDatabase* db)
 {
   _db      = db;
   _tech    = db->getTech();
@@ -840,7 +897,7 @@ void extMain::setDB(odb::dbDatabase* db)
   _excludeCells       = NULL;
   _extracted          = false;
 }
-void extMain::setBlock(odb::dbBlock* block)
+void extMain::setBlock(dbBlock* block)
 {
   _block       = block;
   _prevControl = _block->getExtControl();
@@ -865,7 +922,7 @@ uint extMain::makeGuiBoxes(uint extGuiBoxType)
 
 uint extMain::computeXcaps(uint boxType)
 {
-  odb::ZPtr<odb::ISdb> ccCapSdb = _reExtract ? _reExtCcapSDB : _extCcapSDB;
+  ZPtr<ISdb> ccCapSdb = _reExtract ? _reExtCcapSDB : _extCcapSDB;
   if (ccCapSdb == NULL)
     return 0;
 
@@ -894,20 +951,20 @@ uint extMain::computeXcaps(uint boxType)
     if (wtype2 == _dbPowerId)
       continue;
 
-    odb::dbRSeg* rseg1 = odb::dbRSeg::getRSeg(_block, extId1);
-    odb::dbRSeg* rseg2 = odb::dbRSeg::getRSeg(_block, extId2);
+    dbRSeg* rseg1 = dbRSeg::getRSeg(_block, extId1);
+    dbRSeg* rseg2 = dbRSeg::getRSeg(_block, extId2);
 
-    odb::dbNet* srcNet = rseg1->getNet();
-    odb::dbNet* tgtNet = rseg2->getNet();
+    dbNet* srcNet = rseg1->getNet();
+    dbNet* tgtNet = rseg2->getNet();
 
     if (srcNet == tgtNet)
       continue;
 
-    // odb::dbCCSeg *ccap= odb::dbCCSeg::create(srcNet, rseg1->getTargetNode(),
+    // dbCCSeg *ccap= dbCCSeg::create(srcNet, rseg1->getTargetNode(),
     //		tgtNet, rseg2->getTargetNode(), mergeParallel);
-    odb::dbCCSeg* ccap = odb::dbCCSeg::create(
-        odb::dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
-        odb::dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
+    dbCCSeg* ccap = dbCCSeg::create(
+        dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
+        dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
         mergeParallel);
 
     uint lcnt = _block->getCornerCount();
@@ -968,7 +1025,7 @@ double extMain::getFringe(uint    met,
     return 0.0;
   return rc->getFringe();
 }
-void extMain::updateTotalCap(odb::dbRSeg* rseg,
+void extMain::updateTotalCap(dbRSeg* rseg,
                              double       frCap,
                              double       ccCap,
                              double       deltaFr,
@@ -985,13 +1042,12 @@ void extMain::updateTotalCap(odb::dbRSeg* rseg,
   rseg->setCapacitance(tot, modelIndex);
   //	double T= rseg->getCapacitance(modelIndex);
 }
-void extMain::updateTotalRes(odb::dbRSeg* rseg1,
-                             odb::dbRSeg* rseg2,
+void extMain::updateTotalRes(dbRSeg* rseg1,
+                             dbRSeg* rseg2,
                              extMeasure*  m,
                              double*      delta,
                              uint         modelCnt)
 {
-  return;  // tttt -- to activate later
   for (uint modelIndex = 0; modelIndex < modelCnt; modelIndex++) {
     extDistRC* rc = m->_rc[modelIndex];
 
@@ -1038,7 +1094,7 @@ void extMain::updateTotalRes(odb::dbRSeg* rseg1,
   }
 }
 
-void extMain::updateTotalCap(odb::dbRSeg* rseg,
+void extMain::updateTotalCap(dbRSeg* rseg,
                              extMeasure*  m,
                              double*      deltaFr,
                              uint         modelCnt,
@@ -1098,14 +1154,14 @@ void extMain::updateTotalCap(odb::dbRSeg* rseg,
   }
 }
 
-void extMain::updateCCCap(odb::dbRSeg* rseg1, odb::dbRSeg* rseg2, double ccCap)
+void extMain::updateCCCap(dbRSeg* rseg1, dbRSeg* rseg2, double ccCap)
 {
-  odb::dbCCSeg* ccap = odb::dbCCSeg::create(
-      odb::dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
-      odb::dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
+  dbCCSeg* ccap = dbCCSeg::create(
+      dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
+      dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
       true);
   /*
-odb::dbCCSeg *ccap= odb::dbCCSeg::create(rseg1->getNet(),
+dbCCSeg *ccap= dbCCSeg::create(rseg1->getNet(),
 rseg1->getTargetNode(), rseg2->getNet(), rseg2->getTargetNode(), true);
 */
   bool mergeParallel = true;
@@ -1335,7 +1391,7 @@ void extMain::ccReportProgress()
     //		fprintf(stdout, "Have processed %d total segments, %d signal
     //segments, %d CC caps, and stored %d CC caps\n", _totSegCnt,
     //_totSignalSegCnt, _totCCcnt, _totBigCCcnt);
-    odb::notice(0,
+    notice(0,
                 "Have processed %d total segments, %d signal segments, %d CC "
                 "caps, and stored %d CC caps\n",
                 _totSegCnt,
@@ -1347,10 +1403,19 @@ void extMain::ccReportProgress()
 int  ttttsrcnet = 66;
 int  tttttgtnet = 66;
 int  ttttm      = 0;
-void extMain::printNet(odb::dbNet* net, uint netId)
+void extMain::printNet(dbNet* net, uint netId)
 {
   if (netId == net->getId())
     net->printNetName(stdout);
+}
+bool IsDebugNets(dbNet* srcNet, dbNet* tgtNet, uint debugNetId)
+{
+	if (srcNet!=NULL && srcNet->getId()==debugNetId)
+		return true;
+	if (tgtNet!=NULL && tgtNet->getId()==debugNetId)
+		return true;
+
+    return false;
 }
 void extMain::measureRC(int* options)
 {
@@ -1372,26 +1437,27 @@ void extMain::measureRC(int* options)
   // modelCnt= %d  layerCnt= %d\n", 		met, len, dist,
   // m->getModelCnt(), m->getLayerCnt());
 
-  uint debugNetId = 6;
+  uint debugNetId = _debug_net_id;
 
-  odb::dbRSeg* rseg1  = NULL;
-  odb::dbNet*  srcNet = NULL;
+  dbRSeg* rseg1  = NULL;
+  dbNet*  srcNet = NULL;
   if (rsegId1 > 0) {
-    rseg1  = odb::dbRSeg::getRSeg(_block, rsegId1);
+    rseg1  = dbRSeg::getRSeg(_block, rsegId1);
     srcNet = rseg1->getNet();
     printNet(srcNet, debugNetId);
   }
 
-  odb::dbRSeg* rseg2  = NULL;
-  odb::dbNet*  tgtNet = NULL;
+  dbRSeg* rseg2  = NULL;
+  dbNet*  tgtNet = NULL;
   if (rsegId2 > 0) {
-    rseg2  = odb::dbRSeg::getRSeg(_block, rsegId2);
+    rseg2  = dbRSeg::getRSeg(_block, rsegId2);
     tgtNet = rseg2->getNet();
     printNet(tgtNet, debugNetId);
   }
   if (_lefRC)
     return;
 
+  bool watchNets= IsDebugNets(srcNet, tgtNet, debugNetId);
   m._ouPixelTableIndexMap = _overUnderPlaneLayerMap;
   m._pixelTable           = _geomSeq;
 
@@ -1427,7 +1493,7 @@ void extMain::measureRC(int* options)
       int pbase = m._dir ? m._ur[1] : m._ur[0];
       //		  fprintf(stdout, "Context of layer %d, xy=%d len=%d
       // base=%d width=%d :\n", m._met, pxy, m._len, pbase, m._s_nm);
-      odb::notice(0,
+      notice(0,
                   "Context of layer %d, xy=%d len=%d base=%d width=%d :\n",
                   m._met,
                   pxy,
@@ -1439,20 +1505,20 @@ void extMain::measureRC(int* options)
                    && (int) ii + m._met < _currentModel->getLayerCnt();
            ii++) {
         //		    fprintf(stdout, "  layer %d\n", ii+m._met);
-        odb::notice(0, "  layer %d\n", ii + m._met);
+        notice(0, "  layer %d\n", ii + m._met);
         for (jj = 0; jj < _ccContextArray[ii + m._met]->getCnt(); jj++)
           //		      fprintf(stdout, "    %d: %d\n", jj,
           //_ccContextArray[ii+m._met]->get(jj));
-          odb::notice(
+          notice(
               0, "    %d: %d\n", jj, _ccContextArray[ii + m._met]->get(jj));
       }
       for (ii = 1; ii <= _ccContextDepth && m._met - ii > 0; ii++) {
         //		    fprintf(stdout, "  layer %d\n", m._met-ii);
-        odb::notice(0, "  layer %d\n", m._met - ii);
+        notice(0, "  layer %d\n", m._met - ii);
         for (jj = 0; jj < _ccContextArray[m._met - ii]->getCnt(); jj++)
           //		      fprintf(stdout, "    %d: %d\n", jj,
           //_ccContextArray[m._met-ii]->get(jj));
-          odb::notice(
+          notice(
               0, "    %d: %d\n", jj, _ccContextArray[m._met - ii]->get(jj));
       }
     }
@@ -1497,11 +1563,11 @@ void extMain::measureRC(int* options)
       }
       _totBigCCcnt++;
 
-      odb::dbCCSeg* ccap = odb::dbCCSeg::create(
-          odb::dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
-          odb::dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
+      dbCCSeg* ccap = dbCCSeg::create(
+          dbCapNode::getCapNode(_block, rseg1->getTargetNode()),
+          dbCapNode::getCapNode(_block, rseg2->getTargetNode()),
           true);
-      // odb::dbCCSeg *ccap= odb::dbCCSeg::create(srcNet,
+      // dbCCSeg *ccap= dbCCSeg::create(srcNet,
       // rseg1->getTargetNode(), tgtNet, rseg2->getTargetNode(), true);
 
       int extDbIndex, sci, scDbIdx;
@@ -1553,7 +1619,7 @@ uint extMain::makeTree(uint netId)
 
   uint   test    = 0;
   double max_cap = 10.00;
-  tree->makeTree(odb::dbNet::getNet(_block, netId),
+  tree->makeTree(dbNet::getNet(_block, netId),
                  max_cap,
                  test,
                  true,

@@ -79,6 +79,7 @@ class Ext
                    const std::string& dir,
                    const std::string& file,
                    int                pattern,
+                   bool               read_from_db,
                    bool               read_from_solver);
   bool get_ext_metal_count(int& metal_count);
   bool bench_net(const std::string& dir,
@@ -87,33 +88,43 @@ class Ext
                  bool               read_from_solver,
                  bool               run_solver,
                  int                max_track_count);
+  bool bench_verilog(const std::string& file);
   bool run_solver(const std::string& dir, int net, int shape);
-  bool bench_wires(const std::string& block,
-                   int                over_dist,
-                   int                under_dist,
-                   int                met,
-                   int                over_met,
-                   int                under_met,
-                   int                len,
-                   int                cnt,
-                   const std::string& w,
-                   const std::string& s,
-                   const std::string& th,
-                   const std::string& d,
-                   const std::string& w_list,
-                   const std::string& s_list,
-                   const std::string& th_list,
-                   const std::string& grid_list,
-                   bool               default_lef_rules,
-                   bool               nondefault_lef_rules,
-                   const std::string& dir,
-                   bool               Over,
-                   bool               ddd,
-                   bool               multiple_widths,
-                   bool               write_to_solver,
-                   bool               read_from_solver,
-                   bool               run_solver,
-                   bool               diag);
+  
+  struct BenchWiresOptions 
+  {         const char* block = "blk";
+            int                over_dist = 100;
+            int                under_dist = 100;
+            int                met_cnt = 1000;
+            int                met = -1;
+            int                over_met = -1;
+            int                under_met = -1;
+            int                len = 200;
+            int                cnt = 5;
+            const char* w = "1";
+            const char* s = "1";
+            const char* th = "1";
+            const char* d = "0.0";
+            const char* w_list = "1";
+            const char* s_list = "1 2 2.5 3 3.5 4 4.5 5 6 8 10 12";
+            const char* th_list = "0 1 2 2.5 3 3.5 4 4.5 5 6 8 10 12";
+            const char* grid_list = "";
+            bool               default_lef_rules = false;
+            bool               nondefault_lef_rules = false;
+            const char* dir = "./Bench";
+            bool               Over = false;
+            bool               db_only = false;
+            bool               ddd = false;
+            bool               multiple_widths = false;
+            bool               write_to_solver = false;
+            bool               read_from_solver = false;
+            bool               run_solver = false;
+            bool               diag = false;
+            bool               over_under = false;
+            bool               gen_def_patterns = false;
+  };
+
+  bool bench_wires(const BenchWiresOptions& bwo);
   bool assembly(odb::dbBlock* block, odb::dbBlock* main_block);
   bool write_spef_nets(odb::dbObject* block,
                        bool           flatten,
@@ -131,6 +142,7 @@ class Ext
     int         set_max             = -1;
     bool        litho               = false;
     bool        wire_density        = false;
+    const char* debug_net           = nullptr;
     const char* cmp_file            = nullptr;
     const char* ext_model_file      = nullptr;
     const char* net                 = nullptr;
@@ -145,8 +157,8 @@ class Ext
     double      max_res             = 50.0;
     bool        no_merge_via_res    = false;
     float       coupling_threshold  = 0.1;
-    int         context_depth       = 0;
-    int         cc_model            = 40;
+    int         context_depth       = 5;
+    int         cc_model            = 10;
     bool        over_cell           = false;
     bool        remove_cc           = false;
     bool        remove_ext          = false;
@@ -154,6 +166,7 @@ class Ext
     bool        eco                 = false;
     bool        no_gs               = false;
     bool        re_run              = false;
+    bool        skip_via_wires      = false;
     bool        tile                = false;
     int         tiling              = 0;
     bool        skip_m1_caps        = false;
@@ -162,6 +175,7 @@ class Ext
     bool        skip_power_stubs    = false;
     const char* power_source_coords = nullptr;
     bool        lef_rc              = false;
+    bool        lef_res             = false;
     bool        rlog                = false;
   };
 
@@ -216,50 +230,61 @@ class Ext
   bool write_spef(const SpefOptions& options);
 
   bool independent_spef_corner();
-  bool read_spef(const std::string& file,
-                 const std::string& net,
-                 bool               force,
-                 bool               use_ids,
-                 bool               keep_loaded_corner,
-                 bool               stamp_wire,
-                 int                test_parsing,
-                 const std::string& N,
-                 bool               r_conn,
-                 bool               r_cap,
-                 bool               r_cc_cap,
-                 bool               r_res,
-                 float              cc_threshold,
-                 float              cc_ground_factor,
-                 int                app_print_limit,
-                 int                corner,
-                 const std::string& db_corner_name,
-                 const std::string& calibrate_base_corner,
-                 int                spef_corner,
-                 bool               m_map,
-                 bool               more_to_read,
-                 float              length_unit,
-                 int                fix_loop,
-                 bool               no_cap_num_collapse,
-                 const std::string& cap_node_map_file,
-                 bool               log);
-  bool diff_spef(const std::string& net,
-                 bool               use_ids,
-                 bool               test_parsing,
-                 const std::string& file,
-                 const std::string& db_corner_name,
-                 int                spef_corner,
-                 const std::string& exclude_net_subword,
-                 const std::string& net_subword,
-                 const std::string& rc_stats_file,
-                 bool               r_conn,
-                 bool               r_cap,
-                 bool               r_cc_cap,
-                 bool               r_res,
-                 int                ext_corner,
-                 float              low_guard,
-                 float              upper_guard,
-                 bool               m_map,
-                 bool               log);
+  
+  struct ReadSpefOpts {
+    const char* file = nullptr;
+    const char* net = nullptr;
+    bool               force  = false;
+    bool               use_ids = false;
+    bool               keep_loaded_corner = false;
+    bool               stamp_wire = false;
+    int                test_parsing = 0;
+    const char* N = nullptr;
+    bool               r_conn = false;
+    bool               r_cap = false;
+    bool               r_cc_cap = false;
+    bool               r_res = false;
+    float              cc_threshold = -0.5;
+    float              cc_ground_factor = 0;
+    int                app_print_limit = 0;
+    int                corner = -1;
+    const char* db_corner_name = nullptr;
+    const char* calibrate_base_corner = nullptr;
+    int                spef_corner = -1;
+    bool               m_map = false;
+    bool               more_to_read = false;
+    float              length_unit = 1;
+    int                fix_loop = 0;
+    bool               no_cap_num_collapse = false;
+    const char* cap_node_map_file = nullptr;
+    bool               log = false;
+  };
+
+  bool read_spef(ReadSpefOpts& opt);
+
+  struct DiffOptions 
+  {
+       const char* net = nullptr;
+       bool               use_ids = false;
+       bool               test_parsing = 0;
+       const char* file = nullptr;
+       const char* db_corner_name = nullptr;
+       int                spef_corner = -1;
+       const char* exclude_net_subword = nullptr;
+       const char* net_subword = nullptr;
+       const char* rc_stats_file = nullptr;
+       bool               r_conn = false;
+       bool               r_cap = false;
+       bool               r_cc_cap= false;
+       bool               r_res = false;
+       int                ext_corner = -1;
+       float              low_guard = 1;
+       float              upper_guard = -1;
+       bool               m_map = false;
+       bool               log = false;
+  };
+
+  bool diff_spef(const DiffOptions& opt);
   bool calibrate(const std::string& spef_file,
                  const std::string& db_corner_name,
                  int                corner,

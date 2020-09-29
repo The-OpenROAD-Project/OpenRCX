@@ -35,8 +35,8 @@
 #include <algorithm>
 
 #include "ZInterface.h"
-#include "logger.h"
-#include "wire.h"
+#include <logger.h>
+#include <wire.h>
 //#define ZDEBUG 1
 uint ttttGetDgOverlap;
 //#define TEST_GetDgOverlap
@@ -150,10 +150,11 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
     }
 
     while (1) {
-      notExtractedW2
-          = useDbSdb && !w2->isPower() && w2->getNet()->getWire()
-            && (!w2->getNet()->getWire()->getProperty((int) w2->_otherId, exid)
-                || exid == 0);
+      notExtractedW2 = 
+          useDbSdb && !w2->isPower() && !w2->isVia() 
+          && w2->getNet()->getWire() 
+          && (!w2->getNet()->getWire()->getProperty((int)w2->_otherId,exid) 
+          || exid==0);
       len1 = 0;
       len2 = 0;
       len3 = 0;
@@ -168,9 +169,11 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
           || (!targetHiTrack
               && w1->_base >= w2->_base + (int) (w2->_width + ccThreshold)))
         inThreshold = false;
+      
       skipCCgen = _grid->getGridTable()->handleEmptyOnly()
                   || (needMarkedNetW2 && !w2->getNet()->isMarked());
       rc = w1->wireOverlap(w2, &len1, &len2, &len3);
+      
       if (inThreshold == true && rc == 0) {
         if (len1 > 0) {
           // create empty wire and ADD on emptyTable!
@@ -211,18 +214,24 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
               coupleOptions[0] = met;
 
               int bBoxId = (int) botwire->_boxId;
-              if (botwire->_otherId && useDbSdb)
-                botwire->getNet()->getWire()->getProperty(
-                    (int) botwire->_otherId, bBoxId);
-              coupleOptions[1] = bBoxId;  // dbRSeg id for SRC segment
+              if (useDbSdb)
+								bBoxId= botwire->getRsegId();
+
+							// DF 820 if (botwire->_otherId && useDbSdb && !botwire->isVia())
+							// 	botwire->getNet()->getWire()->getProperty((int)botwire->_otherId, bBoxId);
+							coupleOptions[1]= bBoxId; // dbRSeg id for SRC segment
+							
               if (botwire->_otherId == 0)
                 coupleOptions[1] = -bBoxId;  // POwer SBox Id
 
               int tBoxId = (int) topwire->_boxId;
-              if (topwire->_otherId && useDbSdb)
-                topwire->getNet()->getWire()->getProperty(
-                    (int) topwire->_otherId, tBoxId);
-              coupleOptions[2] = tBoxId;  // dbRSeg id for TARGET segment
+              
+              if (useDbSdb)
+								tBoxId= topwire->getRsegId();
+
+							// DF 820 if (topwire->_otherId && useDbSdb && !topwire->isVia())
+							//	topwire->getNet()->getWire()->getProperty((int)topwire->_otherId, tBoxId);
+							coupleOptions[2] = tBoxId;  // dbRSeg id for TARGET segment
               if (topwire->_otherId == 0)
                 coupleOptions[2] = -tBoxId;  // POwer SBox Id
 
@@ -284,15 +293,6 @@ uint Ath__track::findOverlap(Ath__wire*                origWire,
   }
   return nwTable->getCnt();
 }
-// void Ath__track::initSubTracks (int all)
-//{
-//	bool noPowerTarget = _grid->getGridTable()->noPowerTarget();
-//	if (all)
-//		this->initTargetWire (noPowerTarget);
-//	Ath__track *tstrack = this;
-//	while((tstrack = tstrack->getNextSubTrack()) != NULL)
-//		tstrack->initTargetWire (noPowerTarget);
-//}
 
 uint Ath__track::initTargetTracks(uint srcTrack, uint trackDist, bool tohi)
 {
@@ -362,7 +362,7 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
   // 	return 0;
 
   uint dir = _grid->getDir();
-  int  coupleOptions[20];
+  int  coupleOptions[21];
 
   Ath__array1D<Ath__wire*> w1Table;
   Ath__array1D<Ath__wire*> w2Table;
@@ -417,6 +417,9 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
 
     if (noPowerSource && wire->isPower())
       continue;
+    //if (wire->isVia())
+		//	continue;
+
     if (!allNet && !TargetHighMarkedNet
         && !wire->getNet()->isMarked())  // when !TargetHighMarkedNet, need only
                                          // marked source
@@ -426,10 +429,12 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
       continue;
     if (!tohi && wire->_srcId > 0)
       continue;
-    if (useDbSdb && !wire->isPower() && wire->getNet()->getWire()
-        && (!wire->getNet()->getWire()->getProperty((int) wire->_otherId, exid)
-            || exid == 0))
+    if (useDbSdb && !wire->isPower() 
+        && !wire->isVia() && wire->getNet()->getWire() 
+        && (!wire->getNet()->getWire()->getProperty((int)wire->_otherId,exid) 
+        || exid==0))
       continue;
+    
     wireCnt++;
 
     // ccGrid->placeWire(wire);
@@ -485,14 +490,32 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
         break;
     }
     if (coupleAndCompute != NULL) {
+			bool visited= false;
+			int wBoxId=0;
+      
       for (uint kk = 0; kk < wTable->getCnt(); kk++) {
         Ath__wire* empty = wTable->get(kk);
 
         coupleOptions[0] = met;
 
-        int wBoxId = (int) wire->_boxId;
-        if (wire->_otherId && useDbSdb)
-          wire->getNet()->getWire()->getProperty((int) wire->_otherId, wBoxId);
+        wBoxId = (int) wire->_boxId;
+        if (useDbSdb)
+          wBoxId= wire->getRsegId();
+
+        /* DF 820
+						wBoxId = (int)wire->_boxId;
+
+						//***************************************** NEED_TO_DEBUG 720 DF 
+						if (wire->isVia()) {
+							if (wire->_otherId && useDbSdb) // useDbSdb should false
+								wBoxId=wire->getShapeProperty(wire->_otherId);
+						} else {
+						if (wire->_otherId && useDbSdb) // useDbSdb should false
+							wire->getNet()->getWire()->getProperty((int)wire->_otherId, wBoxId);
+						}
+						//***************************************************************************
+				*/
+
         coupleOptions[1] = wBoxId;  // dbRSeg id
         if (wire->_otherId == 0)
           coupleOptions[1] = -wBoxId;  // dbRSeg id
@@ -510,9 +533,28 @@ uint Ath__track::couplingCaps(Ath__grid*          ccGrid,
         coupleOptions[10] = dir;
 
         coupleOptions[11] = tohi ? 1 : 0;
-        coupleAndCompute(coupleOptions, compPtr);
+        
+        bool ignore_visited= true;
+			  if ( ignore_visited || 
+            (wire->_visited==0 && wire->_srcWire == NULL) || 
+            (wire->_srcWire != NULL && wire->_srcWire->_visited==0)) {
+				  // notice(0, "coupleAndCompute: net= %d-%d base %d xy %d L%d %s\n", wire->getNet()->getId(), wire->_otherId, wire->_base, wire->_xy, wire->_len, 
+				  //	wire->getNet()->getConstName() );
+				  if (wire->_srcWire!=NULL) {
+				  	coupleOptions[20]= wire->_srcWire->_ouLen;}
+				  else{
+				  	coupleOptions[20]= wire->_ouLen;}
+				  coupleAndCompute(coupleOptions, compPtr);
+				  visited= true;
+				  if (wire->_srcWire!=NULL)
+				  	wire->_srcWire->_ouLen= coupleOptions[20];
+				  else
+				  	wire->_ouLen= coupleOptions[20];
+				}
         wirePool->free(empty);
       }
+			if (visited)
+				wire->_visited= 1;
     }
   }
   if (coupleAndCompute == NULL) {
@@ -673,6 +715,8 @@ void Ath__track::buildDgContext(Ath__array1D<SEQ*>* dgContext,
     seq->_ur[bidx]   = nwire->_base + nwire->_width;
     if (nwire->isPower())
       seq->type = 0;
+    else if (nwire->isVia())
+			seq->type = 0;
     else {
       nwire->getNet()->getWire()->getProperty((int) nwire->_otherId, rsegid);
       seq->type = rsegid;
