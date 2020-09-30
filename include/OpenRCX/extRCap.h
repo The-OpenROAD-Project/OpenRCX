@@ -1801,7 +1801,7 @@ class extMain
  public:
   bool _lef_res;
 	
-  double getTotalCouplingCap(odb::dbNet *net, char *filterNet, uint corner);
+  double getTotalCouplingCap(odb::dbNet *net, const char *filterNet, uint corner);
 	
   uint calcMinMaxRC();// 620 DF: this is to be used for stats used in diff_spef
 	void resetMinMaxRC(uint ii, uint jj);

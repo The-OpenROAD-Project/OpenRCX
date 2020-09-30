@@ -245,8 +245,8 @@ void extMain::getViaCapacitance(dbShape svia, dbNet* net)
 
   uint cnt = 0;
 
-  char* tcut = "tcut";
-  char* bcut = "bcut";
+  const char* tcut = "tcut";
+  const char* bcut = "bcut";
 
   std::vector<dbShape> shapes;
   dbShape::getViaBoxes(svia, shapes);

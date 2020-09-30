@@ -243,7 +243,7 @@ uint extMain::GenExtRules(const char *rulesFileName)
 	return n;
 }
 
-double extMain::getTotalCouplingCap(dbNet *net, char *filterNet, uint corner)
+double extMain::getTotalCouplingCap(dbNet *net, const char *filterNet, uint corner)
 {
     double cap= 0.0;
     dbSet<dbCapNode> capNodes = net->getCapNodes();
