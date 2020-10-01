@@ -921,6 +921,8 @@ class extMeasure
                                  int    bboxUR[2],
                                  int    met,
                                  double pitchMult);
+	uint getPatternExtend();
+
 	uint createContextObstruction(const char* dirName, int x1, int y1, int bboxUR[2], int met, double pitchMult);
 	uint createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout=-1);
 	uint createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met);

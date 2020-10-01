@@ -615,6 +615,8 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int cntx_dist=-1; // -1 means min sep
 
 	int extend_blockage = (measure->_minWidth + measure->_minSpace);
+	// int extend_blockage = measure->getPatternExtend();
+
 	int bboxUR[2] = { measure->_ur[0]+extend_blockage, measure->_ur[1]+extend_blockage };
 	bboxLL[0] -= extend_blockage;
 	bboxLL[1] -= extend_blockage;
@@ -639,7 +641,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 		measure->createContextObstruction(_wireDirName, bboxLL[0], bboxLL[1], bboxUR, measure->_overMet, pitchMult);
 	}
 
-	measure->_ur[measure->_dir] += gap;
+	measure->_ur[measure->_dir] += gap + extend_blockage;
 
 	//	double mainNetStart= X[0];
 	int main_xlo, main_ylo, main_xhi, main_yhi, low;
@@ -683,6 +685,31 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	// dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
 	return 1;
 }
+uint extMeasure::getPatternExtend() {
+
+	int extend_blockage = (this->_minWidth + this->_minSpace);
+	
+	if (this->_overMet>0) {
+			dbTechLayer * layer = this->_create_net_util._routingLayers[this->_overMet];
+			uint ww= layer->getWidth();
+			uint sp= layer->getSpacing();
+			if (sp==0)
+				sp= layer->getPitch() - ww;
+			
+			extend_blockage= 2*sp;
+	}
+	if (this->_underMet>0) {
+			dbTechLayer * layer = this->_create_net_util._routingLayers[this->_underMet];
+			uint ww= layer->getWidth();
+			uint sp= layer->getSpacing();
+			if (sp==0)
+				sp= layer->getPitch() - ww;
+						
+			if (extend_blockage<2*sp)
+				extend_blockage= 2*sp;
+	}
+	return extend_blockage;
+}
 uint extMeasure::createContextObstruction(const char* dirName, int x, int y, int bboxUR[2], int met, double pitchMult)
 {
        if (met <= 0)
@@ -714,12 +741,22 @@ uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[
 {
 	   if (met <= 0)
                return 0;
+                       dbTechLayer * layer = this->_create_net_util._routingLayers[met];
+                       uint ww= layer->getWidth();
+                       uint sp= layer->getSpacing();
+                       if (sp==0)
+                               sp= layer->getPitch() - ww;
+                       uint half_width= sp/2;
+
 		uint dir= this->_dir;
 
  		int ll[2]= {bboxLL[0], bboxLL[1]};
 		int ur[2];
 		ur[dir]= ll[dir];
 		ur[!dir]= bboxUR[!dir];
+
+                ll[!this->_dir]= ll[!this->_dir]-half_width;
+                ur[!this->_dir]= ll[!this->_dir]+half_width;
 
 		int xcnt=1;
 		while (ur[dir]<=bboxUR[dir]) {
