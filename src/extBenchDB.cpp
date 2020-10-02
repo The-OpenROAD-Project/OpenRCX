@@ -690,7 +690,7 @@ uint extMeasure::getPatternExtend() {
 	int extend_blockage = (this->_minWidth + this->_minSpace);
 	
 	if (this->_overMet>0) {
-			dbTechLayer * layer = this->_create_net_util._routingLayers[this->_overMet];
+			dbTechLayer * layer = this->_create_net_util.getRoutingLayer()[this->_overMet];
 			uint ww= layer->getWidth();
 			uint sp= layer->getSpacing();
 			if (sp==0)
@@ -699,7 +699,7 @@ uint extMeasure::getPatternExtend() {
 			extend_blockage= 2*sp;
 	}
 	if (this->_underMet>0) {
-			dbTechLayer * layer = this->_create_net_util._routingLayers[this->_underMet];
+			dbTechLayer * layer = this->_create_net_util.getRoutingLayer()[this->_underMet];
 			uint ww= layer->getWidth();
 			uint sp= layer->getSpacing();
 			if (sp==0)
@@ -739,14 +739,15 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
 }
 uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met)
 {
-	   if (met <= 0)
-               return 0;
-                       dbTechLayer * layer = this->_create_net_util._routingLayers[met];
-                       uint ww= layer->getWidth();
-                       uint sp= layer->getSpacing();
-                       if (sp==0)
-                               sp= layer->getPitch() - ww;
-                       uint half_width= sp/2;
+	  if (met <= 0)
+      return 0;
+     
+    dbTechLayer * layer = this->_create_net_util.getRoutingLayer()[met];
+    uint ww= layer->getWidth();
+    uint sp= layer->getSpacing();
+    if (sp==0)
+           sp= layer->getPitch() - ww;
+     uint half_width= sp/2;
 
 		uint dir= this->_dir;
 
