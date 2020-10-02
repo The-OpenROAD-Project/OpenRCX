@@ -746,8 +746,8 @@ uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[
     uint ww= layer->getWidth();
     uint sp= layer->getSpacing();
     if (sp==0)
-           sp= layer->getPitch() - ww;
-     uint half_width= sp/2;
+      sp= layer->getPitch() - ww;
+    uint half_width= sp/2;
 
 		uint dir= this->_dir;
 
