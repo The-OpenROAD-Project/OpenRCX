@@ -615,7 +615,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 	int cntx_dist=-1; // -1 means min sep
 
 	int extend_blockage = (measure->_minWidth + measure->_minSpace);
-	// int extend_blockage = measure->getPatternExtend();
+	int extend_blockage_gap = measure->getPatternExtend();
 
 	int bboxUR[2] = { measure->_ur[0]+extend_blockage, measure->_ur[1]+extend_blockage };
 	bboxLL[0] -= extend_blockage;
@@ -641,7 +641,7 @@ int extRCModel::writeBenchWires_DB(extMeasure* measure)
 		measure->createContextObstruction(_wireDirName, bboxLL[0], bboxLL[1], bboxUR, measure->_overMet, pitchMult);
 	}
 
-	measure->_ur[measure->_dir] += gap + extend_blockage;
+	measure->_ur[measure->_dir] += gap + extend_blockage_gap;
 
 	//	double mainNetStart= X[0];
 	int main_xlo, main_ylo, main_xhi, main_yhi, low;
@@ -696,7 +696,7 @@ uint extMeasure::getPatternExtend() {
 			if (sp==0)
 				sp= layer->getPitch() - ww;
 			
-			extend_blockage= 2*sp;
+			extend_blockage= sp;
 	}
 	if (this->_underMet>0) {
 			dbTechLayer * layer = this->_create_net_util.getRoutingLayer()[this->_underMet];
@@ -705,8 +705,8 @@ uint extMeasure::getPatternExtend() {
 			if (sp==0)
 				sp= layer->getPitch() - ww;
 						
-			if (extend_blockage<2*sp)
-				extend_blockage= 2*sp;
+			if (extend_blockage<sp)
+				extend_blockage= sp;
 	}
 	return extend_blockage;
 }
@@ -720,7 +720,7 @@ uint extMeasure::createContextObstruction(const char* dirName, int x, int y, int
      dbObstruction::create(_block, layer, x, y, bboxUR[0], bboxUR[1]);
        return 1;
 }
-
+/* orf 10/04/20 DF
 uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout)
 {
 	   if (met <= 0)
@@ -737,6 +737,38 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
 		}
 		return xcnt;
 }
+*/
+uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], int met, int s_layout)
+{
+	if (met <= 0) 
+		return 0;
+	dbTechLayer * layer = this->_create_net_util._routingLayers[met];
+	uint ww= layer->getWidth();
+	uint sp= layer->getSpacing();
+	if (sp==0)
+		sp= layer->getPitch() - ww;
+	uint half_width= sp/2;
+			   
+ 	int ll[2]= {bboxLL[0], bboxLL[1]};
+		
+	int ur[2];
+	ll[!this->_dir]= ll[!this->_dir]-half_width/2;
+	ll[this->_dir]= ll[this->_dir]-half_width;
+	ur[!this->_dir]= ll[!this->_dir];
+	ur[this->_dir]= bboxUR[this->_dir]+half_width;
+
+	ur[!_dir] = ll[!_dir] + ww;
+
+	int xcnt=1;
+	while (ll[!this->_dir]<=bboxUR[!this->_dir]) {
+		this->createNetSingleWire_cntx(met, dirName, xcnt++, !this->_dir, ll, ur, s_layout);
+		uint d= !_dir;
+		ll[d] = ur[d] + sp; 
+	        ur[d] = ll[d] + ww;
+	}
+	return xcnt;
+}
+
 uint extMeasure::createContextGrid_dir(char* dirName, int bboxLL[2], int bboxUR[2], int met)
 {
 	  if (met <= 0)
