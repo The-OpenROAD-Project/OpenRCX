@@ -742,7 +742,7 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
 {
 	if (met <= 0) 
 		return 0;
-	dbTechLayer * layer = this->_create_net_util._routingLayers[met];
+	dbTechLayer * layer = this->_create_net_util.getRoutingLayer()[met];
 	uint ww= layer->getWidth();
 	uint sp= layer->getSpacing();
 	if (sp==0)

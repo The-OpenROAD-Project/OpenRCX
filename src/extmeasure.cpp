@@ -1083,7 +1083,7 @@ uint extMeasure::createNetSingleWire_cntx(int met,
 
 	sprintf(netName, "%s_cntxM%d_%d", dirName, met, idCnt);
   
-  	assert( _create_net_util.getBlock() == _block );
+  assert( _create_net_util.getBlock() == _block );
 	dbNet *net= _create_net_util.createNetSingleWire(netName, ll[0], ll[1], ur[0], ur[1], met);
 	dbBTerm *in1= net->get1stBTerm();
 	if (in1!=NULL) {
