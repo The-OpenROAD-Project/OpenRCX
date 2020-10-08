@@ -752,7 +752,7 @@ uint extMeasure::createContextGrid(char* dirName, int bboxLL[2], int bboxUR[2], 
  	int ll[2]= {bboxLL[0], bboxLL[1]};
 		
 	int ur[2];
-	ll[!this->_dir]= ll[!this->_dir]-half_width/2;
+	ll[!this->_dir]= ll[!this->_dir];
 	ll[this->_dir]= ll[this->_dir]-half_width;
 	ur[!this->_dir]= ll[!this->_dir];
 	ur[this->_dir]= bboxUR[this->_dir]+half_width;
