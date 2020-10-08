@@ -561,7 +561,7 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
     extDistRC* before_lastRC
         = _measureTable->getLast();  // assuming last is 100 equivalent to inf
     uint lastDist = before_lastRC->_sep;
-    if (dist >= lastDist && lastDist>0)  // send Inf dist
+    if (dist >= lastDist-_unit && lastDist>0)  // send Inf dist
       return _measureTable->getLast();
   }
 
