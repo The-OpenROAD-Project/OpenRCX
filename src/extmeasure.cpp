@@ -2930,7 +2930,8 @@ uint extMeasure::measureDiagFullOU()
   int totCovered = 0;
   int remainder  = _len;
 
-  uint maxDist    = 10;
+  // uint maxDist    = 10;
+  uint maxDist= _extMain->_ccContextDepth;
   int  upperLimit = _met + maxDist >= _layerCnt ? _layerCnt : _met + maxDist;
   int  lowerLimit = _met - maxDist;
   if (lowerLimit < 0)
