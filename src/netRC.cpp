@@ -1068,7 +1068,7 @@ uint extMain::makeNetRCsegs(dbNet* net, bool skipStartWarning)
                                path.is_branch,
                                _tmpSumResTable,
                                _tmpSumCapTable);
-          if (s.isVia()) {
+          if (s.isVia()&& rc!=NULL) {
             // seg->_flags->_spare_bits_29=1;
             createShapeProperty(net, pshape.junction_id, rc->getId());
           }
