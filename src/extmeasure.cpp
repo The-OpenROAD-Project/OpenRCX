@@ -3699,6 +3699,12 @@ bool extMeasure::printTraceNet(const char*   msg,
 
 void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered)
 {
+  int res_lenOverSub= _len - ouCovered;
+  int DIAG_SUB_DIVIDER= 1;
+			if (ouCovered==0) {
+				ouCovered = diagCovered/DIAG_SUB_DIVIDER;
+			}
+
   double SUB_MULT= 1.0;
 	int lenOverSub= _len - ouCovered;
 	/*
@@ -3724,8 +3730,11 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 			
 			double res=0;
 			if (!_extMain->_lef_res && !rvia1) {
-				 res= SUB_MULT * rc->getRes() * lenOverSub;
-					_extMain->updateRes(rseg1, res, jj);
+          //if (res_lenOverSub>0) {
+          if (lenOverSub>0) {
+				     res= SUB_MULT * rc->getRes() * res_lenOverSub;
+					  _extMain->updateRes(rseg1, res, jj);
+          }
 			}
 
 			if (IsDebugNet()) { 
@@ -3892,10 +3901,7 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1,
 		}
 		if (COMPUTE_OVER_SUB) {
 			// OverSubRC(rseg1, NULL, totLenCovered, _diagLen, srcCovered);
-			int DIAG_SUB_DIVIDER= 1;
-			if (totLenCovered==0) {
-				totLenCovered = _diagLen/DIAG_SUB_DIVIDER;
-			}
+			
 			OverSubRC(rseg1, NULL, totLenCovered, _diagLen, _len);
 			return totLenCovered;
 		}
