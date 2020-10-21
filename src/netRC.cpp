@@ -195,12 +195,16 @@ double extMain::getViaResistance(dbTechVia* tvia)
     if (layer1->getType() == dbTechLayerType::CUT)
       res = layer1->getResistance();
 
+    /* This works 
+   
     debug("EXT_RES",
           "V",
           "getViaResistance: %s %s %g ohms\n",
           tvia->getConstName(),
           layer1->getConstName(),
           layer1->getResistance());
+    
+          */
   }
   return res;
 }
