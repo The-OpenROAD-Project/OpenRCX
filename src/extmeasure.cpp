@@ -3657,7 +3657,9 @@ bool extMeasure::printTraceNet(const char*   msg,
   if (!IsDebugNet())
 		return false;
   
+
   if (init) {
+    /*
     fprintf(_debugFP,
             "%s %d - %d %d  %d %d M%d D%d %d ",
             msg,
@@ -3669,7 +3671,7 @@ bool extMeasure::printTraceNet(const char*   msg,
             _met,
             _dist,
             _len);
-
+    */
     if (overSub + covered > 0)
       fprintf(_debugFP, "SUB %d GS %d ", overSub, covered);
 
@@ -3677,7 +3679,7 @@ bool extMeasure::printTraceNet(const char*   msg,
       printTraceNetInfo("", _netSrcId, _rsegSrcId);
     else
       printTraceNetInfo("", _netTgtId, _rsegTgtId);
-    fprintf(_debugFP, "\n");
+ //   fprintf(_debugFP, "\n");
 
     return true;
   }
