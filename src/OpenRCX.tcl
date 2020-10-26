@@ -289,6 +289,6 @@ proc write_rules { args } {
   set solver [info exists flags(-read_from_solver)]
   set db [info exists flags(-db)]
 
- rcx::write_rules $filename $dir $name $pattern $solver $db
+ rcx::write_rules $filename $dir $name $pattern $db $solver
 }
 
