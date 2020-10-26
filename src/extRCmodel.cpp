@@ -2279,9 +2279,15 @@ void extDistRC::printDebug(char *from, char *name, uint len, uint dist, extDistR
 
 void extDistRC::printDebugRC(const char *from)
 {
+	debug("DistRC", "C", "\n\t%s: \n\tDist  :%g\n\ttotCap: %g\n\tCouplin: %g\n\tFringe: %g\n\tDiagC : %g\n\t D%d\n",
+			from, _sep, _coupling+_fringe+_diag, _coupling,  _fringe, _diag, _res);
+}
+/*
+void extDistRC::printDebugRC1(const char *from)
+{
 	debug("DistRC", "C", "%s: tot %g  CC %g  Fr %g  DG %g R %g D%d\n",
 			from, _coupling+_fringe+_diag, _coupling,  _fringe, _diag, _res, _sep);
-}
+} */
 extDistRC* extMeasure::addRC(extDistRC* rcUnit, uint len, uint jj)
 {
   if (rcUnit == NULL)

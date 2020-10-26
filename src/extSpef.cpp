@@ -449,6 +449,7 @@ void extSpef::writeITermNode(uint node)
                    _delimiter,
                    iterm->getMTerm()->getName(inst, &ttname[0]));
   }
+  /*
   odb::debug("HEXT",
              "T",
              "writeITermNode= %d i%d- %d%s%s %s\n",
@@ -457,7 +458,7 @@ void extSpef::writeITermNode(uint node)
              getInstMapId(inst->getId()),
              _delimiter,
              iterm->getMTerm()->getName(inst, &ttname[0]),
-             inst->getConstName());
+             inst->getConstName()); */
 }
 bool extSpef::writeITerm(uint node)
 {
