@@ -29,6 +29,9 @@ This flow generates an Extraction Rules file (RC tech file/RC Table) for OpenRCX
 resistance and capacitance tables used for RC extraction for a specific process
 corner.
 
+The Extraction Rules file (RC technology file) is 
+generated once for every process node and corner automatically.
+
 The detailed documentation can be found [here](doc/calibration.txt)
 
 #### Extract Parasitics
@@ -52,10 +55,12 @@ routed design. If there are no routed design information no parasitics are
 added. Use `ext_model_file` to specify the Extraction Rules file used for the
 extraction. 
 
-The `cc_model` and `context_depth` commands are used to specify the
-maximium number of tracks and levels that OpenRCX needs consider for the coupling
-capacitance calculation. The `max_res` command combines resistors in series up
-to the threshold values.
+The `cc_model` is used to specify the maximium number of tracks on same routing level.
+The default value is 10.
+The `context_depth` option is used to specify the levels that OpenRCX needs to consider 
+The default value is 5.
+for the over/under context overlap for capacitance calculation. 
+The `max_res` command combines resistors in series up to the threshold values.
 
 The `corner_cnt` defines the number of corners used during the parastic
 extractions.
@@ -105,9 +110,7 @@ bench_wires
                                   per pattern
   [-len wire_len]                 specify the wire length 
                                   in the pattern
-  [-over] [-diag] [-db_only]
-  [-w_list width]                 list of wire width
-  [-s_list space]                 list of wire spacing
+  [-s_list space_multiplier_list] list of wire spacing multiplier
   [-all]                          generate all patterns  
 ```
 
@@ -117,17 +120,20 @@ lateral, vertical, and diagonal coupling capacitance, and the ground capacitance
 effects. This command generates a .def file.
 
 The `cnt` command determines the number of wires in each pattern, the default
-values is 5. Use `len` command to change the wire length in the pattern. `over`,
-`diag`, and `all` commands specify which pattern to generate.
+values is 5. Use `len` command to change the wire length in the pattern. `all` 
+option is used to  specify all diffrent pattern geometries (over, under,
+over_under, and digonal). The option `all` is required.
 
-The `w_list` and `s_list` commands specify the lists of wire width and wire spacings 
-on the RC table (Extraction Rules file).
+The `s_list` option specifies the lists of wire spacing multipliers from the
+minimum spacing defined in the LEF. The list will be the input index on the 
+OpenRCX RC table (Extraction Rules file).
 
-This command is specifically intended for the Extraction Rules file generation.
+This command is specifically intended for the Extraction Rules file generation
+only.
 
 ```
 bench_verilog
-    [filename]                    the input verilog filename  
+    [filename]                    the output verilog filename  
 ```
 
 `bench_verilog` is used after the `bench_wires` command. This command generates
@@ -158,7 +164,7 @@ for OpenRCX. It processes the parasitics data from the pattern layout generated 
 the output file.
 
 `db` command instructs OpenRCX to write the Extraction Rules file from 
-the parasitics stored in the database.
+the parasitics stored in the database. This option is required.
 
 This command is specifically intended for the Extraction Rules file generation
 purpose.
