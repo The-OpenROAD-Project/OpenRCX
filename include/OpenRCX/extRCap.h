@@ -832,6 +832,14 @@ class extMeasure
   ~extMeasure();
   
   bool _no_debug;
+	void rcNetInfo();
+	bool rcSegInfo();
+	bool ouCovered_debug(int covered);
+	void segInfo(const char* msg, uint netId, int rsegId);
+	bool isVia(uint rsegId);
+	bool ouRCvalues(const char *msg, uint jj);
+	bool OverSubDebug(extDistRC *rc, int lenOverSub, int lenOverSub_res);
+
   bool IsDebugNet();
 	double GetDBcoords(uint coord);
 	double GetDBcoords(int coord);
