@@ -141,8 +141,8 @@ verilog netlist of the generated pattern layout by the `bench_wires`
 command. 
 
 This command is optional when running the Extraction Rules generation flow. This
-step is required if the commercial extractor requires a netlist to extract
-parasitics of the pattern layout.
+step is required if the favorite extraction tool (i.e., reference extractor) 
+requires a netlist to extract parasitics of the pattern layout.
 
 ```
 bench_read_spef

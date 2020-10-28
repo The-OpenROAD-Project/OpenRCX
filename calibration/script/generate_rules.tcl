@@ -2,7 +2,7 @@
 # Desc: This script is used to create the RC 
 #       table used for OpenRCX parasitic 
 #       calculation. It takes the patterns layout
-#       parasitics from commercial extractor (SPEF)
+#       parasitics from reference extractor (SPEF)
 #       and convert it to Extraction
 #       Rules file (RC Table).
 #       
