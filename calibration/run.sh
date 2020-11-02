@@ -1,5 +1,6 @@
 # Clean up directory
 rm -rf work
+mkdir -p data
 mkdir -p work 
 cd work
 

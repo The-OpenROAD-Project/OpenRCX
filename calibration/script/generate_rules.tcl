@@ -18,7 +18,7 @@ source ../script/user_env.tcl
 read_lef $TECH_LEF
 
 # Read the patterns design
-read_def -order_wires EXT/patterns.def
+read_def EXT/patterns.def
 
 # Read the parasitics of the patterns
 bench_read_spef $golden_spef
