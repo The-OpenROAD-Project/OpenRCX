@@ -521,10 +521,11 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
     return firstRC;
   }
 	
+  /*
   extDistRC* secondRC= _measureTable->get(1);
 	if (dist<=secondRC->_sep) 
 		return secondRC;
-  
+  */
   if (_measureTable->getLast()->_sep == 100000) {
     extDistRC* before_lastRC = _measureTable->getLast()
                                - 1;  // assuming last is 100 equivalent to inf
