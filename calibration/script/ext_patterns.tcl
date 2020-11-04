@@ -4,7 +4,7 @@ set golden_spef ../../test/generate_pattern.spefok
 
 read_lef $TECH_LEF
 
-read_def -order_wires EXT/patterns.def
+read_def EXT/patterns.def
 
 define_process_corner -ext_model_index 0 X
 extract_parasitics -ext_model_file $extRules \

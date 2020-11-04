@@ -169,8 +169,8 @@ write_rules(const char* file,
   Ext* ext = getOpenRCX();
   Ext::BenchWiresOptions opts;
   
-  ext->write_rules(name, dir, file, pattern, read_from_solver,
-                   read_from_db);
+  ext->write_rules(name, dir, file, pattern, read_from_db,
+                   read_from_solver);
 }
 
 void 
