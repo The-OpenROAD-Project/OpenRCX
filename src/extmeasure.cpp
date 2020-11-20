@@ -1820,6 +1820,9 @@ extDistRC* extMeasure::computeOverFringe(uint overMet,
 
     rcUnit = rcModel->_capOver[overMet]->getRC(_met, overWidth, dist);
 
+    if (IsDebugNet())
+      rcUnit->printDebugRC(_met, overMet, 0, _width, dist, len);
+
 		if (rcUnit!=NULL) {
 			_rc[ii]->_fringe += rcUnit->_fringe * len;
 			_rc[ii]->_res += rcUnit->_res * len;
@@ -1842,6 +1845,9 @@ extDistRC* extMeasure::computeUnderFringe(uint underMet,
       continue;
 
     rcUnit = rcModel->_capUnder[underMet]->getRC(n, underWidth, dist);
+     if (IsDebugNet())
+      rcUnit->printDebugRC(_met, 0, underMet, _width, dist, len);
+
 		if (rcUnit!=NULL) {
 			_rc[ii]->_fringe += rcUnit->_fringe * len;
 			_rc[ii]->_res += rcUnit->_res * len;
@@ -3627,7 +3633,7 @@ bool extMeasure::IsDebugNet()
 	if (_no_debug)
 		return false;
 
-	if (_netSrcId==_netId || _netTgtId==_netId)
+	if (_netSrcId==_extMain->_debug_net_id || _netTgtId==_extMain->_debug_net_id)
 		return true;
 	else
 		return false;
@@ -3707,8 +3713,8 @@ void extMeasure::segInfo(const char* msg, uint netId, int rsegId)
 	int x, y;
 	rseg->getCoords(x,y);
 	uint w;
-	debug("Trace", "C", "\n\t%s : %s\n\txCoord: %d\n\tyCoord: %d\n\tnetId : %d\n\tshapId: %d\n\trsegId: %d\n\tRes   : %g\n\tCap   : %g\n",
-		wire, wire, x, y, netId, shapeId, rsegId, rseg->getResistance(0), rseg->getCapacitance(0,1.0));
+	debug("Trace", "C", " ------  RC Segment --- %s \n\t%s: %s\n\txHi   : %d\n\tyHi   : %d\n\tnetId : %d\n\tshapId: %d\n\trsegId: %d\n\tCap   : %.5f\n\tRes   : %.5f\n",
+		msg, wire, wire, x, y, netId, shapeId, rsegId, rseg->getCapacitance(0,1.0), rseg->getResistance(0));
 }
 void extMeasure::rcNetInfo()
 {
@@ -3720,7 +3726,7 @@ void extMeasure::rcNetInfo()
 	double gndCap= net->getTotalCapacitance(0, false);
 	double ccCap= net->getTotalCouplingCap(0);
 	double totaCap= gndCap + ccCap;
-	debug("Trace", "C", "\n\tNetId : %d\n\tNetName: %s\n\tCCap  :%g\n\tGndCap:%g\n\tnetCap:%g\n\tnetRes:%g\n\n",
+	debug("Trace", "C", " ---- Net RC Values \n\tNetId  : %d\n\tNetName: %s\n\tCCap   : %g\n\tGndCap : %g\n\tnetCap : %g\n\tNetRes : %g\n\n",
     _netId, net->getConstName(), ccCap, gndCap, totaCap, net->getTotalResistance());
 }
 bool extMeasure::rcSegInfo()
@@ -3743,7 +3749,7 @@ bool extMeasure::ouCovered_debug(int covered)
     if (!IsDebugNet())
 		  return false;
     int sub= (int)_len - covered;
-    debug("Trace", "C", "\n\tLevel : M%d\n\tWidth : %d\n\tDist  : %d\n\tLen   : %d\n\tOU_len: %d\n\7SUB   : %d\n\tDiag  : %d\n", 
+    debug("Trace", "C", " ------ OverUnder Geom Measurement\n\tLevel : M%d\n\tWidth : %d\n\tDist  : %d\n\tLen   : %d\n\tOU_len: %d\n\tSubLen: %d\n\tDiag  : %d\n", 
     _met, _width, _dist, _len, covered, sub, _diag);
 
   return true;
@@ -3761,7 +3767,7 @@ bool extMeasure::ouRCvalues(const char *msg, uint jj)
     if (!IsDebugNet()) 
         return false;
 
-		debug("Trace", "C", "\n\t%s: %s\n\tfrCap :%g\n\tcCap  : %g\n\tdgCap : %g\n\tRes  : %g\n\n",
+		debug("Trace", "C", " --- OverUnder Cap/Res Values\n\t%s: %s\n\tfrCap :%g\n\tcCap  : %g\n\tdgCap : %g\n\tRes  : %g\n\n",
        msg, msg, _rc[jj]->_fringe, _rc[jj]->_coupling, _rc[jj]->_diag, _rc[jj]->_res);
 
     return true;
@@ -3772,12 +3778,31 @@ bool extMeasure::OverSubDebug(extDistRC *rc, int lenOverSub, int lenOverSub_res)
 		if (!IsDebugNet()) 
       return false;
 
+		debug("Trace", "C", " ------------------------- Wire Measurement:  END ---- \n\n");
     rc->printDebugRC("OvrSUB");
-		debug("Trace", "C", "SubCap: L%d\n\tSubRes: L%d\n\n", lenOverSub, lenOverSub_res);
+		debug("Trace", "C", " --- Over Sub Lengths For: \n\tCap  : %d\n\tRes  : %d\n\n", lenOverSub, lenOverSub_res);
     rcSegInfo();
 
     return true;
 }
+bool extMeasure::DebugStart()
+{
+  if (!IsDebugNet()) 
+    return false;
+	debug("DistRC", "C", "\n --- measureRC: --------------------------------- BEGIN\n\tSRC:  %d-%d\n\tTGT:   %d-%d\n", _netSrcId, _rsegSrcId, _netTgtId, _rsegTgtId);
+	debug("DistRC", "C", "measureRC:\n\tM%d  Dist= %d Len= %d \n\tloX : %9d %.3f \n\thiX : %9d %.3f \n\tloY : %9d %.3f \n\thiY : %9d %.3f \n\tDX  : %9d %.3f \n\tDY  : %9d %.3f \n", 
+            _met, _dist, _len,
+					_ll[0], GetDBcoords(_ll[0]),
+					_ur[0], GetDBcoords(_ur[0]),
+          _ll[1], GetDBcoords(_ll[1]),
+					_ur[1], GetDBcoords(_ur[1]),
+				
+					_ur[0]-_ll[0], GetDBcoords(_ur[0])-GetDBcoords(_ll[0]),
+					_ur[1]-_ll[1], GetDBcoords(_ur[1])-GetDBcoords(_ll[1]));
+  return true;
+}
+
+
 // ----------------------------------------------------------------- DF 1020
 
 void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered)
@@ -3790,7 +3815,9 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 	}
 */
 
-  double SUB_MULT= 1.0;
+  // DF 1120 double SUB_MULT= 1.0;
+  double SUB_MULT_CAP= 1.0;  // Open ended resitance should account by 1/4 -- 11/15
+  double SUB_MULT_RES= 0.5;  // Open ended resitance should account by 1/4 -- 11/15
 	int lenOverSub= _len - ouCovered;
   if (lenOverSub<0)
     lenOverSub=0;
@@ -3806,7 +3833,7 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 			double cap= 0;
 			double tot= 0;
 			if (lenOverSub>0) {
-				cap= SUB_MULT * rc->getFringe() * lenOverSub;
+				cap= SUB_MULT_CAP * rc->getFringe() * lenOverSub;
 				tot= _extMain->updateTotalCap(rseg1, cap, jj);
 			}
 			
@@ -3814,7 +3841,7 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 			if (!_extMain->_lef_res && !rvia1) {
           if (res_lenOverSub>0) {
           // if (lenOverSub>0) {
-				     res= SUB_MULT * rc->getRes() * res_lenOverSub;
+				     res= SUB_MULT_RES * rc->getRes() * res_lenOverSub;
 					  _extMain->updateRes(rseg1, res, jj);
           }
 			}
@@ -3832,6 +3859,7 @@ void extMeasure::OverSubRC(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diag
 void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int diagCovered, int srcCovered)
 {
   double SUB_MULT= 1.0;
+  double SUB_MULT_RES= 1.0; 
 	int lenOverSub= _len - ouCovered;
 	
 	int lenOverSub_bot= _len- srcCovered;
@@ -3849,11 +3877,19 @@ void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int
 		for (uint jj= 0; jj<_metRCTable.getCnt(); jj++) {
 			extMetRCTable* rcModel= _metRCTable.get(jj);
 			extDistRC *rc= getOverRC(rcModel);
+      
+      extDistRC *rc_last= rcModel->getOverFringeRC_last(_met, _width);
+      double delta= rc->_res - rc_last->_res;
+      if (delta<0)
+        delta = -delta;
+      if (delta<0.000001)
+        SUB_MULT_RES= 0.5; // resitance should account by 1/4 -- 11/15 DF
 
 			if (rc==NULL)
 				continue;
 
-			double res= SUB_MULT * rc->getRes() * lenOverSub;
+			double res= SUB_MULT_RES * rc->getRes() * lenOverSub;
+
 			if (!_extMain->_lef_res ) {
         if (!rvia1)
 		  		_extMain->updateRes(rseg1, res, jj);
@@ -3890,7 +3926,7 @@ void extMeasure::OverSubRC_dist(dbRSeg *rseg1, dbRSeg *rseg2, int ouCovered, int
 				if (rseg1!=NULL) {
           debug("Trace", "C", "OverSub: SRC M%d  W=%d BOT=%d DIAG=%d  L%d Fr %g CC %g netcap %g -- %g totRes %g \n",
 					  	_met, _width, srcCovered, diagCovered,lenOverSub, fr, cc, rseg1->getNet()->getTotalCapacitance(jj), res, rseg1->getNet()->getTotalResistance(jj));
-				  rc->printDebugRC("                              SUB:");
+				  rc->printDebugRC(" Over SUB:");
 			  }
       }
 		}
@@ -3907,7 +3943,6 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1, dbRSeg* rseg2, int srcCovered)
 
 	bool traceFlag= false;
 	bool watchFlag= IsDebugNet();
-  	_netId= _extMain->_debug_net_id;
   
   rcSegInfo();
 
@@ -3922,8 +3957,11 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1, dbRSeg* rseg2, int srcCovered)
 		if (_extMain->_ccContextDepth>0) {
 			if (! _diagFlow)
 				totLenCovered= measureOverUnderCap();
-			else
+			else {
+        _diagFlow= false;
 				totLenCovered= measureDiagOU(1, 2);
+        _diagFlow= true;
+      }
 		}
 	}
   ouCovered_debug(totLenCovered);
@@ -3972,14 +4010,6 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1, dbRSeg* rseg2, int srcCovered)
 				double tot= _extMain->updateTotalCap(rseg1, _rc[jj]->_fringe, jj);
         ouRCvalues("OU_src", jj);
         rcSegInfo();
-        /*
-				if (IsDebugNet()) { 
-					debug("Trace", "C", "OU%d M%d  W%d L%d D%d dg %d %g   Fr %g netcap %g -- %g netRes %g  %d-%d %s\n",
-						totLenCovered, _met, _width, _len, _dist, _diag, _rc[jj]->_diag, _rc[jj]->_fringe, 
-						rseg1->getNet()->getTotalCapacitance(jj, true),_rc[jj]->_res, rseg1->getNet()->getTotalResistance(jj),
-						rseg1->getNet()->getId(), rseg1->getId(), rseg1->getNet()->getConstName());
-				}
-        */
 			}
 		}
 		if (COMPUTE_OVER_SUB) {			
@@ -4155,20 +4185,6 @@ void extMeasure::measureRC(int* options)
 	int prevCovered= options[20];
 	prevCovered= 0;
 
-  //notice (0, "%d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
-	if (IsDebugNet()) {
-			//debug("DistRC", "C", "measureRC: %d met= %d  len= %d  dist= %d r1= %d r2= %d\n", _totSignalSegCnt, _met, _len, _dist, rsegId1, rsegId2);
-		debug("DistRC", "C", "measureRC: %d-%d  %d-%d M%d  L%d  Cov%d  D%d  d%d  %d %d  %d %d\n", 
-			_netSrcId, _rsegSrcId, _netTgtId, _rsegTgtId, _met,_len, prevCovered, _dist, _dir, _ll[0], _ll[1], _ur[0], _ur[1]);
-		
-		debug("DistRC", "C", "measureRC:  %.3f %.3f %.3f %.3f DX %.3f DY %.3f \n", 
-					GetDBcoords(_ll[0]),
-					GetDBcoords(_ll[1]),
-					GetDBcoords(_ur[0]),
-					GetDBcoords(_ur[1]),
-					GetDBcoords(_ur[0])-GetDBcoords(_ll[0]),
-					GetDBcoords(_ur[1])-GetDBcoords(_ll[1]));
-	}
   // -------------------------------- db units -------------
   bool USE_DB_UNITS=false;
 	if (USE_DB_UNITS) {
@@ -4179,7 +4195,12 @@ void extMeasure::measureRC(int* options)
 	}
 	// if (_dist>0)
 	 //  _dist= 64;
+
+  _netId= _extMain->_debug_net_id;
+  DebugStart();
 	int totCovered= computeAndStoreRC(rseg1, rseg2, prevCovered);
+  if (IsDebugNet())
+    debug("DistRC", "C", "\n --- measureRC: ------------------------------------- END\n");
 	options[20]= totCovered;
 
 	//ccReportProgress();

@@ -173,7 +173,8 @@ class extDistRC
  public:
   void   printDebug(char*, char*, uint, uint, extDistRC *rcUnit=NULL);
 	void   printDebugRC(const char*);
-	void debugRC(const char *debugWord, const char *from, int width, int level);
+  void   printDebugRC(int met, int overMet, int underMet, int width, int dist, int len);
+	void   debugRC(const char *debugWord, const char *from, int width, int level);
   void   set(uint d, double cc, double fr, double a, double r);
   void   readRC(Ath__parser* parser, double dbFactor = 1.0);
   double getFringe();
@@ -183,7 +184,7 @@ class extDistRC
 	double getTotalCap() { return _coupling + _fringe + _diag; };
   void   addRC(extDistRC* rcUnit, uint len, bool addCC);
   void   writeRC(FILE* fp, bool bin);
-  void writeRC();
+  void   writeRC();
   void   interpolate(uint d, extDistRC* rc1, extDistRC* rc2);
 
   friend class extDistRCTable;
@@ -209,6 +210,7 @@ class extDistRCTable
   ~extDistRCTable();
 
   extDistRC* getRC_99();
+  void ScaleRes(double SUB_MULT_RES, Ath__array1D<extDistRC*>* table);
 
   uint       addMeasureRC(extDistRC* rc);
   void       makeComputeTable(uint maxDist, uint distUnit);
@@ -432,6 +434,7 @@ class extMetRCTable
   extDistRC* getCapOver(uint met, uint metUnder);
   extDistRC* getCapUnder(uint met, uint metOver);
   extDistRC* getOverFringeRC(extMeasure* m, int index_dist=-1);
+  extDistRC* getOverFringeRC_last(int met, int width);
 	AthPool<extDistRC>* getRCPool();
 };
 class extRCTable
@@ -726,7 +729,7 @@ class extRCModel
                                            const char*  wKey,
                                            bool         bin,
                                            bool         ignore);
-  uint                  readRules(Ath__parser* parser,
+  uint         readRules(Ath__parser* parser,
                                   uint         m,
                                   uint         ii,
                                   const char*  ouKey,
@@ -841,6 +844,7 @@ class extMeasure
 	bool OverSubDebug(extDistRC *rc, int lenOverSub, int lenOverSub_res);
 
   bool IsDebugNet();
+  bool DebugStart();
 	double GetDBcoords(uint coord);
 	double GetDBcoords(int coord);
   void printNetCaps();
