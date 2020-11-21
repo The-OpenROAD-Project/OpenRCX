@@ -551,7 +551,7 @@ void extMain::setResAndCap(dbRSeg* rc, double* restbl, double* captbl)
     rc->setResistance(res, pcdbIdx);
     cap = _gndcModify ? captbl[ii] * _gndcFactor : captbl[ii];
     cap = _netGndcCalibration ? cap * _netGndcCalibFactor : cap;
-    rc->setCapacitance(cap, pcdbIdx);
+    // DF 1120 rc->setCapacitance(cap, pcdbIdx);
     getScaledCornerDbIndex(ii, sci, scdbIdx);
     if (sci == -1)
       continue;
