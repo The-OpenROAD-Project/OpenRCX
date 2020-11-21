@@ -3958,9 +3958,7 @@ int extMeasure::computeAndStoreRC(dbRSeg* rseg1, dbRSeg* rseg2, int srcCovered)
 			if (! _diagFlow)
 				totLenCovered= measureOverUnderCap();
 			else {
-        _diagFlow= false;
 				totLenCovered= measureDiagOU(1, 2);
-        _diagFlow= true;
       }
 		}
 	}
