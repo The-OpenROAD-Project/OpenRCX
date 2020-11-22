@@ -2013,7 +2013,8 @@ uint extSpef::readDNet(uint debug)
           netId     = 0;
           uint cnid = getCapNodeId(_parser->get(1), _parser->get(2), &netId);
           if (!cnid)
-            return 0;
+            continue;
+            //return 0;
         } else if (wCnt == 4)  // Coupling cap
         {
           _ccCapCnt++;
