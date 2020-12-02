@@ -536,6 +536,7 @@ bool Ext::extract(ExtractOptions opts)
   
   _ext->set_debug_nets(debug_nets);
   _ext->skip_via_wires(opts.skip_via_wires);
+  _ext->skip_via_wires(true);
   _ext->_lef_res= opts.lef_res;
 
   uint tilingDegree = opts.tiling;

@@ -459,6 +459,11 @@ uint extDistRCTable::readRules(Ath__parser*        parser,
     rc->readRC(parser, dbFactor);
     table->add(rc);
   }
+  bool SCALE_RES_ON_MAX_DIST= true;
+  if (SCALE_RES_ON_MAX_DIST) {
+    double SUB_MULT_RES= 0.5;
+    // ScaleRes(SUB_MULT_RES, table);
+  }
   if (ignore)
     return cnt;
 
@@ -473,6 +478,25 @@ uint extDistRCTable::readRules(Ath__parser*        parser,
 #endif
 
   return cnt;
+}
+void extDistRCTable::ScaleRes(double SUB_MULT_RES, Ath__array1D<extDistRC*>* table)
+{
+    uint cnt = table->getCnt();
+    if (cnt==0)
+      return;
+
+    extDistRC* rc_last= table->get(cnt-1);
+
+    for (uint jj = 0; jj < cnt; jj++) {
+        extDistRC* rc = table->get(jj);
+        double delta= rc->_res - rc_last->_res;
+      if (delta<0)
+        delta = -delta;
+      if (delta>0.000001)
+        continue;
+      
+      rc->_res *= SUB_MULT_RES;
+    }
 }
 void extDistRCTable::makeComputeTable(uint maxDist, uint distUnit)
 {
@@ -521,10 +545,11 @@ extDistRC* extDistRCTable::getComputeRC(uint dist)
     return firstRC;
   }
 	
+  /*
   extDistRC* secondRC= _measureTable->get(1);
 	if (dist<=secondRC->_sep) 
 		return secondRC;
-  
+  */
   if (_measureTable->getLast()->_sep == 100000) {
     extDistRC* before_lastRC = _measureTable->getLast()
                                - 1;  // assuming last is 100 equivalent to inf
@@ -1705,6 +1730,15 @@ extDistRC* extMetRCTable::getOverFringeRC(extMeasure* m, int index_dist)
 
   return rc;
 }
+extDistRC* extMetRCTable::getOverFringeRC_last(int met, int width)
+{
+  if (met >= (int) _layerCnt)
+    return NULL;
+
+  extDistRC* rc = _capOver[met]->getFringeRC(0, width, -1);
+
+  return rc;
+}
 extDistRC* extRCModel::getOverFringeRC(extMeasure* m)
 {
   if (m->_met >= (int) _layerCnt)
@@ -1759,7 +1793,7 @@ extDistRC* extMeasure::getOverUnderRC(extMetRCTable* rcModel)
   uint n = getMetIndexOverUnder(_met, _underMet, _overMet, _layerCnt, maxCnt);
 
   extDistRC* rc = NULL;
-  if (_dist < 0)
+  if (_dist < 0) 
     rc = rcModel->_capOverUnder[_met]->getFringeRC(n, _width);
   else
     rc = rcModel->_capOverUnder[_met]->getRC(n, _width, _dist);
@@ -1772,7 +1806,7 @@ extDistRC* extMeasure::getOverRC(extMetRCTable* rcModel)
     return NULL;
 
   extDistRC* rc = NULL;
-  if (_dist < 0)
+  if (_dist < 0) 
     rc = rcModel->_capOver[_met]->getFringeRC(_underMet, _width);
   else
     rc = rcModel->_capOver[_met]->getRC(_underMet, _width, _dist);
@@ -2279,8 +2313,21 @@ void extDistRC::printDebug(char *from, char *name, uint len, uint dist, extDistR
 
 void extDistRC::printDebugRC(const char *from)
 {
-	debug("DistRC", "C", "\n\t%s: \n\tDist  :%g\n\ttotCap: %g\n\tCouplin: %g\n\tFringe: %g\n\tDiagC : %g\n\t D%d\n",
-			from, _sep, _coupling+_fringe+_diag, _coupling,  _fringe, _diag, _res);
+	debug("DistRC", "C", " ---- %s: extRule\n\tDist  : %d\n\tCouple: %g\n\tFringe: %g\n\tDiagC : %g\n\ttotCap: %g\n\tRes  : %g\n",
+			from, _sep, _coupling,  _fringe, _diag, _coupling+_fringe+_diag, _res);
+}
+void extDistRC::printDebugRC(int met, int overMet, int underMet, int width, int dist, int len)
+{
+  char tmp[100];
+  if (overMet>0 && underMet>0)
+    sprintf(tmp, "M%doM%duM%d W%d DIST=%d LEN=%d", met, underMet, overMet, width, dist, len);
+  else if (underMet>0)
+    sprintf(tmp, "M%doM%d W%d DIST=%d LEN=%d", met, underMet, width, dist, len);
+  else if (overMet>0)
+    sprintf(tmp, "M%duM%d W%d DIST=%d LEN=%d", met, overMet, width, dist, len);
+
+	debug("DistRC", "C", " ---- %s: extRule\n\tDist  : %d\n\tCouple: %g\n\tFringe: %g\n\tDiagC : %g\n\ttotCap: %g\n\tRes  : %g\n",
+			tmp, _sep, _coupling,  _fringe, _diag, _coupling+_fringe+_diag, _res);
 }
 /*
 void extDistRC::printDebugRC1(const char *from)
@@ -2316,6 +2363,8 @@ extDistRC* extMeasure::computeOverUnderRC(uint len)
     extMetRCTable* rcModel = _metRCTable.get(ii);
 
     rcUnit = getOverUnderRC(rcModel);
+    if (IsDebugNet())
+      rcUnit->printDebugRC(_met, _overMet, _underMet, _width, _dist, len);
 
     addRC(rcUnit, len, ii);
   }
