@@ -11,8 +11,7 @@
 
 #include <vector>
 #include <map>
-//#include "logger.h"
-#include <logger.h>
+#include "dbLogger.h"
 
 namespace OpenRCX {
 
