@@ -5606,7 +5606,7 @@ uint extMain::powerRCGen()
   //_via2JunctionMap= new Ath__array1D<int>(10000000);
 
   findHighLevelPinMacros(_powerMacroTable);
-  odb::notice(0, "Found %d macro blocks\n", _powerMacroTable.size());
+  odb::notice(0, "Found %lu macro blocks\n", _powerMacroTable.size());
 
   markExcludedCells();
 
