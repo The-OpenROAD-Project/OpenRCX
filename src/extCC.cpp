@@ -35,8 +35,8 @@
 #include <algorithm>
 
 #include "ZInterface.h"
-#include <logger.h>
-#include <wire.h>
+#include "dbLogger.h"
+#include "wire.h"
 //#define ZDEBUG 1
 uint ttttGetDgOverlap;
 //#define TEST_GetDgOverlap

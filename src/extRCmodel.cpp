@@ -36,7 +36,7 @@
 #include "extRCap.h"
 #include "extprocess.h"
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 #ifdef _WIN32
 #include "direct.h"

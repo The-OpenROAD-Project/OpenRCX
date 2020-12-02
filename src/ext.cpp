@@ -32,7 +32,7 @@
 #include <errno.h>
 
 #include "ext.h"
-#include "logger.h"
+#include "dbLogger.h"
 #include "sta/StaMain.hh"
 
 namespace sta {

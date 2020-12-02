@@ -41,7 +41,7 @@
 #include <map>
 #include <vector>
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 namespace OpenRCX {
 

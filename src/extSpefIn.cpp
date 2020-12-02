@@ -33,7 +33,7 @@
 #include "extRCap.h"
 #include "extSpef.h"
 //#include "wire.h"
-#include <logger.h>
+#include <dbLogger.h>
 #include <math.h>
 #include <wire.h>
 
