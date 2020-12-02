@@ -39,7 +39,7 @@
 
 #include "dbUtil.h"
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 //#define MAXINT 0x7FFFFFFF;
 

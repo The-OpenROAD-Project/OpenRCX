@@ -36,7 +36,7 @@
 #include <dbWireCodec.h>
 //#include "dbShape.h"
 #include <dbShape.h>
-#include <logger.h>
+#include <dbLogger.h>
 
 #include "extRCap.h"
 

@@ -38,7 +38,7 @@
 #include <map>
 #include <vector>
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 #define MAXINT 0x7FFFFFFF;
 //#define HI_ACC_10312011

@@ -39,7 +39,7 @@
 
 #include "parse.h"
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 //#ifdef _WIN32
 #define ATH__fprintf fprintf

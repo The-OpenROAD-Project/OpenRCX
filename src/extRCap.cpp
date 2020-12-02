@@ -44,7 +44,7 @@
 
 #include "darr.h"
 //#include "logger.h"
-#include <logger.h>
+#include <dbLogger.h>
 
 namespace OpenRCX {
 
