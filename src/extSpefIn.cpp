@@ -212,7 +212,7 @@ double extSpef::printDiff(dbNet*      net,
                           int         ii,
                           int         id)
 {
-	bool ext_stats= true;
+  bool ext_stats = true;
 
   if (_calib)
     return 0.0;
@@ -233,33 +233,82 @@ double extSpef::printDiff(dbNet*      net,
     return diffCap;
 
   if (ext_stats) {
-		uint corner= ii;
-		int wlen;
-		uint via_cnt;
-		double min_cap, max_cap, min_res, max_res, via_res;
+    uint   corner = ii;
+    int    wlen;
+    uint   via_cnt;
+    double min_cap, max_cap, min_res, max_res, via_res;
 
-		uint wireCnt = _ext->getExtStats(net,  corner,  wlen,  min_cap, max_cap, min_res, max_res, via_res, via_cnt); 
+    uint wireCnt = _ext->getExtStats(net,
+                                     corner,
+                                     wlen,
+                                     min_cap,
+                                     max_cap,
+                                     min_res,
+                                     max_res,
+                                     via_res,
+                                     via_cnt);
 
-		double boundsPercent;
-		double boundsPercentRef;
-		if (ctype=="netRes") {
-			const char * comp_db = comp_bounds(dbCap, min_res+via_res, max_res+via_res, boundsPercent);
-			const char * comp_ref = comp_bounds(refCap, min_res+via_res, max_res+via_res, boundsPercentRef);
+    double boundsPercent;
+    double boundsPercentRef;
+    if (ctype == "netRes") {
+      const char* comp_db = comp_bounds(
+          dbCap, min_res + via_res, max_res + via_res, boundsPercent);
+      const char* comp_ref = comp_bounds(
+          refCap, min_res + via_res, max_res + via_res, boundsPercentRef);
 
-			fprintf(_diffOutFP, "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f %10.4f VR %g  V %d  L %d  WC %d  %s corner %d %s ", 
-				diffCap, dbCap, comp_db, boundsPercent, refCap, comp_ref, boundsPercentRef, min_res, max_res, via_res, via_cnt, wlen, wireCnt, ctype, ii, _ext->_tmpLenStats);
-		} else {
-				const char * comp_db =   comp_bounds(dbCap, min_cap, max_cap, boundsPercent);
-				const char * comp_ref = comp_bounds(refCap, min_cap, max_cap, boundsPercentRef);
+      fprintf(_diffOutFP,
+              "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f "
+              "%10.4f VR %g  V %d  L %d  WC %d  %s corner %d %s ",
+              diffCap,
+              dbCap,
+              comp_db,
+              boundsPercent,
+              refCap,
+              comp_ref,
+              boundsPercentRef,
+              min_res,
+              max_res,
+              via_res,
+              via_cnt,
+              wlen,
+              wireCnt,
+              ctype,
+              ii,
+              _ext->_tmpLenStats);
+    } else {
+      const char* comp_db = comp_bounds(dbCap, min_cap, max_cap, boundsPercent);
+      const char* comp_ref
+          = comp_bounds(refCap, min_cap, max_cap, boundsPercentRef);
 
-				fprintf(_diffOutFP, "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f %10.4f  L %8d  WC %3d  V %3d %s corner %d %s ", 
-					diffCap, dbCap, comp_db, boundsPercent, refCap, comp_ref, boundsPercentRef, min_cap, max_cap, wlen, wireCnt, via_cnt, ctype, ii, _ext->_tmpLenStats);	
-		}
+      fprintf(_diffOutFP,
+              "%4.1f  %10.4f D %s %4.1f ref %10.4f R %s %4.1f bounds: %10.4f "
+              "%10.4f  L %8d  WC %3d  V %3d %s corner %d %s ",
+              diffCap,
+              dbCap,
+              comp_db,
+              boundsPercent,
+              refCap,
+              comp_ref,
+              boundsPercentRef,
+              min_cap,
+              max_cap,
+              wlen,
+              wireCnt,
+              via_cnt,
+              ctype,
+              ii,
+              _ext->_tmpLenStats);
+    }
 
-	} else {
-		fprintf(_diffOutFP, "%4.2f - %s %g ref %g corner %d ", 
-			diffCap, ctype, dbCap, refCap, ii);
-	}
+  } else {
+    fprintf(_diffOutFP,
+            "%4.2f - %s %g ref %g corner %d ",
+            diffCap,
+            ctype,
+            dbCap,
+            refCap,
+            ii);
+  }
 
   if (id > 0)
     fprintf(_diffOutFP, "capId %d ", id);
@@ -270,27 +319,29 @@ double extSpef::printDiff(dbNet*      net,
 }
 double extSpef::percentDiff(double dbCap, double refCap)
 {
-	double percent = 100.0;
-	if (refCap>0.0)
-		percent *= ((dbCap-refCap)/refCap);
-	return percent;
+  double percent = 100.0;
+  if (refCap > 0.0)
+    percent *= ((dbCap - refCap) / refCap);
+  return percent;
 }
-const char * extSpef::comp_bounds(double val, double min, double max, double & percent)
+const char* extSpef::comp_bounds(double  val,
+                                 double  min,
+                                 double  max,
+                                 double& percent)
 {
-	percent = percentDiff(val, max);
-	double percent_low = percentDiff(val, min);
-	const char * comp_db = "OK";
-	if (val<min && percent_low<-0.1) {
-		comp_db = "LO";
-		percent = percent_low;
-	}
-	else if (val>max && percent>0.1) {
-		comp_db = "HI";
-		percent = percentDiff(val, max);
-	} else { 
-		// percent = 0;
-	}
-	return comp_db;
+  percent                 = percentDiff(val, max);
+  double      percent_low = percentDiff(val, min);
+  const char* comp_db     = "OK";
+  if (val < min && percent_low < -0.1) {
+    comp_db = "LO";
+    percent = percent_low;
+  } else if (val > max && percent > 0.1) {
+    comp_db = "HI";
+    percent = percentDiff(val, max);
+  } else {
+    // percent = 0;
+  }
+  return comp_db;
 }
 double extSpef::printDiffCC(dbNet*      net1,
                             dbNet*      net2,
@@ -1540,7 +1591,8 @@ uint extSpef::sortRSegs()
         break;
       }
     }
-    // TODO: add flag notice (0, "Warning: Can't find driver capnode for net %d %s\n", _d_net->getId(), _d_net->getConstName());
+    // TODO: add flag notice (0, "Warning: Can't find driver capnode for net %d
+    // %s\n", _d_net->getId(), _d_net->getConstName());
     _d_corner_net->setRCDisconnected(true);
     return 0;
   }
@@ -1715,8 +1767,8 @@ uint extSpef::sortRSegs()
     //	uint shapeId = 0;
     //	if (tgtnode->isITerm())
     //		shapeId = getITermShapeId(dbITerm::getITerm(_cornerBlock,
-    //tgtnode->getNode())); 	else 		shapeId =
-    //getBTermShapeId(dbBTerm::getBTerm(_cornerBlock, tgtnode->getNode()));
+    // tgtnode->getNode())); 	else 		shapeId =
+    // getBTermShapeId(dbBTerm::getBTerm(_cornerBlock, tgtnode->getNode()));
     //	rc->updateShapeId(shapeId);
     //}
   }
@@ -1962,9 +2014,10 @@ uint extSpef::readDNet(uint debug)
             cpos = 3;
           if (cpos != 0) {
             s_coordFlag = readNodeCoords(cpos);
-            if (cpos != 2 || s_coordFlag)  // /fs/ae/agusta/siart_tss/mme_run/myn.spef.gz
-                                           // has *N with (0,0) , but no coords
-                                           // for *I and *P
+            if (cpos != 2
+                || s_coordFlag)  // /fs/ae/agusta/siart_tss/mme_run/myn.spef.gz
+                                 // has *N with (0,0) , but no coords
+                                 // for *I and *P
               continue;
           }
         }
@@ -2014,7 +2067,7 @@ uint extSpef::readDNet(uint debug)
           uint cnid = getCapNodeId(_parser->get(1), _parser->get(2), &netId);
           if (!cnid)
             continue;
-            //return 0;
+          // return 0;
         } else if (wCnt == 4)  // Coupling cap
         {
           _ccCapCnt++;
@@ -2092,7 +2145,7 @@ uint extSpef::readDNet(uint debug)
       _d_corner_net->reverseCCSegs();
       //			if (fseg)
       //				dbCCSeg::relinkTgtCC(tgtNet, fseg, 0,
-      //0);
+      // 0);
     }
 
     if (strcmp("*RES", _parser->get(0)) == 0) {
@@ -2142,8 +2195,8 @@ uint extSpef::readDNet(uint debug)
 
           //					uint shapeId= 0;
           if (_readingNodeCoords != C_NONE) {
-            //						dbCapNode *capNode= dbCapNode::getCapNode(_block,
-            //dstCapNodeId);
+            //						dbCapNode *capNode=
+            //dbCapNode::getCapNode(_block, dstCapNodeId);
             if (_readingNodeCoords == C_MAGMA) {
               // 1 *1:1 *1:2 7.3792 // x=[782.74,791.7] y=[376.67,376.81]
               // dx=8.96 dy=0.14 lyr=METAL3 shapeId= parseAndFindShapeId();
@@ -2151,8 +2204,8 @@ uint extSpef::readDNet(uint debug)
             }
             // else if (capNode->isITerm())
             //	shapeId = getITermShapeId(dbITerm::getITerm(_block,
-            //capNode->getNode())); else if (capNode->isBTerm()) 	shapeId =
-            //getBTermShapeId(dbBTerm::getBTerm(_block, capNode->getNode()));
+            // capNode->getNode())); else if (capNode->isBTerm()) 	shapeId
+            // = getBTermShapeId(dbBTerm::getBTerm(_block, capNode->getNode()));
             // else if (s_coordFlag)
             //	shapeId= getShapeIdFromNodeCoords(dstCapNode);
           }
@@ -2490,7 +2543,8 @@ uint extSpef::readBlock(uint                debug,
     } else if (corner >= 0) {
       // if (corner>=_block->getCornerCount()) {
       // 	notice (0, "Ext corner %d out of range; There are only %d
-      // corners in DB\n", 		corner, _block->getCornerCount()); 	return 0;
+      // corners in DB\n", 		corner, _block->getCornerCount());
+      // return 0;
       // }
       if (corner >= (int) _cornerCnt) {
         notice(0,

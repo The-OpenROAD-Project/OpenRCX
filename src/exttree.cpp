@@ -934,12 +934,12 @@ uint extRcTree::checkAndInit(odb::dbNet*              net,
 //		}
 //		if (tgtNode->isTreeNode() && (deltaCap>=0.0)) { // junction
 //			prevNode= makeNode(startingNodeId, endingNodeId,
-//tgtNode, false, ur[0], ur[1], res+wireRes, cap+wireCap, prevNode);
+// tgtNode, false, ur[0], ur[1], res+wireRes, cap+wireCap, prevNode);
 // firstRC= NULL; 			continue;
 //		}
 //		if (deltaCap==0.0) { // very rare
 //			prevNode= makeNode(startingNodeId, endingNodeId,
-//tgtNode, true, ur[0], ur[1], res+wireRes, cap+wireCap, prevNode);
+// tgtNode, true, ur[0], ur[1], res+wireRes, cap+wireCap, prevNode);
 // firstRC= NULL;
 //		}
 //		if (deltaCap<0.0) {
@@ -955,7 +955,7 @@ uint extRcTree::checkAndInit(odb::dbNet*              net,
 //			double cap1= capFraction*wireCap;
 //
 //			prevNode= makeNode(startingNodeId, endingNodeId,
-//tgtNode, false, x2, y2, res+res1, max_cap, prevNode);
+// tgtNode, false, x2, y2, res+res1, max_cap, prevNode);
 //
 //			double remainderCap= wireCap - cap1; //delta is negative
 //			deltaCap= max_cap - remainderCap;

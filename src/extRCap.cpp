@@ -155,7 +155,7 @@ void extMain::initIncrementalSpef(const char* origp,
     _bufSpefCnt = 0;
   else
     _bufSpefCnt = 1;
-  _incrNoBackSlash  = noBackSlash;
+  _incrNoBackSlash = noBackSlash;
 }
 #ifndef DEFAULT_BILL_WAY
 void extMain::reportTotalCap(const char* file,

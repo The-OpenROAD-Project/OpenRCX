@@ -29,16 +29,17 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+#include "ext.h"
+
 #include <errno.h>
 
-#include "ext.h"
 #include "dbLogger.h"
 #include "sta/StaMain.hh"
 
 namespace sta {
 // Tcl files encoded into strings.
-extern const char *openrcx_tcl_inits[];
-}
+extern const char* openrcx_tcl_inits[];
+}  // namespace sta
 
 namespace OpenRCX {
 
@@ -48,8 +49,8 @@ extern int Openrcx_Init(Tcl_Interp* interp);
 
 Ext::Ext() : odb::ZInterface()
 {
-  _ext  = new extMain(5);
-  _tree = NULL;
+  _ext          = new extMain(5);
+  _tree         = NULL;
   _initWithChip = false;
 }
 
@@ -62,7 +63,7 @@ void Ext::dbUpdate()
 {
   // extMain::setDB needs for the db to have its chip set.
   // This doesn't happen when init is called at startup as
-  // the design isn't loaded yet.  So we do a check on every 
+  // the design isn't loaded yet.  So we do a check on every
   // entry point into Ext.
   if (!_initWithChip && _db->getChip()) {
     _initWithChip = true;
@@ -104,10 +105,11 @@ bool Ext::load_model(const std::string& name,
     // fprintf(stdout, "\nHave to specify options:\n\t-lef_rc to read resistance
     // and capacitance values from LEF or \n\t-file to read high accuracy RC
     // models\n");
-    odb::notice(0,
-           "\nHave to specify options:\n\t-lef_rc to read resistance and "
-           "capacitance values from LEF or \n\t-file to read high accuracy RC "
-           "models\n");
+    odb::notice(
+        0,
+        "\nHave to specify options:\n\t-lef_rc to read resistance and "
+        "capacitance values from LEF or \n\t-file to read high accuracy RC "
+        "models\n");
   }
 
   return 0;
@@ -174,9 +176,12 @@ bool Ext::write_rules(const std::string& name,
                       bool               read_from_solver)
 {
   dbUpdate();
-  _ext->writeRules(
-      name.c_str(), dir.c_str(), file.c_str(), pattern,
-      read_from_db, read_from_solver);
+  _ext->writeRules(name.c_str(),
+                   dir.c_str(),
+                   file.c_str(),
+                   pattern,
+                   read_from_db,
+                   read_from_solver);
   return TCL_OK;
 }
 
@@ -236,14 +241,13 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
 {
   if (!_initWithChip && !_db->getChip()) {
     _ext->setDB(_db);
-  }
-  else
+  } else
     dbUpdate();
 
   extMainOptions opt;
 
   opt._topDir    = bwo.dir;
-	opt._met_cnt   = bwo.met_cnt;
+  opt._met_cnt   = bwo.met_cnt;
   opt._met       = bwo.met;
   opt._overDist  = bwo.over_dist;
   opt._underDist = bwo.under_dist;
@@ -266,18 +270,18 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
   opt._run_solver       = bwo.run_solver;
   opt._diag             = bwo.diag;
   opt._db_only          = bwo.db_only;
-	opt._gen_def_patterns = bwo.gen_def_patterns;
-	
+  opt._gen_def_patterns = bwo.gen_def_patterns;
+
   if (opt._gen_def_patterns) {
-		opt._diag= true;
-		opt._overUnder= true;
-		opt._db_only= true;
-		opt._over=true;
-		opt._underMet= 0;
-	}
+    opt._diag      = true;
+    opt._overUnder = true;
+    opt._db_only   = true;
+    opt._over      = true;
+    opt._underMet  = 0;
+  }
 
   Ath__parser parser;
-  
+
   std::string th_list(bwo.th_list);
   std::string w_list(bwo.w_list);
   std::string s_list(bwo.s_list);
@@ -334,21 +338,20 @@ bool Ext::bench_wires(const BenchWiresOptions& bwo)
 
 bool Ext::bench_verilog(const std::string& file)
 {
-	dbUpdate();
+  dbUpdate();
 
-	char* filename = (char*) file.c_str();
-	if (!filename || !filename[0])
-	{
-		notice(0, "Please set file name.\n");
-		return 0;
-	}
-	FILE* fp = fopen(filename, "w");
-	if (fp == NULL) {
-		notice(0, "Cannot open file %s\n", filename);
-		return 0;
-	}
-	_ext->benchVerilog(fp);
-	
+  char* filename = (char*) file.c_str();
+  if (!filename || !filename[0]) {
+    notice(0, "Please set file name.\n");
+    return 0;
+  }
+  FILE* fp = fopen(filename, "w");
+  if (fp == NULL) {
+    notice(0, "Cannot open file %s\n", filename);
+    return 0;
+  }
+  _ext->benchVerilog(fp);
+
   return TCL_OK;
 }
 
@@ -457,13 +460,13 @@ bool Ext::assembly(odb::dbBlock* block, odb::dbBlock* main_block)
   dbUpdate();
   if (main_block == NULL) {
     odb::notice(0,
-           "Add parasitics of block %s onto nets/wires ...\n",
-           block->getConstName());
+                "Add parasitics of block %s onto nets/wires ...\n",
+                block->getConstName());
   } else {
     odb::notice(0,
-           "Add parasitics of block %s onto block %s...\n",
-           block->getConstName(),
-           main_block->getConstName());
+                "Add parasitics of block %s onto block %s...\n",
+                block->getConstName(),
+                main_block->getConstName());
   }
 
   extMain::assemblyExt(main_block, block);
@@ -517,7 +520,7 @@ bool Ext::extract(ExtractOptions opts)
   const char* extRules      = opts.ext_model_file;
   const char* cmpFile       = opts.cmp_file;
   bool        density_model = opts.wire_density;
-  bool litho = opts.litho;
+  bool        litho         = opts.litho;
 
   uint ccUp   = opts.cc_up;
   uint ccFlag = opts.cc_model;
@@ -527,17 +530,17 @@ bool Ext::extract(ExtractOptions opts)
   bool        merge_via_res      = opts.no_merge_via_res ? false : true;
   uint        extdbg             = opts.test;
   const char* nets               = opts.net;
-  const char *debug_nets         = opts.debug_net;
+  const char* debug_nets         = opts.debug_net;
   bool        gs                 = opts.no_gs ? false : true;
   double      ccThres            = opts.coupling_threshold;
   int         ccContextDepth     = opts.context_depth;
   bool        overCell           = opts.over_cell;
   bool        btermThresholdFlag = opts.tile;
-  
+
   _ext->set_debug_nets(debug_nets);
   _ext->skip_via_wires(opts.skip_via_wires);
   _ext->skip_via_wires(true);
-  _ext->_lef_res= opts.lef_res;
+  _ext->_lef_res = opts.lef_res;
 
   uint tilingDegree = opts.tiling;
 
@@ -720,7 +723,8 @@ bool Ext::extract(ExtractOptions opts)
 
   //    fprintf(stdout, "Finished extracting %s.\n",
   //    _ext->getBlock()->getName().c_str());
-  odb::notice(0, "Finished extracting %s.\n", _ext->getBlock()->getName().c_str());
+  odb::notice(
+      0, "Finished extracting %s.\n", _ext->getBlock()->getName().c_str());
   return 0;
 }
 
@@ -737,10 +741,8 @@ bool Ext::init_incremental_spef(const std::string& origp,
                                 const std::string& exclude_cells)
 {
   dbUpdate();
-  _ext->initIncrementalSpef(origp.c_str(),
-                            newp.c_str(),
-                            exclude_cells.c_str(),
-                            no_backslash);
+  _ext->initIncrementalSpef(
+      origp.c_str(), newp.c_str(), exclude_cells.c_str(), no_backslash);
   return 0;
 }
 
@@ -784,7 +786,7 @@ bool Ext::write_spef(const SpefOptions& opts)
   bool initOnly = opts.init;
   if (!initOnly)
     odb::notice(0, "Writing SPEF ...\n");
-    initOnly = opts.parallel && opts.flatten;
+  initOnly = opts.parallel && opts.flatten;
   _ext->writeSPEF((char*) opts.file,
                   (char*) opts.nets,
                   useIds,
@@ -810,7 +812,7 @@ bool Ext::write_spef(const SpefOptions& opts)
                   opts.flatten,
                   opts.parallel);
 
-    odb::notice(0, "Finished writing SPEF ...\n");
+  odb::notice(0, "Finished writing SPEF ...\n");
   // fprintf(stdout, "Hello Extraction %s\n", "Ext::write_spef");
   return 0;
 }
@@ -894,7 +896,8 @@ bool Ext::diff_spef(const DiffOptions& opt)
   //    fprintf(stdout, "diffing spef %s\n",in_args->file());
   std::string filename(opt.file);
   if (filename.empty()) {
-    odb::notice(0, "\nplease type in name of the spef file to diff, using -file\n");
+    odb::notice(
+        0, "\nplease type in name of the spef file to diff, using -file\n");
     return 0;
   }
   odb::notice(0, "diffing spef %s\n", opt.file);
@@ -905,12 +908,12 @@ bool Ext::diff_spef(const DiffOptions& opt)
   Ath__parser parser;
   parser.mkWords(opt.file);
 
-  //char* excludeSubWord = (char*) opt.exclude_net_subword.c_str();
-  //char* subWord        = (char*) opt.net_subword.c_str();
-  //char* statsFile      = (char*) opt.rc_stats_file.c_str();
+  // char* excludeSubWord = (char*) opt.exclude_net_subword.c_str();
+  // char* subWord        = (char*) opt.net_subword.c_str();
+  // char* statsFile      = (char*) opt.rc_stats_file.c_str();
 
   _ext->readSPEF(parser.get(0),
-                 (char*)opt.net,
+                 (char*) opt.net,
                  false /*force*/,
                  opt.use_ids,
                  opt.r_conn,
@@ -928,10 +931,10 @@ bool Ext::diff_spef(const DiffOptions& opt)
                  opt.ext_corner,
                  opt.low_guard,
                  opt.upper_guard,
-                 (char*)opt.exclude_net_subword,
-                 (char*)opt.net_subword,
-                 (char*)opt.rc_stats_file,
-                 (char*)opt.db_corner_name,
+                 (char*) opt.exclude_net_subword,
+                 (char*) opt.net_subword,
+                 (char*) opt.rc_stats_file,
+                 (char*) opt.db_corner_name,
                  NULL,
                  opt.spef_corner,
                  0 /*fix_loop*/,
@@ -961,8 +964,8 @@ bool Ext::calibrate(const std::string& spef_file,
   dbUpdate();
   if (spef_file.empty()) {
     odb::notice(0,
-           "\nplease type in name of the spef file to calibrate, using "
-           "-spef_file\n");
+                "\nplease type in name of the spef file to calibrate, using "
+                "-spef_file\n");
     return 0;
   }
   odb::notice(0, "calibrate on spef file  %s\n", spef_file.c_str());
@@ -1019,12 +1022,12 @@ bool Ext::set_block(const std::string& block_name,
     odb::dbInst*   ii   = chip->getBlock()->findInst(inst_name.c_str());
     odb::dbMaster* m    = ii->getMaster();
     odb::notice(0,
-           "Inst=%s ==> %d %s of Master %d %s",
-           inst_name.c_str(),
-           ii->getId(),
-           ii->getConstName(),
-           m->getId(),
-           m->getConstName());
+                "Inst=%s ==> %d %s of Master %d %s",
+                inst_name.c_str(),
+                ii->getId(),
+                ii->getConstName(),
+                m->getId(),
+                m->getConstName());
   }
   if (block == NULL) {
     if (block_name.empty()) {
@@ -1034,7 +1037,8 @@ bool Ext::set_block(const std::string& block_name,
     odb::dbChip*  chip  = _db->getChip();
     odb::dbBlock* child = chip->getBlock()->findChild(block_name.c_str());
     if (child == NULL) {
-      odb::warning(0, "Cannot find block with master name %s\n", block_name.c_str());
+      odb::warning(
+          0, "Cannot find block with master name %s\n", block_name.c_str());
       return TCL_ERROR;
     }
     block = child;

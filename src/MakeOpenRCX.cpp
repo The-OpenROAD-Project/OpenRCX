@@ -32,8 +32,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "MakeOpenRCX.h"
-#include "openroad/OpenRoad.hh"
+
 #include "ext.h"
+#include "openroad/OpenRoad.hh"
 
 namespace ord {
 
@@ -49,8 +50,7 @@ void deleteOpenRCX(OpenRCX::Ext* extractor)
 
 void initOpenRCX(OpenRoad* openroad)
 {
-  openroad->getOpenRCX()->init(openroad->tclInterp(),
-                               openroad->getDb());
+  openroad->getOpenRCX()->init(openroad->tclInterp(), openroad->getDb());
 }
 
 }  // namespace ord

@@ -105,7 +105,7 @@ uint extMain::initPlanesNew(uint planeCnt, odb::Rect* bb)
 
     odb::Rect r = maxRect;
     //_geomSeq->configureSlice(level, pp, pp, r.xMin(), r.yMin(), r.xMax(),
-    //r.yMax());
+    // r.yMax());
 
     // odb::Rect r= rectTable[level];
 

@@ -195,15 +195,15 @@ double extMain::getViaResistance(dbTechVia* tvia)
     if (layer1->getType() == dbTechLayerType::CUT)
       res = layer1->getResistance();
 
-    /* This works 
-   
+    /* This works
+
     debug("EXT_RES",
           "V",
           "getViaResistance: %s %s %g ohms\n",
           tvia->getConstName(),
           layer1->getConstName(),
           layer1->getResistance());
-    
+
           */
   }
   return res;
@@ -1072,7 +1072,7 @@ uint extMain::makeNetRCsegs(dbNet* net, bool skipStartWarning)
                                path.is_branch,
                                _tmpSumResTable,
                                _tmpSumCapTable);
-          if (s.isVia()&& rc!=NULL) {
+          if (s.isVia() && rc != NULL) {
             // seg->_flags->_spare_bits_29=1;
             createShapeProperty(net, pshape.junction_id, rc->getId());
           }

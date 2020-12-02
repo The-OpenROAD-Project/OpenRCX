@@ -35,8 +35,8 @@
 //#include "dbWireCodec.h"
 #include <dbWireCodec.h>
 //#include "dbShape.h"
-#include <dbShape.h>
 #include <dbLogger.h>
+#include <dbShape.h>
 
 #include "extRCap.h"
 
@@ -162,10 +162,10 @@ int extMain::db_test_wires(odb::dbDatabase* db)
   odb::dbWirePathItr pitr;
 
   for (pitr.begin(wire); pitr.getNextPath(path);) {
-    uint          prevId    = path.junction_id;
+    uint       prevId    = path.junction_id;
     odb::Point prevPoint = path.point;
     while (pitr.getNextShape(pshape)) {
-      uint          newId    = pshape.junction_id;
+      uint       newId    = pshape.junction_id;
       odb::Point newPoint = pshape.point;
 
       uint len = print_shape(pshape.shape, prevId, newId);

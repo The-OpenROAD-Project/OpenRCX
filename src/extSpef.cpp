@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "extSpef.h"
+
 #include "extRCap.h"
 //#include "dbExtControl.h"
 #include <dbExtControl.h>
@@ -54,11 +55,11 @@ class extMain;
 
 extSpef::extSpef(odb::dbTech*  tech,
                  odb::dbBlock* blk,
-                 extMain *extmain,
+                 extMain*      extmain,
                  uint          btermCnt,
                  uint          itermCnt)
 {
-	_ext= extmain;
+  _ext     = extmain;
   _tech    = tech;
   _block   = blk;
   _blockId = 0;
@@ -1299,8 +1300,8 @@ uint extSpef::writeNodeCoords(uint netId, odb::dbSet<odb::dbRSeg>& rSet)
 
     // if (_NsLayer)
     //	ATH__fprintf(_outFP, "*C %f %f %s\n", db2nm*(x1+x2)/2, db2nm*(y1+y2)/2,
-    //layer->getConstName()); else 	ATH__fprintf(_outFP, "*C %f %f\n",
-    //db2nm*(x1+x2)/2, db2nm*(y1+y2)/2);
+    // layer->getConstName()); else 	ATH__fprintf(_outFP, "*C %f %f\n",
+    // db2nm*(x1+x2)/2, db2nm*(y1+y2)/2);
     ATH__fprintf(_outFP, "*N ");
     writeCapNode(rc->getTargetNode(), netId);
     int x1, y1;
