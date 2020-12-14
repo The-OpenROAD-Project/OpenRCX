@@ -1,3 +1,5 @@
+# This repo is obsolete.  Please see OpenRCX in the OpenROAD repo instead.
+
 # OpenRCX
 [![Standard](https://img.shields.io/badge/C%2B%2B-17-blue)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
